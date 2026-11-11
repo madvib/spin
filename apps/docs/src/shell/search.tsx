@@ -12,7 +12,6 @@ import {
   createMemo,
   createSignal,
   For,
-  onCleanup,
   Show,
 } from "solid-js";
 import type { JSX } from "solid-js";
@@ -21,7 +20,7 @@ import {
   primitiveContracts,
   SECTIONS,
 } from "@spinjs/preset";
-import { BASE_ROLES } from "@spinjs/spin/theme";
+import { BASE_ROLES } from "@spinjs/theme";
 import { COMPONENT_GROUPS, DOCS_GROUPS } from "./nav.ts";
 
 export interface SearchEntry {

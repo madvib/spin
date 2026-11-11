@@ -19,27 +19,27 @@
           <button class="ghost icon s-sm text-muted hover:bg-surface" {...machine.getCloseTriggerProps()}><span class="i-lucide-x type-caption" aria-hidden="true"></span></button></div>
       </div>
       <div class="grid content-start gap-3 p-4">
-        <output data-display class="rounded-lg border bg-surface-sunken p-4 text-right type-stat tabular-nums">0</output>
+        <output data-display class="rounded-lg border bg-surface-sunken p-4 text-right type-title tabular-nums">0</output>
         <div class="grid grid-cols-4 gap-2">
           <button type="button" data-key="C" data-act="clear" class="danger flex h-12 min-h-0 items-center justify-center">C</button>
           <button type="button" data-key="±" data-act="negate" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border bg-surface p-0 type-label hover:bg-surface-sunken">±</button>
           <button type="button" data-key="%" data-act="percent" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border bg-surface p-0 type-label hover:bg-surface-sunken">%</button>
-          <button type="button" data-key="÷" data-act="op" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg bg-semantic-warning type-label text-on-semantic-warning hover:bg-semantic-warning">÷</button>
+          <button type="button" data-key="÷" data-act="op" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg bg-semantic-warning type-label text-on-semantic-warning hover:bg-semantic-warning hover:text-on-semantic-warning">÷</button>
           <button type="button" data-key="7" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border bg-surface p-0 type-label hover:bg-surface-sunken">7</button>
           <button type="button" data-key="8" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border bg-surface p-0 type-label hover:bg-surface-sunken">8</button>
           <button type="button" data-key="9" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border bg-surface p-0 type-label hover:bg-surface-sunken">9</button>
-          <button type="button" data-key="×" data-act="op" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg bg-semantic-warning type-label text-on-semantic-warning hover:bg-semantic-warning">×</button>
+          <button type="button" data-key="×" data-act="op" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg bg-semantic-warning type-label text-on-semantic-warning hover:bg-semantic-warning hover:text-on-semantic-warning">×</button>
           <button type="button" data-key="4" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border bg-surface p-0 type-label hover:bg-surface-sunken">4</button>
           <button type="button" data-key="5" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border bg-surface p-0 type-label hover:bg-surface-sunken">5</button>
           <button type="button" data-key="6" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border bg-surface p-0 type-label hover:bg-surface-sunken">6</button>
-          <button type="button" data-key="−" data-act="op" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg bg-semantic-warning type-label text-on-semantic-warning hover:bg-semantic-warning">−</button>
+          <button type="button" data-key="−" data-act="op" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg bg-semantic-warning type-label text-on-semantic-warning hover:bg-semantic-warning hover:text-on-semantic-warning">−</button>
           <button type="button" data-key="1" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border bg-surface p-0 type-label hover:bg-surface-sunken">1</button>
           <button type="button" data-key="2" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border bg-surface p-0 type-label hover:bg-surface-sunken">2</button>
           <button type="button" data-key="3" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border bg-surface p-0 type-label hover:bg-surface-sunken">3</button>
-          <button type="button" data-key="+" data-act="op" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg bg-semantic-warning type-label text-on-semantic-warning hover:bg-semantic-warning">+</button>
+          <button type="button" data-key="+" data-act="op" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg bg-semantic-warning type-label text-on-semantic-warning hover:bg-semantic-warning hover:text-on-semantic-warning">+</button>
           <button data-key="0" data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border bg-surface p-0 type-label hover:bg-surface-sunken">0</button>
           <button data-key="." data-act="digit" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg border bg-surface p-0 type-label hover:bg-surface-sunken">.</button>
-          <button data-key="=" data-act="eq" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg bg-semantic-warning type-label text-on-semantic-warning hover:bg-semantic-warning">=</button>
+          <button data-key="=" data-act="eq" class="bare flex h-12 min-h-0 items-center justify-center rounded-lg bg-semantic-warning type-label text-on-semantic-warning hover:bg-semantic-warning hover:text-on-semantic-warning">=</button>
         </div>
       </div>
             <button class="bare absolute p-0 inset-x-0 top-0 h-1 min-h-0 border-0 cursor-ns-resize" {...machine.getResizeTriggerProps("n")} aria-hidden="true"></button>

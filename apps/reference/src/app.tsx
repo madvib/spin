@@ -1,13 +1,12 @@
 import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
 import {
   describeCatalog,
-  primitiveCategories,
   primitiveElements,
   SECTIONS,
   utilitiesFor,
 } from "@spinjs/preset";
-import { parseTokens } from "@spinjs/spin/theme";
-import { starterThemes } from "@spinjs/spin/theme/themes";
+import { parseTokens } from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 import {
   createThemeState,
   Logo,
@@ -26,7 +25,7 @@ import { UtilitiesLanding, UtilitiesPage } from "./utilities.tsx";
 
 import type { CatalogSection } from "@spinjs/preset";
 import type { Accessor } from "solid-js";
-import type { TokenTree } from "@spinjs/spin/theme";
+import type { TokenTree } from "@spinjs/theme";
 
 /**
  * The glyph each element wears, keyed by the element's name.
@@ -46,7 +45,7 @@ let themeTree: TokenTree | undefined;
 function themeTreeOrParse(): TokenTree {
   if (themeTree === undefined) {
     const parsed = parseTokens(
-      starterThemes.silk,
+      starterThemes.minimal,
     );
     if (!parsed.ok) throw new Error(parsed.error);
     themeTree = parsed.tree;
@@ -65,7 +64,7 @@ function themeTreeOrParse(): TokenTree {
 function useTheme(): ThemeState {
   return createThemeState({
     documents: themeDocuments,
-    initialTheme: "silk",
+    initialTheme: "minimal",
     initialMode: "system",
     storage: { theme: "spin-theme", mode: "spin-mode" },
     followSystem: true,
@@ -130,7 +129,7 @@ const RAIL_LINK =
  * far as its rows does not read as their title.
  */
 const RAIL_BAND =
-  "mt-4 mb-2 flex items-center gap-2 px-2 py-1 type-body-strong normal-case first:mt-0";
+  "mt-4 mb-2 flex items-center gap-2 px-2 py-1 type-body-emphasized normal-case first:mt-0";
 
 /**
  * The heading over the rail's list.

@@ -1,4 +1,4 @@
-import type { AssignFor } from "@spinjs/runtime/fsm";
+import type { AssignFor } from "@spinjs/components/fsm";
 import type { TocEvents } from "./toc.events.ts";
 import {
   clampActiveIds,

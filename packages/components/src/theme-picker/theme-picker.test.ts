@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { parseHTML } from "@spinjs/runtime/testing";
-import { signal } from "@spinjs/runtime";
+import { parseHTML } from "@spinjs/components/testing";
+import { signal } from "@spinjs/components/runtime";
 import { themePicker } from "./theme-picker.presentation.ts";
 const createThemePickerBridge = themePicker.createBridge;
 import type { ThemePickerApi } from "./theme-picker.presentation.ts";
@@ -39,7 +39,7 @@ interface Harness {
 }
 
 const THEMES =
-  '[{"value":"silk","label":"Silk"},{"value":"neobrut","label":"Neo Brutalism"}]';
+  '[{"value":"minimal","label":"Silk"},{"value":"neobrutalist","label":"Neo Brutalism"}]';
 
 function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
   const root = document.createElement("div");
@@ -84,7 +84,7 @@ function mount(overrides: Readonly<Record<string, unknown>> = {}): Harness {
 }
 
 test("trigger click opens and closes the listbox", () => {
-  const { api, events } = mount({ value: "silk" });
+  const { api, events } = mount({ value: "minimal" });
   deepStrictEqual(api.open, false);
   const trigger = api.getTriggerProps() as Record<string, unknown>;
   (trigger["onClick"] as () => void)();
@@ -95,7 +95,7 @@ test("trigger click opens and closes the listbox", () => {
 });
 
 test("keyboard highlight walks and Enter selects", () => {
-  const { api } = mount({ value: "silk" });
+  const { api } = mount({ value: "minimal" });
   const trigger = api.getTriggerProps() as Record<string, unknown>;
   (trigger["onClick"] as () => void)();
   const content = api.getContentProps() as Record<string, unknown>;
@@ -104,53 +104,53 @@ test("keyboard highlight walks and Enter selects", () => {
     (content["onKeyDown"] as (event: KeyboardEvent) => void)(made as unknown as KeyboardEvent);
   };
   key("ArrowDown");
-  deepStrictEqual(api.highlightedValue, "neobrut");
+  deepStrictEqual(api.highlightedValue, "neobrutalist");
   key("ArrowUp");
-  deepStrictEqual(api.highlightedValue, "silk");
+  deepStrictEqual(api.highlightedValue, "minimal");
   key("End");
-  deepStrictEqual(api.highlightedValue, "neobrut");
+  deepStrictEqual(api.highlightedValue, "neobrutalist");
   key("Home");
-  deepStrictEqual(api.highlightedValue, "silk");
+  deepStrictEqual(api.highlightedValue, "minimal");
   key("ArrowDown");
   key("Enter");
-  deepStrictEqual(api.value, "neobrut");
+  deepStrictEqual(api.value, "neobrutalist");
   deepStrictEqual(api.open, false);
 });
 
 test("selecting an item commits value and closes", () => {
-  const { api, events } = mount({ value: "silk" });
+  const { api, events } = mount({ value: "minimal" });
   const trigger = api.getTriggerProps() as Record<string, unknown>;
   (trigger["onClick"] as () => void)();
-  deepStrictEqual(api.selectedItem.value, "silk");
-  api.select("neobrut");
-  deepStrictEqual(api.value, "neobrut");
+  deepStrictEqual(api.selectedItem.value, "minimal");
+  api.select("neobrutalist");
+  deepStrictEqual(api.value, "neobrutalist");
   deepStrictEqual(api.open, false);
   deepStrictEqual(api.selectedItem.label, "Neo Brutalism");
   deepStrictEqual(events.valueChange.length, 1);
-  assert(events.valueChange[0]?.item.value === "neobrut");
+  assert(events.valueChange[0]?.item.value === "neobrutalist");
 });
 
 test("a disabled item refuses selection", () => {
   const { api } = mount({
-    value: "silk",
+    value: "minimal",
     themes:
-      '[{"value":"silk","label":"Silk"},{"value":"locked","label":"Locked","disabled":true}]',
+      '[{"value":"minimal","label":"Silk"},{"value":"locked","label":"Locked","disabled":true}]',
   });
   const trigger = api.getTriggerProps() as Record<string, unknown>;
   (trigger["onClick"] as () => void)();
   api.select("locked");
-  deepStrictEqual(api.value, "silk");
+  deepStrictEqual(api.value, "minimal");
   deepStrictEqual(api.open, true);
 });
 
 test("THEMES.SET replaces the items and clamps nothing", () => {
-  const { api, write } = mount({ value: "silk" });
+  const { api, write } = mount({ value: "minimal" });
   deepStrictEqual(api.items.length, 2);
   deepStrictEqual(api.empty, false);
   write("themes", [{ value: "console", label: "Console", modes: ["dark"] }]);
   deepStrictEqual(api.items.length, 1);
   deepStrictEqual(api.getItemState(api.items[0]!).dualMode, false);
-  deepStrictEqual(api.getItemState({ value: "silk", label: "Silk", modes: ["light", "dark"], disabled: false, index: 0 }).dualMode, true);
+  deepStrictEqual(api.getItemState({ value: "minimal", label: "Silk", modes: ["light", "dark"], disabled: false, index: 0 }).dualMode, true);
 });
 
 test("single-mode theme items report dualMode false", () => {
@@ -161,10 +161,10 @@ test("single-mode theme items report dualMode false", () => {
 });
 
 test("selecting while closed commits without opening", () => {
-  const { api, events } = mount({ value: "silk" });
+  const { api, events } = mount({ value: "minimal" });
   deepStrictEqual(api.open, false);
-  api.select("neobrut");
-  deepStrictEqual(api.value, "neobrut");
+  api.select("neobrutalist");
+  deepStrictEqual(api.value, "neobrutalist");
   deepStrictEqual(api.open, false);
   deepStrictEqual(events.valueChange.length, 1);
 });

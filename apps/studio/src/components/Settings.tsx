@@ -10,10 +10,12 @@
  * with document sync off.
  */
 
-import { createEffect, createMemo, createResource, createSignal } from "solid-js";
+import { createEffect, createResource, createSignal } from "solid-js";
 import { createSpinComponent } from "@spinjs/components/solid";
 import { modePicker, themePicker, toggleGroup } from "@spinjs/components";
+import { starterThemes } from "@spinjs/theme/themes";
 import {
+  activeBrand,
   activeModes,
   activeName,
   dockSide,
@@ -42,6 +44,52 @@ const [projectThemes, { refetch: refetchProjectThemes }] = createResource(
 );
 
 export { refetchProjectThemes };
+/** The project themes as picker options: value, label, and served modes. */
+export function themeOffered(): readonly { value: string; label: string; modes: string[] }[] {
+  const all = projectThemes() ?? [];
+  const locals = all.filter(
+    (theme) => theme.file !== null || !(theme.name in starterThemes),
+  );
+  const shown = activeBrand() !== undefined && locals.length > 0 ? locals : all;
+  return shown.map((theme) => ({
+    value: theme.name,
+    label: theme.name,
+    modes: [...declaredModes(theme.text)],
+  }));
+}
+
+/**
+ * Paints each offered theme's swatch utilities in its own colours.
+ *
+ * The TopBar sits in `data-theme="studio"`, outside the preview scope, so
+ * the project themes' `[data-theme]` rules do not exist here. Each offered
+ * theme's swatch utilities (`bg-surface`, `bg-primary`, `bg-text`) are
+ * scoped to the picker's own `data-theme` rows instead — resolved values,
+ * so every swatch paints its theme's real colours.
+ */
+export function paintThemeSwatches(): void {
+  const themes = projectThemes() ?? [];
+  let style = document.getElementById("studio-theme-swatches");
+  if (style === null) {
+    style = document.createElement("style");
+    style.id = "studio-theme-swatches";
+    document.head.appendChild(style);
+  }
+  const rules: string[] = [];
+  for (const theme of themes) {
+    const { tree } = analyzeTheme(theme.text);
+    if (tree === undefined) continue;
+    const mode = declaredModes(theme.text)[0] ?? "light";
+    const decl = (path: string, prop: string): string => {
+      const value = tokenValue(tree, mode, path);
+      return value === undefined ? "" : `${prop}: ${value};`;
+    };
+    rules.push(
+      `[data-swatch-theme="${theme.name}"] { ${decl("color.surface", "--color-surface")} ${decl("color.primary", "--color-primary")} ${decl("color.on-primary", "--color-on-primary")} ${decl("color.text", "--color-text")} ${decl("color.border", "--color-border")} }`,
+    );
+  }
+  style.textContent = rules.join("\n");
+}
 
 /**
  * The project theme picker.
@@ -54,46 +102,12 @@ export { refetchProjectThemes };
 export function ThemePicker() {
   const [element, setElement] = createSignal<HTMLElement>();
   const ctl = createSpinComponent(element, themePicker);
-  const offered = createMemo(() =>
-    (projectThemes() ?? []).map((theme) => ({
-      value: theme.name,
-      label: theme.name,
-      modes: [...declaredModes(theme.text)],
-    }))
-  );
-  // The TopBar sits in `data-theme="studio"`, outside the preview scope, so
-  // the project themes' `[data-theme]` rules do not exist here. Each offered
-  // theme's swatch utilities (`bg-surface`, `bg-primary`, `bg-text`) are
-  // scoped to the picker's own `data-theme` rows instead — resolved values,
-  // so every swatch paints its theme's real colours.
-  createEffect(() => {
-    const themes = projectThemes() ?? [];
-    let style = document.getElementById("studio-theme-swatches");
-    if (style === null) {
-      style = document.createElement("style");
-      style.id = "studio-theme-swatches";
-      document.head.appendChild(style);
-    }
-    const rules: string[] = [];
-    for (const theme of themes) {
-      const { tree } = analyzeTheme(theme.text);
-      if (tree === undefined) continue;
-      const mode = declaredModes(theme.text)[0] ?? "light";
-      const decl = (path: string, prop: string): string => {
-        const value = tokenValue(tree, mode, path);
-        return value === undefined ? "" : `${prop}: ${value};`;
-      };
-      rules.push(
-        `[data-swatch-theme="${theme.name}"] { ${decl("color.surface", "--color-surface")} ${decl("color.primary", "--color-primary")} ${decl("color.on-primary", "--color-on-primary")} ${decl("color.text", "--color-text")} ${decl("color.border", "--color-border")} }`,
-      );
-    }
-    style.textContent = rules.join("\n");
-  });
+  createEffect(() => paintThemeSwatches());
   createEffect(() =>
     ctl.bind(
       {
         value: activeName(),
-        themes: offered(),
+        themes: themeOffered(),
         syncDocument: false,
       },
       {
@@ -108,7 +122,7 @@ export function ThemePicker() {
       ref={(el: HTMLElement) => setElement(el)}
       id="studio-theme-picker"
       prop:value={activeName()}
-      prop:themes={offered()}
+      prop:themes={themeOffered()}
     />
   );
 }
@@ -140,7 +154,7 @@ export function ModePicker() {
     )
   );
   return (
-    <studio-mode-picker
+    <studio-mode-pill
       ref={(el: HTMLElement) => setElement(el)}
       id="studio-mode-picker"
       prop:value={modeChoice()}

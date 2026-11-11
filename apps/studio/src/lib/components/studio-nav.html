@@ -4,57 +4,24 @@ import { menu } from "@spinjs/components/menu";
 const machine = menu({});
 </script>
 
-<div class="relative shrink-0">
+<div class="relative min-w-0 shrink">
   <button
-    class="bare inline-flex h-7 shrink-0 items-center gap-1 rounded-md px-2 text-muted hover:bg-surface"
+    class="bare inline-flex h-8 w-full min-w-0 items-center gap-1 rounded-md px-2 text-muted transition-colors hover:bg-surface"
     aria-label="Navigate"
     data-testid="studio-nav"
     {...machine.getTriggerProps()}
   >
-    <span class="inline-block h-4 w-4 i-lucide-menu" aria-hidden="true"></span>
+    <slot name="title"></slot>
+    <span aria-hidden="true"
+      class={["inline-block shrink-0 type-caption text-muted transition-transform duration-fast ease-decelerate", { "rotate-180": machine.isOpen }]}
+      {...machine.getTriggerIndicatorProps()}><span class="inline-block icon-sm i-lucide-chevron-down" aria-hidden="true"></span></span>
   </button>
-  <div class="absolute left-0 z-dropdown w-max" {...machine.getPositionerProps()}>
+  <div class="absolute left-0 z-dropdown" {...machine.getPositionerProps()}>
     <div
-      class="rounded-lg border bg-surface-raised p-1 shadow-lg"
+      class="w-40 rounded-lg border bg-surface-raised p-2 shadow-lg"
       {...machine.getContentProps()}
     >
-      <template for={machine.getBlocks()} as={block} key={block.id}>
-        <div class="py-1" {...machine.getItemGroupProps(block)}>
-          <span show={block.label !== null} class="block px-2 pb-1 type-caption-strong text-muted"
-            {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
-          <template for={machine.getRows(block)} as={row} key={row.value}>
-            <div
-              class="bare relative flex items-center gap-2 rounded-md px-2 py-1 type-body transition-colors duration-fast cursor-default hover:bg-surface-sunken"
-              data-value={row.value}
-              {...machine.getItemProps(row)}
-            >
-              <span class="min-w-0 flex-1 truncate" {...machine.getItemTextProps(row)}>{row.label}</span>
-              <span aria-hidden="true"
-                class={["shrink-0 type-caption text-muted", { "rotate-90": machine.openSubmenu === row.value }]}
-                {...machine.getItemSubmenuIndicatorProps(row)}><span class="inline-block i-lucide-chevron-right type-caption" aria-hidden="true"></span></span>
-              <panel
-                class="absolute start-full top-0 ms-2 min-w-40"
-                show={machine.openSubmenu === row.value}
-                {...machine.getSubmenuContentProps(row)}>
-                <template for={machine.getSubmenuBlocks(row)} as={sub} key={sub.id}>
-                  <div class="py-1" {...machine.getItemGroupProps(sub)}>
-                    <template for={machine.getRows(sub)} as={child} key={child.value}>
-                      <div
-                        class="bare relative flex items-center gap-2 rounded-md px-2 py-1 type-body transition-colors duration-fast cursor-default hover:bg-surface-sunken"
-                        data-value={child.value}
-                        {...machine.getSubmenuItemProps(child)}>
-                        <span class="min-w-0 flex-1 truncate"
-                          {...machine.getItemTextProps(child)}>{child.label}</span>
-                      </div>
-                    </template>
-                  </div>
-                </template>
-              </panel>
-            </div>
-          </template>
-        </div>
-        <hr show={block.separator} {...machine.getSeparatorProps(block)} />
-      </template>
+      <slot name="cards"></slot>
     </div>
   </div>
 </div>

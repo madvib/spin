@@ -28,6 +28,9 @@ import { Navigate, Route, Router } from "@solidjs/router";
 import { studioBase } from "./lib/mount.ts";
 import ColorsPage from "./routes/colors.tsx";
 import TypePage from "./routes/type.tsx";
+import TypeFacesPage from "./routes/themes/type-faces.tsx";
+import TypeStylesPage from "./routes/themes/type-styles.tsx";
+import TypeRampsPage from "./routes/themes/type-ramps.tsx";
 import IconsPage from "./routes/icons.tsx";
 import MotionPage from "./routes/motion.tsx";
 import SpacingPage from "./routes/spacing.tsx";
@@ -37,9 +40,11 @@ import ComponentsLayout from "./routes/components.tsx";
 import ComponentsIndex from "./routes/components/index.tsx";
 import ComponentPage from "./routes/components/[name].tsx";
 import OverviewPage from "./routes/index.tsx";
+import BrandPage from "./routes/brand.tsx";
+import InitPage from "./routes/init.tsx";
 import PreferencesPage from "./routes/preferences.tsx";
 import FindingsPage from "./routes/findings.tsx";
-import { createEffect, createSignal, For, onMount, Show, Suspense, type Component } from "solid-js";
+import { createEffect, createSignal, For, onMount, Suspense, type Component } from "solid-js";
 import { createSpinComponent } from "@spinjs/components/solid";
 import { toast } from "@spinjs/components/toast";
 import "uno.css";
@@ -51,8 +56,6 @@ import { REDIRECTS, type RoutePath, ROUTES } from "./lib/routes.ts";
 import {
   activeMode,
   activeName,
-  dismissNotice,
-  dismissRefusal,
   lastNotice,
   lastRefusal,
 } from "./lib/store.ts";
@@ -81,10 +84,12 @@ const STUDIO_THEME = "studio";
  */
 const PAGES = {
   "/": OverviewPage,
+  "/brand": BrandPage,
+  "/init": InitPage,
   "/preferences": PreferencesPage,
-  "/themes": ThemesLayout,
+  "/tokens": ThemesLayout,
   "/components": ComponentsLayout,
-  "/findings": FindingsPage,
+  "/diagnostics": FindingsPage,
 } satisfies Record<RoutePath, Component>;
 
 type RouteEntry = (typeof ROUTES)[number];
@@ -107,13 +112,16 @@ type ChildPath = RouteEntry extends {
 const CHILDREN = {
   "/components": ComponentsIndex,
   "/components/:name": ComponentPage,
-  "/themes": ColorsPage,
-  "/themes/colors": ColorsPage,
-  "/themes/type": TypePage,
-  "/themes/icons": IconsPage,
-  "/themes/motion": MotionPage,
-  "/themes/spacing": SpacingPage,
-  "/themes/style": StylePage,
+  "/tokens": ColorsPage,
+  "/tokens/colors": ColorsPage,
+  "/tokens/type": TypePage,
+  "/tokens/type/faces": TypeFacesPage,
+  "/tokens/type/styles": TypeStylesPage,
+  "/tokens/type/ramps": TypeRampsPage,
+  "/tokens/icons": IconsPage,
+  "/tokens/motion": MotionPage,
+  "/tokens/spacing": SpacingPage,
+  "/tokens/style": StylePage,
 } satisfies Record<ChildPath, Component>;
 
 /**

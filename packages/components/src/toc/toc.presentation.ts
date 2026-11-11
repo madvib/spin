@@ -4,7 +4,7 @@ import {
   type ComponentDef,
   defineComponent,
   type ViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import { ROVING_KEYS } from "../shared/keyboard.ts";
 import { toc as tocMachine } from "./toc.machine.ts";
 import {

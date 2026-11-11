@@ -1,6 +1,6 @@
 /** Tabs machine: selection is component state, not platform state. */
 
-import { createMachine, type Machine } from "@spinjs/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/components/fsm";
 import {
   initial,
   parseItems,

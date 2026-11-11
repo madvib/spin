@@ -1,0 +1,60 @@
+{
+  "description": "The checks: rules, linters, and the service that runs them.",
+  "dependencies": {
+    "oxc-parser": "^0.126.0",
+    "@spinjs/components": "workspace:*",
+    "@spinjs/preset": "workspace:*",
+    "@spinjs/server": "workspace:*",
+    "@spinjs/theme": "workspace:*",
+    "@unocss/core": "66.10.5"
+  },
+  "exports": {
+    ".": {
+      "default": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./vocabulary": {
+      "default": "./src/vocabulary.ts",
+      "types": "./src/vocabulary.ts"
+    },
+    "./eslint": {
+      "default": "./src/eslint.ts",
+      "types": "./src/eslint.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT",
+  "name": "@spinjs/diagnostics",
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "default": "./dist/index.js",
+        "types": "./dist/index.d.ts"
+      },
+      "./eslint": {
+        "default": "./dist/eslint.js",
+        "types": "./dist/eslint.d.ts"
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madvib/spin.git"
+  },
+  "scripts": {
+    "fmt": "biome format --write .",
+    "lint": "oxlint",
+    "test": "bun test src/"
+  },
+  "type": "module",
+  "version": "0.1.0-preview.6",
+  "devDependencies": {
+    "@typescript-eslint/parser": "8.71.0",
+    "eslint": "^9.39.4"
+  }
+}

@@ -52,7 +52,7 @@ import {
   stateSubject,
   type SubjectState,
 } from "./state.ts";
-import { STROBE_FLOOR_MS } from "@spinjs/spin/theme";
+import { STROBE_FLOOR_MS } from "@spinjs/theme";
 /** Lowest ratio a text node may measure against its background. */
 const MIN_CONTRAST = 4.5;
 /**
@@ -447,7 +447,6 @@ class Driver {
     for (const finding of rested.findings) {
       findings.push(toFinding(finding, matrix, "rest"));
     }
-    const screenshot = await this.screenshot(screenshotName(matrix));
 
     let hovered = 0;
     if (this.#options.hover !== null) {
@@ -496,6 +495,13 @@ class Driver {
         state: "rest",
       });
     }
+
+    // A capture nobody looks at is storage, not evidence: the screenshot
+    // exists to show a human what a finding looked like, so a combo with
+    // no findings keeps none.
+    const screenshot = findings.length === 0
+      ? null
+      : await this.screenshot(screenshotName(matrix));
 
     return {
       matrix,
@@ -1042,6 +1048,7 @@ async function report(
   );
   const probes = results.reduce((sum, result) => sum + result.hovered, 0);
   const states = results.reduce((sum, result) => sum + result.states, 0);
+  const captured = results.filter((result) => result.screenshot !== null).length;
 
   console.log(
     `\nspin visual check — ${results.length} combos over ` +
@@ -1053,7 +1060,7 @@ async function report(
   );
   console.log(
     `${measured} text nodes measured · ${unresolved} skipped over a gradient · ` +
-      `${probes} hover probes · ${states} state probes · screenshots in ${options.outDir}`,
+      `${probes} hover probes · ${states} state probes · ${captured} captures in ${options.outDir}`,
   );
   console.log("");
   console.log("CHECK                   FINDINGS  COMBOS  RESULT");

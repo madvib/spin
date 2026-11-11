@@ -10,11 +10,11 @@ import {
   type Section,
   SECTIONS,
   utilitiesFor,
-} from "@spinjs/spin/preset";
-import { indexTree, parseTokens, resolveAliases } from "@spinjs/spin/theme";
-import type { TokenTree } from "@spinjs/spin/theme";
-import { inkTokens, LOOP_STEP } from "@spinjs/spin/theme";
-import { starterThemes } from "@spinjs/spin/theme/themes";
+} from "@spinjs/preset";
+import { indexTree, parseTokens, resolveAliases } from "@spinjs/theme";
+import type { TokenTree } from "@spinjs/theme";
+import { inkTokens, LOOP_STEP } from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * THE UTILITIES SURFACE.
@@ -35,7 +35,7 @@ let themeTree: TokenTree | undefined;
 function themeTreeOrParse(): TokenTree {
   if (themeTree === undefined) {
     const parsed = parseTokens(
-      starterThemes.silk,
+      starterThemes.minimal,
     );
     if (!parsed.ok) throw new Error(parsed.error);
     themeTree = parsed.tree;
@@ -81,7 +81,7 @@ function colorValues(
 
 /** The values the utilities pages read, for the theme they demonstrate. */
 const COLOR_VALUES: Readonly<Record<string, string>> = colorValues(
-  "silk",
+  "minimal",
   "base",
 );
 
@@ -378,7 +378,7 @@ function mechanismOf(name: string): string {
 const CAP = "type-code text-muted";
 
 /** Three distinct fills, so which item is which is never a guess. */
-const FILL = ["neutral-300", "primary", "neutral-400"] as const;
+const FILL = ["bg-surface-sunken", "bg-primary text-on-primary", "bg-secondary text-on-secondary"] as const;
 
 /**
  * Sizes here are SCALE steps, not wind4's. Our spacing scale is
@@ -404,7 +404,7 @@ function Tiles(props: { n: number; cls?: string; size?: string }) {
     <For each={Array.from({ length: props.n }, (_, i) => i)}>
       {(i) => (
         <b
-          class={`block ${props.size ?? "h-4 w-8"} shrink-0 rounded-sm bg-${
+          class={`block ${props.size ?? "h-4 w-8"} shrink-0 rounded-sm ${
             FILL[i % FILL.length]
           } ${props.cls ?? ""}`}
         />
@@ -420,7 +420,7 @@ function Trio(props: { first: string; mid: string; last: string }) {
     <For each={[props.first, props.mid, props.last]}>
       {(c, i) => (
         <b
-          class={`block h-4 w-8 shrink-0 rounded-sm bg-${
+          class={`block h-4 w-8 shrink-0 rounded-sm ${
             FILL[i() % FILL.length]
           } ${c}`}
         />
@@ -451,7 +451,7 @@ function Spelled(props: { n: number; cls?: readonly string[] }) {
 function Placed(props: { cls: string }) {
   return (
     <>
-      <b class={`h-4 rounded-sm bg-accent ${props.cls}`} />
+      <b class={`h-4 rounded-sm bg-accent text-on-accent ${props.cls}`} />
       <Tiles n={6} size="h-4" />
     </>
   );
@@ -463,7 +463,7 @@ function Mixed() {
     <For each={["h-2", "h-8", "h-16"]}>
       {(h, i) => (
         <b
-          class={`block w-8 shrink-0 rounded-sm bg-${
+          class={`block w-8 shrink-0 rounded-sm ${
             FILL[i() % FILL.length]
           } ${h}`}
         />
@@ -509,7 +509,7 @@ function Cards(props: { extra: string; offsets: readonly string[] }) {
       <For each={props.offsets}>
         {(o, i) => (
           <b
-            class={`${CARD} bg-${FILL[i() % FILL.length]} ${o} ${props.extra}`}
+            class={`${CARD} ${FILL[i() % FILL.length]} ${o} ${props.extra}`}
           />
         )}
       </For>
@@ -622,9 +622,9 @@ const MECHANISMS: readonly Mechanism[] = [
         label="inset-1 · inset-1/2 · inset-x-2 inset-y-1/2 — an edge, a centre, an axis"
       >
         <Frame>
-          <b class={`${CARD} bg-neutral-300 inset-1`} />
-          <b class={`${CARD} bg-accent inset-1/2`} />
-          <b class={`${CARD} bg-neutral-400 inset-x-2 inset-y-1/2`} />
+          <b class={`${CARD} bg-secondary text-on-secondary inset-1`} />
+          <b class={`${CARD} bg-accent text-on-accent inset-1/2`} />
+          <b class={`${CARD} bg-surface-raised inset-x-2 inset-y-1/2`} />
         </Frame>
       </Figure>
     ),
@@ -1230,7 +1230,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
           base="inline-flex h-16 w-1/4 items-center justify-center rounded-sm border bg-surface"
           cls={cls()}
         >
-          <b class="block h-4 w-4 rounded-sm bg-accent" />
+          <b class="block h-4 w-4 rounded-sm bg-accent text-on-accent" />
         </UnderTest>
       );
 
@@ -1239,7 +1239,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
     case "sizes":
       return (
         <span class="inline-flex items-end gap-2">
-          <i class="block h-8 w-8 shrink-0 rounded-sm border bg-neutral-300" />
+          <i class="block h-8 w-8 shrink-0 rounded-sm border bg-surface-raised" />
           <UnderTest
             base="block h-8 w-16 shrink-0 rounded-sm border bg-surface-raised"
             cls={cls()}
@@ -1256,9 +1256,9 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
           base="inline-flex h-16 w-1/3 rounded-sm border bg-surface p-2"
           cls={cls()}
         >
-          <b class="block h-4 w-4 shrink-0 rounded-sm bg-neutral-300" />
-          <b class="block h-4 w-4 shrink-0 rounded-sm bg-accent" />
-          <b class="block h-4 w-4 shrink-0 rounded-sm bg-neutral-400" />
+          <b class="block h-4 w-4 shrink-0 rounded-sm bg-surface-raised" />
+          <b class="block h-4 w-4 shrink-0 rounded-sm bg-accent text-on-accent" />
+          <b class="block h-4 w-4 shrink-0 rounded-sm bg-secondary text-on-secondary" />
         </UnderTest>
       );
 
@@ -1272,7 +1272,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
           cls={cls()}
         >
           <For each={Array.from({ length: columns }, (_, i) => i)}>
-            {() => <b class="block h-4 w-4 rounded-sm bg-accent" />}
+            {() => <b class="block h-4 w-4 rounded-sm bg-accent text-on-accent" />}
           </For>
         </UnderTest>
       );
@@ -1291,7 +1291,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
             />
           </b>
           <b class="absolute top-2 left-2 block">
-            <i class="block h-8 w-16 rounded-sm border bg-neutral-400" />
+            <i class="block h-8 w-16 rounded-sm border bg-secondary text-on-secondary" />
           </b>
           <b class="absolute top-4 left-4 block">
             <i class="block h-8 w-16 rounded-sm border bg-surface-raised" />
@@ -1357,8 +1357,8 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
             <For each={Array.from({ length: 8 }, (_, i) => i)}>
               {(i) => (
                 <b
-                  class={`block h-full grow rounded-none bg-${
-                    i % 2 === 0 ? "neutral-200" : "surface"
+                  class={`block h-full grow rounded-none ${
+                    i % 2 === 0 ? "bg-surface-sunken" : "bg-surface"
                   }`}
                 />
               )}
@@ -1376,7 +1376,7 @@ function Sample(props: { name: string; demo: Demo; group?: string }) {
     case "motion":
       return (
         <span class="inline-flex items-center gap-2">
-          <i class="block h-8 w-8 shrink-0 rounded-sm bg-neutral-300 transition hover:bg-accent hover:translate-x-4" />
+          <i class="block h-8 w-8 shrink-0 rounded-sm bg-surface-raised transition hover:bg-accent hover:text-on-accent hover:translate-x-4" />
           <UnderTest
             base="block h-8 w-8 shrink-0 rounded-sm bg-accent transition hover:bg-accent hover:translate-x-4"
             cls={cls()}
@@ -1455,7 +1455,7 @@ const FAMILY_DEMO =
 const LEGEND = "mt-2 type-code text-muted";
 const RAIL_WRAP = "mt-4 flex flex-wrap items-start gap-2";
 const LABEL =
-  "mb-1 type-caption-strong normal-case text-muted";
+  "mb-1 type-caption-emphasized normal-case text-muted";
 const PAIR = "flex flex-col items-start gap-2";
 const PAIR_BOX =
   "flex min-h-16 w-1/3 min-w-0 items-center justify-center rounded-md border bg-surface p-4";
@@ -1514,7 +1514,8 @@ function Swatch(props: {
   return (
     <div class="flex items-center gap-2 rounded-md border bg-surface-raised p-2">
       <i
-        class={`block h-8 w-8 shrink-0 rounded-sm border bg-${bare}`}
+        class="block h-8 w-8 shrink-0 rounded-sm border"
+        style={{ background: props.values[bare] }}
       />
       <span class="min-w-0">
         <code class="block truncate">
@@ -1631,7 +1632,7 @@ function VariantsBench() {
       <div class={RAIL_WRAP}>
         <div class="group flex w-1/3 shrink-0 flex-col items-start gap-2">
           <span class={MONO_MUTED}>hover the box, not the label</span>
-          <i class="block h-16 w-full rounded-sm bg-neutral-300 transition-colors group-hover:bg-accent" />
+          <i class="block h-16 w-full rounded-sm bg-surface-raised transition-colors group-hover:bg-accent group-hover:text-on-accent" />
         </div>
         <button
           type="button"
@@ -1758,7 +1759,7 @@ function TransitionsBench() {
               {(cls) => (
                 <div class="flex w-1/3 shrink-0 flex-col items-start gap-1">
                   <i
-                    class={`block h-16 w-16 rounded-sm bg-neutral-300 ${cls} ${neutral} ease-standard hover:bg-accent hover:translate-x-8 hover:opacity-50 hover:shadow-lg`}
+                    class={`block h-16 w-16 rounded-sm bg-surface-raised ${cls} ${neutral} ease-standard hover:bg-accent hover:text-on-accent hover:translate-x-8 hover:opacity-50 hover:shadow-lg`}
                   />
                   <code class={CAP}>{cls}</code>
                 </div>
@@ -1773,7 +1774,7 @@ function TransitionsBench() {
               {(cls) => (
                 <div class="flex w-1/3 shrink-0 flex-col items-start gap-1">
                   <i
-                    class={`block h-16 w-16 rounded-sm bg-neutral-300 transition-all ${cls} ease-standard hover:bg-accent hover:translate-x-8`}
+                    class={`block h-16 w-16 rounded-sm bg-surface-raised transition-all ${cls} ease-standard hover:bg-accent hover:text-on-accent hover:translate-x-8`}
                   />
                   <code class={CAP}>{cls}</code>
                 </div>
@@ -1788,7 +1789,7 @@ function TransitionsBench() {
               {(cls) => (
                 <div class="flex w-1/4 shrink-0 flex-col items-start gap-1">
                   <i
-                    class={`block h-16 w-16 rounded-sm bg-neutral-300 transition-all ${neutral} ${cls} hover:bg-accent hover:translate-x-8`}
+                    class={`block h-16 w-16 rounded-sm bg-surface-raised transition-all ${neutral} ${cls} hover:bg-accent hover:text-on-accent hover:translate-x-8`}
                   />
                   <code class={CAP}>{cls}</code>
                 </div>
@@ -1802,7 +1803,7 @@ function TransitionsBench() {
               <div class={LABEL}>what loops</div>
               <div class={RAIL_WRAP}>
                 <div class="flex w-1/3 shrink-0 flex-col items-start gap-1">
-                  <i class="block h-16 w-16 rounded-sm bg-neutral-300 animate-spin" />
+                  <i class="block h-16 w-16 rounded-sm bg-surface-raised animate-spin" />
                   <code class={CAP}>motion.duration.{step().name}</code>
                   <code class={CAP}>{step().value}</code>
                 </div>
@@ -2133,14 +2134,14 @@ const TYPE_STEPS = [
   "type-heading",
   "type-lead",
   "type-body",
-  "type-body-strong",
+  "type-body-emphasized",
   "type-label",
   "type-caption",
-  "type-caption-strong",
+  "type-caption-emphasized",
   "type-overline",
   "type-code",
   "type-quote",
-  "type-stat",
+  "type-subtitle",
 ] as const;
 
 /** The spacing scale, one box per step, with a mark inside it. */
@@ -2207,7 +2208,7 @@ function SpacingSpecimen() {
             <div
               class={`inline-block rounded-sm border border-dashed bg-surface ${cls}`}
             >
-              <b class="block h-4 w-4 rounded-sm bg-accent" />
+              <b class="block h-4 w-4 rounded-sm bg-accent text-on-accent" />
             </div>
             <code>{cls}</code>
           </figure>
@@ -2292,7 +2293,7 @@ function SectionCard(props: { section: Section; count: number }) {
       class="secondary s-lg flex w-full flex-col items-start gap-2 text-left hover:border-strong"
     >
       <span class="flex w-full items-center gap-2">
-          <span class="type-body-strong">
+          <span class="type-body-emphasized">
           {props.section.title}
         </span>
         <span class="ms-auto shrink-0 type-code text-muted">

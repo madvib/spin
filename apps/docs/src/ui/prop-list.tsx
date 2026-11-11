@@ -32,13 +32,13 @@ export function PropList(props: {
                 <code>{item.name}</code>
                 <Show when={item.badge}>
                   {(badge) => (
-                    <span class="rounded-sm border bg-surface px-2 py-1 type-code text-muted">
+                    <span class="rounded-sm border bg-surface px-2 py-1 type-caption text-muted">
                       {badge()}
                     </span>
                   )}
                 </Show>
                 <Show when={item.required}>
-                  <span class="type-caption-strong text-semantic-warning">
+                  <span class="type-caption-emphasized text-semantic-warning">
                     required
                   </span>
                 </Show>

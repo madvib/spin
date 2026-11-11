@@ -1,4 +1,4 @@
-import type { EventUnion } from "@spinjs/runtime/fsm";
+import type { EventUnion } from "@spinjs/components/fsm";
 import type { ColorChannel } from "./color.ts";
 import type { ColorFormat } from "./color-picker.state.ts";
 

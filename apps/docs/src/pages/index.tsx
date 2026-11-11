@@ -53,11 +53,11 @@ const ELEMENT_COUNT = primitiveElements.filter(
 ).length;
 
 const PACKAGE_MANAGERS = [
-  { id: "bun", command: "bun add -d @spinjs/spin && bun add @spinjs/components @spinjs/runtime" },
-  { id: "npm", command: "npm i -D @spinjs/spin && npm i @spinjs/components @spinjs/runtime" },
-  { id: "pnpm", command: "pnpm add -D @spinjs/spin && pnpm add @spinjs/components @spinjs/runtime" },
-  { id: "yarn", command: "yarn add -D @spinjs/spin && yarn add @spinjs/components @spinjs/runtime" },
-  { id: "deno", command: "deno add -D npm:@spinjs/spin && deno add npm:@spinjs/components npm:@spinjs/runtime" },
+  { id: "bun", command: "bun add -d @spinjs/spin && bun add @spinjs/components" },
+  { id: "npm", command: "npm i -D @spinjs/spin && npm i @spinjs/components" },
+  { id: "pnpm", command: "pnpm add -D @spinjs/spin && pnpm add @spinjs/components" },
+  { id: "yarn", command: "yarn add -D @spinjs/spin && yarn add @spinjs/components" },
+  { id: "deno", command: "deno add -D npm:@spinjs/spin && deno add npm:@spinjs/components" },
 ] as const;
 
 type PackageManager = (typeof PACKAGE_MANAGERS)[number]["id"];
@@ -454,7 +454,7 @@ export default function Home(): JSX.Element {
             <button
               type="button"
               onClick={() => selectStage(1)}
-              class="bare pointer-events-auto inline-flex w-fit items-center gap-2 rounded-full border-strong bg-surface-raised px-3 py-1 type-code shadow-md transition-colors duration-fast hover:border-primary"
+               class="bare pointer-events-auto inline-flex w-fit items-center gap-2 rounded-full border-strong bg-surface-raised px-3 py-1 type-code shadow-md transition-colors duration-fast hover:border-primary"
             >
               <span class="h-2 w-2 rounded-full bg-primary text-on-primary" />
               <span>Scroll</span>
@@ -471,7 +471,7 @@ export default function Home(): JSX.Element {
               type="button"
               disabled={stage() === 0}
               onClick={() => selectStage(stage() - 1)}
-              class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 type-caption hover:bg-surface disabled:opacity-40"
+               class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 type-caption hover:bg-surface disabled:opacity-40"
               title="Previous stage"
               aria-label="Previous stage"
             >
@@ -489,10 +489,10 @@ export default function Home(): JSX.Element {
                       aria-selected={active()}
                       aria-label={`Stage ${idx + 1}`}
                       onClick={() => selectStage(idx)}
-                      class={`bare h-2 rounded-full p-0 transition-all duration-fast ${
+                       class={`bare h-2 rounded-full transition-all duration-fast ${
                         active()
-                          ? "w-4 bg-primary"
-                          : "w-2 bg-border-strong hover:bg-text-muted"
+                          ? "w-4 bg-primary text-on-primary"
+                          : "w-2 bg-surface-raised hover:bg-secondary hover:text-on-secondary"
                       }`}
                     />
                   );
@@ -504,7 +504,7 @@ export default function Home(): JSX.Element {
               type="button"
               disabled={stage() === STAGE_COUNT - 1}
               onClick={() => selectStage(stage() + 1)}
-              class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 type-caption hover:bg-surface disabled:opacity-40"
+               class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 type-caption hover:bg-surface disabled:opacity-40"
               title="Next stage"
               aria-label="Next stage"
             >
@@ -517,7 +517,7 @@ export default function Home(): JSX.Element {
               type="button"
               aria-pressed={autoPlay()}
               onClick={() => setAutoPlay((v) => !v)}
-              class={`bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 type-caption transition-colors duration-fast ${
+               class={`bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 type-caption transition-colors duration-fast ${
                 autoPlay()
                   ? "bg-primary text-on-primary"
                   : "text-muted hover:bg-surface"
@@ -531,7 +531,7 @@ export default function Home(): JSX.Element {
             <button
               type="button"
               onClick={() => setReweaveKey((k) => k + 1)}
-              class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 type-caption text-muted hover:bg-surface hover:text-primary"
+               class="bare inline-flex h-5 w-5 items-center justify-center rounded-full p-0 type-caption text-muted hover:bg-surface hover:text-primary"
               title="Replay current ring weave"
               aria-label="Replay current ring weave"
             >
@@ -595,7 +595,7 @@ export default function Home(): JSX.Element {
                 <button
                   type="button"
                   onClick={copyInstall}
-                  class="bare inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-md px-2 py-1 type-code hover:bg-surface"
+                   class="bare inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-md px-2 py-1 type-code hover:bg-surface"
                 >
                   <span class="shrink-0 text-muted">$</span>
                   <span class="min-w-0 flex-1 truncate text-left">
@@ -621,10 +621,10 @@ export default function Home(): JSX.Element {
                     <button
                       type="button"
                       onClick={() => setTheme(name)}
-                      class={`bare rounded-full border px-2 py-1 type-code transition-colors duration-fast ${
+                       class={`bare rounded-full border px-2 py-1 transition-colors duration-fast ${
                         theme() === name
-                          ? "border-primary bg-primary type-body-strong text-on-primary"
-                          : "border bg-surface-raised text-muted hover:border-strong"
+                          ? "border-primary bg-primary type-body-emphasized text-on-primary"
+                          : "border bg-surface-raised type-code text-muted hover:border-strong"
                       }`}
                     >
                       {name}
@@ -667,10 +667,10 @@ export default function Home(): JSX.Element {
                         <button
                           type="button"
                           onClick={() => setSelectedDtcgIdx(idx())}
-                          class={`bare rounded-md border px-2 py-1 type-code transition-colors duration-fast ${
+                           class={`bare rounded-md border px-2 py-1 transition-colors duration-fast ${
                             active()
-                              ? "border-primary bg-primary type-body-strong text-on-primary"
-                              : "border bg-surface hover:border-strong"
+                              ? "border-primary bg-primary type-body-emphasized text-on-primary"
+                              : "border bg-surface type-code hover:border-strong"
                           }`}
                         >
                           {sample.path}
@@ -712,7 +712,7 @@ export default function Home(): JSX.Element {
                   </span>
                   <A
                     href="/docs/themes/overview"
-                    class="shrink-0 type-body-strong text-primary no-underline hover:underline"
+                    class="shrink-0 type-body-emphasized text-primary no-underline hover:underline"
                   >
                     Themes →
                   </A>
@@ -752,7 +752,7 @@ export default function Home(): JSX.Element {
                     onClick={() =>
                       setUtilPad((p) => (p === "p-3" ? "p-5" : "p-3"))
                     }
-                    class="bare rounded-md border bg-surface px-2 py-1 type-code text-primary hover:border-primary"
+                     class="bare rounded-md border bg-surface px-2 py-1 type-code text-primary hover:border-primary"
                   >
                     {utilPad()}
                   </button>
@@ -763,7 +763,7 @@ export default function Home(): JSX.Element {
                         r === "rounded-lg" ? "rounded-sm" : "rounded-lg",
                       )
                     }
-                    class="bare rounded-md border bg-surface px-2 py-1 type-code text-primary hover:border-primary"
+                     class="bare rounded-md border bg-surface px-2 py-1 type-code text-primary hover:border-primary"
                   >
                     {utilRadius()}
                   </button>
@@ -776,7 +776,7 @@ export default function Home(): JSX.Element {
                           : "bg-surface-raised",
                       )
                     }
-                    class="bare rounded-md border bg-surface px-2 py-1 type-code text-primary hover:border-primary"
+                     class="bare rounded-md border bg-surface px-2 py-1 type-code text-primary hover:border-primary"
                   >
                     {utilSurface()}
                   </button>
@@ -784,7 +784,7 @@ export default function Home(): JSX.Element {
                     type="button"
                     aria-pressed={utilTryInvalid()}
                     onClick={() => setUtilTryInvalid((v) => !v)}
-                    class={`bare rounded-md border px-2 py-1 type-code ${
+                     class={`bare rounded-md border px-2 py-1 type-code ${
                       utilTryInvalid()
                         ? "border-primary bg-primary text-on-primary"
                         : "border bg-surface text-muted"
@@ -822,7 +822,7 @@ export default function Home(): JSX.Element {
                   </span>
                   <A
                     href="/docs/styling/catalog"
-                    class="type-body-strong text-primary no-underline hover:underline"
+                    class="type-body-emphasized text-primary no-underline hover:underline"
                   >
                     Utilities →
                   </A>
@@ -891,7 +891,7 @@ export default function Home(): JSX.Element {
                       onClick={() =>
                         setProgressVal((v) => (v >= 100 ? 35 : v + 20))
                       }
-                      class="bare type-code text-primary hover:underline"
+                       class="bare type-code text-primary hover:underline"
                     >
                       {progressVal()}%
                     </button>
@@ -914,7 +914,7 @@ export default function Home(): JSX.Element {
                   </span>
                   <A
                     href="/components?kind=elements"
-                    class="type-body-strong text-primary no-underline hover:underline"
+                    class="type-body-emphasized text-primary no-underline hover:underline"
                   >
                     Explore elements →
                   </A>
@@ -1037,7 +1037,7 @@ export default function Home(): JSX.Element {
                         <button
                           type="button"
                           onClick={() => toggleFix(item.id)}
-                          class={`bare flex w-full min-w-0 items-center justify-between gap-2 rounded-md border px-3 py-2 text-left transition-colors duration-fast ${
+                           class={`bare flex w-full min-w-0 items-center justify-between gap-2 rounded-md border px-3 py-2 text-left transition-colors duration-fast ${
                             isFixed()
                               ? "border bg-surface"
                               : "border-primary bg-surface"
@@ -1058,13 +1058,13 @@ export default function Home(): JSX.Element {
                 <div class="flex items-center justify-between gap-4 type-caption">
                   <A
                     href="/docs/tooling/lints"
-                    class="type-body-strong text-primary no-underline hover:underline"
+                    class="type-body-emphasized text-primary no-underline hover:underline"
                   >
                     Lint rules →
                   </A>
                   <A
                     href="/docs/tooling/mcp"
-                    class="type-body-strong text-primary no-underline hover:underline"
+                    class="type-body-emphasized text-primary no-underline hover:underline"
                   >
                     MCP server →
                   </A>

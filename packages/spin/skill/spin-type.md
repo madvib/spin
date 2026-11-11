@@ -39,9 +39,8 @@ one named style by default, so markup reads as a document instead of a pile
 of sizes: `<h1>` reads `type-display`, `<h2>` reads `type-title`, `<h3>`
 reads `type-heading`, `<h4>` reads `type-label`, `<h5>` and `<h6>` read
 `type-overline`, `<p>` reads `type-body`, `<blockquote>` reads `type-quote`,
-`<code>` reads `type-code`, `<a>` reads `type-link`, `<small>` reads
-`type-caption`, `<strong>` reads `type-body-strong`, `<figcaption>` reads
-`type-caption-strong`.
+`type-caption`, `<strong>` reads `type-body-emphasized`, `<figcaption>` reads
+`type-caption-emphasized`.
 
 To change how a run of text reads, write one `type-<name>` class. It spends
 the whole tuple — face, size, weight, tracking, leading — at once. Never add
@@ -62,12 +61,8 @@ you mean `type-caption`?" is the fix, not a guess. `uppercase` stays; case is
 not type size, and the lint leaves it alone.
 
 One voice on a page may be genuinely one-off: a brand lockup or a hero moment
-no theme scale has reason to name. That element carries `data-spin-escape`,
-the author's explicit word that its classes are deliberate — so no warning
-fires about placement there — while the vocabulary rule still fires, because
-deliberate code still names nothing dead. Reach for it for the lockup, never
-for copy the theme could say; reaching for it twice means the theme is
-missing a style worth naming.
+no theme scale has reason to name. Display type the theme cannot name belongs
+in the brand's `tokens.json` as a named style, and the utility is `type-<name>`.
 
 ## The styles
 
@@ -155,33 +150,19 @@ that says what the title is about.
 
 **Wears it.** `<h5>` and `<h6>` read this by default.
 
-### type-stat
-
-**For.** The big number: a metric, a count, a figure read at a glance.
-
-**Wears it.** Nothing reads this by default — name it where the number sits.
-
-### type-badge
-
-**For.** The theme declares this style; nothing here says what it is for yet.
-
-### type-body-strong
+### type-body-emphasized
 
 **For.** Strong body: the emphasized run inside the reading voice.
 
-**Wears it.** `<strong>` reads this by default.
-`<span class="type-body-strong">` emphasizes inside a non-strong element.
+**Wears it.** `<strong>` and `<dt>` read this by default.
+`<span class="type-body-emphasized">` emphasizes inside a non-strong element.
 
-### type-caption-strong
+### type-caption-emphasized
 
 **For.** Strong caption: the emphasized run inside small print — table
 headers, figure labels that must hold their weight at small sizes.
 
-**Wears it.** `<figcaption>` reads this by default.
-
-### type-card-title
-
-**For.** The theme declares this style; nothing here says what it is for yet.
+**Wears it.** `<figcaption>` and `<th>` read this by default.
 
 ## The one question
 

@@ -13,13 +13,13 @@ const commandItems = (): readonly PropEntry[] => [
     description: (
       <>
         Detects your bundler, writes the initial theme to{" "}
-        <code>spin/default.json</code>, and wires the plugin into your bundler
+        <code>spin/default/tokens.json</code>, and wires the plugin into your bundler
         config. Rejects <code>bundler: "unocss"</code> — init wires the plugin,
         never a preset-only config.
       </>
     ),
     detail:
-      "Flags: --name, --starter, --bundler, --themes-dir, --components-dir, --prefix, --root, --url, -y / --yes",
+      "Flags: --name, --starter, --bundler, --themes-dir, --components-dir, --prefix, --vendor, --root, --from, --url, -y / --yes",
   },
   {
     name: "spin studio",
@@ -42,15 +42,16 @@ const commandItems = (): readonly PropEntry[] => [
       "Flags: --format text|json, --strictness strict|balanced|lenient, --semantic-tags all|native|spin|none, --rule (repeatable), --fix",
   },
   {
-    name: "spin theme",
+    name: "spin brand",
     badge: "inspection",
     description: (
       <>
-        Inspects and scaffolds themes: <code>list</code>, <code>analyze</code>,
-        or <code>scaffold</code>.
+        Reads or renames a brand: <code>list</code>, <code>analyze</code>, and{" "}
+        <code>rename</code> — a document's composition decides completeness,
+        and the engine judges it.
       </>
     ),
-    detail: "Flags: --root, --url, --format text|json",
+    detail: "Flags: --root, --url, --format text|json, --contract[=a,b], --migrate",
   },
   {
     name: "spin component",
@@ -81,19 +82,12 @@ const commandItems = (): readonly PropEntry[] => [
     description: (
       <>
         Starts the language server over stdio: the same lint findings as{" "}
-        <code>spin lint</code>, plus hover and completion from your theme.
-        Point any LSP client at it — no config file required.
+        <code>spin lint</code>, plus hover, completion, and quick-fix code
+        actions from your theme. Point any LSP client at it — no config file
+        required.
       </>
     ),
     detail: "Flags: --root",
-  },
-  {
-    name: "spin check",
-    badge: "browser harness",
-    description:
-      "Runs Playwright visual, contrast, and geometry probes against a running application.",
-    detail:
-      "Flags: --config (required), --format text|json, --harness, --route (repeatable), --themes a,b,c",
   },
 ];
 
@@ -190,16 +184,29 @@ const pluginOptions = (): readonly PropEntry[] => [
 
 const SPIN_SUBPATHS: readonly PropEntry[] = [
   { name: "@spinjs/spin/vite", badge: "plugin", description: "Unplugin entry for Vite, Rspack, webpack, Rollup, Rolldown, esbuild, and Bun, plus SpinPluginOptions." },
-  { name: "@spinjs/spin/preset", badge: "preset", description: "Standalone UnoCSS preset (spinPreset) and primitive contracts/examples." },
-  { name: "@spinjs/spin/theme", badge: "theme engine", description: "DTCG parser, alias resolver, six-gate validator (themeGates), scaffoldTheme, and starterThemes." },
+  { name: "@spinjs/spin/plugin", badge: "barrel", description: "Composer barrel re-exporting the @spinjs/build stages plus the spin plugin object." },
   { name: "@spinjs/spin/cli", badge: "cli", description: "The spin CLI command runner and argument parser." },
-  { name: "@spinjs/spin/mcp", badge: "mcp", description: "Stdio MCP server for coding agents." },
-  { name: "@spinjs/spin/eslint · /oxlint", badge: "linter", description: "Editor and CI plugins for the six spin/* rules." },
-  { name: "@spinjs/spin/animation", badge: "motion", description: "Theme-driven keyframes and animationContract." },
+  { name: "@spinjs/spin/mcp", badge: "mcp", description: "Stdio MCP server for coding agents (nine tools: theme, token, component, utility, icon, savedIcon, font, preview, findings)." },
+  { name: "@spinjs/spin/api", badge: "api", description: "Daemon RPC surface the Studio and MCP server compose (project, themes, findings, components, preview, serve)." },
+  { name: "@spinjs/spin/lsp", badge: "lsp", description: "Language server over stdio: the same lint findings as spin lint, plus hover and completion from your theme." },
+  { name: "@spinjs/spin/skill", badge: "skill", description: "Agent skill text (house rules) and authoring helpers for theme/component work." },
+  { name: "@spinjs/spin/compositions", badge: "compositions", description: "Project-declared utility compositions the build spends and the lints own." },
+  { name: "@spinjs/spin/examples", badge: "examples", description: "Component example recipes for copy/list/contract flows." },
+];
+
+const THEME_PRESET_SUBPATHS: readonly PropEntry[] = [
+  { name: "@spinjs/theme", badge: "tokens", description: "DTCG parser, alias resolver, six-gate validator (themeGates), and starterThemes." },
+  { name: "@spinjs/theme/themes", badge: "starters", description: "The six starter design languages (minimal, editorial, material, neobrutalist, neumorphic, glassmorphic)." },
+  { name: "@spinjs/preset", badge: "preset", description: "Standalone UnoCSS preset (spinPreset) and primitive contracts/examples." },
+  { name: "@spinjs/server", badge: "project", description: "Project reads and writes: themes, components, config (spin/config.json)." },
+  { name: "@spinjs/server/project", badge: "service", description: "Brand service, file discovery, and the RPC procedures the API composes." },
+  { name: "@spinjs/build", badge: "stages", description: "Pure build stages: component compiler, strict-classes gate, content scan, cross-theme report." },
+  { name: "@spinjs/diagnostics", badge: "lints", description: "The six spin/* rules over project facts, plus the shared check engine." },
+  { name: "@spinjs/diagnostics/eslint", badge: "eslint", description: "ESLint plugin: spread spin.configs.recommended, then tune per rule." },
 ];
 
 const COMPONENT_SUBPATHS: readonly PropEntry[] = [
-  { name: "@spinjs/components/<name>", badge: "machine", description: "Individual machine definitions (select, combobox, date-picker, toc, tabs, and 33 more)." },
+  { name: "@spinjs/components/<name>", badge: "machine", description: "Individual machine definitions (select, combobox, date-picker, toc, tabs, and 31 more)." },
   { name: "@spinjs/components/solid", badge: "adapter", description: "createSpinComponent — reactive controller hook for Solid." },
   { name: "@spinjs/components/react", badge: "adapter", description: "useSpinComponent — reactive controller hook for React." },
   { name: "@spinjs/components/controller", badge: "adapter", description: "spinComponentCtl — controller for vanilla DOM, Vue, and Svelte." },
@@ -207,21 +214,23 @@ const COMPONENT_SUBPATHS: readonly PropEntry[] = [
 ];
 
 const RUNTIME_SUBPATHS: readonly PropEntry[] = [
-  { name: "@spinjs/runtime", badge: "core", description: "Signals (signal, computed, effect, batch), defineComponent, and defineController." },
-  { name: "@spinjs/runtime/fsm", badge: "statechart", description: "createMachine and interpret statechart runtime." },
-  { name: "@spinjs/runtime/actions", badge: "directives", description: "createAction plus anchor, drag, hover-delay, interact-outside, and observe." },
-  { name: "@spinjs/runtime/testing", badge: "testing", description: "DOM and statechart test helpers." },
+  { name: "@spinjs/components/runtime", badge: "core", description: "Signals (signal, computed, effect, batch), defineComponent, and defineController." },
+  { name: "@spinjs/components/fsm", badge: "statechart", description: "createMachine and interpret statechart runtime." },
+  { name: "@spinjs/components/props", badge: "props", description: "Authored prop helpers (authoredProps, textProp, defineComponent props)." },
+  { name: "@spinjs/components/load", badge: "load", description: "Compiled-component loader: binds templates, directives, and actions at runtime." },
+  { name: "@spinjs/components/actions", badge: "directives", description: "createAction plus anchor, drag, hover-delay, interact-outside, form-control, scroll-into-view, and observe." },
+  { name: "@spinjs/components/testing", badge: "testing", description: "DOM and statechart test helpers." },
 ];
 
 export default function ToolingCli(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="CLI & Plugin Options"
+        title="CLI"
         lede="Complete reference for the spin CLI subcommands, SpinPluginOptions fields, and published package subpaths."
       />
 
-      <Section id="commands" title="CLI commands & flags">
+      <Section id="commands" title="Commands and flags">
         <p class="max-w-prose">
           Exit codes: <code>0</code> when clean (or warnings only),{" "}
           <code>1</code> on validation/lint errors, and <code>2</code> on
@@ -255,10 +264,13 @@ export default function ToolingCli(): JSX.Element {
         <h3>@spinjs/spin (devDependency)</h3>
         <PropList items={SPIN_SUBPATHS} />
 
+        <h3>@spinjs/theme · @spinjs/preset · @spinjs/server · @spinjs/build · @spinjs/diagnostics</h3>
+        <PropList items={THEME_PRESET_SUBPATHS} />
+
         <h3>@spinjs/components (dependency)</h3>
         <PropList items={COMPONENT_SUBPATHS} />
 
-        <h3>@spinjs/runtime (dependency)</h3>
+        <h3>@spinjs/components/runtime (in the components package)</h3>
         <PropList items={RUNTIME_SUBPATHS} />
       </Section>
     </main>

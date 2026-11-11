@@ -1,5 +1,4 @@
-import { defaultTwin, isRecord } from "@spinjs/runtime";
-import type { CarouselEvents } from "./carousel.events.ts";
+import { defaultTwin, isRecord } from "@spinjs/components/runtime";
 
 export interface CarouselSlide {
   readonly value: string;
@@ -64,7 +63,6 @@ export interface CarouselContext {
 }
 
 const lastPage = (pageCount: number): number => Math.max(0, pageCount - 1);
-const cycle = (pageCount: number): number => Math.max(1, pageCount);
 export const clampIndex = (index: number, pageCount: number): number => {
   const last = lastPage(pageCount);
   return index < 0 ? 0 : index > last ? last : Math.trunc(index);

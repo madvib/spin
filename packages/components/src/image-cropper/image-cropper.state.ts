@@ -1,9 +1,8 @@
-import { defaultTwin, isRecord } from "@spinjs/runtime";
+import { defaultTwin, isRecord } from "@spinjs/components/runtime";
 import {
   centerRect,
   clampPoint,
   computeDefaultCropDimensions,
-  computeMoveCrop,
   computeResizeCrop,
   getMaxBounds,
   isVisibleRect,

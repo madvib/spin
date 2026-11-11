@@ -1,4 +1,4 @@
-import { defaultTwin } from "@spinjs/runtime";
+import { defaultTwin } from "@spinjs/components/runtime";
 import { getStroke } from "perfect-freehand";
 
 export interface SignaturePoint {

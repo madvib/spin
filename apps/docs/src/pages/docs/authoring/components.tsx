@@ -46,21 +46,21 @@ function ControllerDemo(): JSX.Element {
         <div class="mt-3 flex flex-wrap gap-2">
           <button
             type="button"
-            class="bare rounded-md border bg-surface px-3 py-1 type-code"
+            class="secondary s-sm"
             onClick={() => ctl.commands.setOpen(true)}
           >
             ctl.commands.setOpen(true)
           </button>
           <button
             type="button"
-            class="bare rounded-md border bg-surface px-3 py-1 type-code"
+            class="secondary s-sm"
             onClick={() => ctl.commands.close()}
           >
             ctl.commands.close()
           </button>
           <button
             type="button"
-            class="bare rounded-md border bg-surface px-3 py-1 type-code"
+            class="secondary s-sm"
             onClick={() => ctl.commands.clearValue()}
           >
             ctl.commands.clearValue()
@@ -92,7 +92,7 @@ export default function AuthoringComponents(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Components & Controllers"
+        title="Components"
         lede="Author interactive components once in HTML + TypeScript, compile them into standard custom elements, and drive them from React, Solid, Vue, or Svelte."
         playgroundExample="components-select"
       />

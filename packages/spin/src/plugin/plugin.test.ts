@@ -3,10 +3,10 @@ import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import type { ThemeDocument } from "../theme/index.ts";
-import { starterThemes } from "../theme/themes/index.ts";
+import type { ThemeDocument } from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 import { projectThemes, spin } from "./plugin.ts";
-import { loadProjectBrand } from "../project/index.ts";
+import { loadProjectBrand } from "@spinjs/server/project";
 /** A brand document and a local fork. The merge does not read them; one has to win. */
 const brandDoc = {
   color: { $type: "color", primary: { $value: "#111111" } },
@@ -78,7 +78,7 @@ describe("the icons every app gets by default", () => {
       join(root, "package.json"),
       JSON.stringify({ name: "probe" }),
     );
-    await writeFile(join(root, "spin/local.json"), JSON.stringify(starterThemes.silk));
+    await writeFile(join(root, "spin/local.json"), JSON.stringify(starterThemes.minimal));
     await writeFile(
       join(root, "index.html"),
       '<span class="i-lucide-folder"></span>',

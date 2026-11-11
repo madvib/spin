@@ -50,8 +50,8 @@ export default function App() {
               Roast day is Tuesday · free shipping over $40
             </div>
 
-            <nav class="flex flex-row items-center gap-4 border-b border-border bg-surface-raised p-4">
-              <A href="/" class="row-sm no-underline whitespace-nowrap">
+            <nav class="flex flex-row items-center gap-4 border-b border bg-surface-raised p-4">
+              <A href="/" class="flex items-center gap-2 no-underline whitespace-nowrap">
                 <img src="/mark.svg" alt="" width="28" height="28" />
                 <span>
                   Basecamp Roastery
@@ -63,9 +63,9 @@ export default function App() {
                     <li>
                       <A
                         href={href}
-                        class="no-underline text-text-muted"
+                        class="no-underline text-muted"
                         activeClass="no-underline"
-                        inactiveClass="no-underline text-text-muted"
+                        inactiveClass="no-underline text-muted"
                       >
                         {label}
                       </A>
@@ -75,7 +75,7 @@ export default function App() {
               </ul>
               <A
                 href="/box"
-                class="flex items-center gap-2 rounded-sm border border-border px-3 py-2 no-underline"
+                class="flex items-center gap-2 rounded-sm border px-3 py-2 no-underline"
               >
                 <i
                   class="i-lucide-shopping-bag button-icon icon-sm"
@@ -90,8 +90,8 @@ export default function App() {
 
             <main class="flex-1">{props.children}</main>
 
-            <footer class="border-t border-border bg-surface-raised text-text-muted">
-              <div class="mx-auto grid max-w-5xl gap-8 p-8 md:grid-cols-3">
+            <footer class="border-t border bg-surface-raised text-muted">
+              <div class="mx-auto grid max-w-xl gap-8 p-8 md:grid-cols-3">
                 <div class="flex flex-col gap-2">
                   <span class="flex items-center gap-2">
                     <img src="/mark.svg" alt="" width="22" height="22" />
@@ -99,7 +99,7 @@ export default function App() {
                       Basecamp Roastery
                     </span>
                   </span>
-                  <p class="m-0">
+                  <p>
                     Edge of town, open Friday to Sunday, 8 to 4.
                   </p>
                 </div>
@@ -107,7 +107,7 @@ export default function App() {
                   <span>Shop</span>
                   <For each={FOOTER_SHOP}>
                     {([href, label]) => (
-                      <A href={href} class="no-underline text-text-muted">
+                      <A href={href} class="no-underline text-muted">
                         {label}
                       </A>
                     )}
@@ -117,14 +117,14 @@ export default function App() {
                   <span>The week</span>
                   <For each={FOOTER_WEEK}>
                     {([day, what]) => (
-                      <p class="m-0">
+                      <p>
                         <span>{day}</span> — {what}
                       </p>
                     )}
                   </For>
                 </div>
               </div>
-              <div class="border-t border-border p-4 text-center">
+              <div class="border-t border p-4 text-center">
                 Roasts are Tuesdays, shipping Wednesdays. Orders placed before
                 Monday are in the following week's batch.
               </div>

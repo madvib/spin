@@ -2,7 +2,6 @@ import { test } from "bun:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 
-const dir = new URL("./examples/", import.meta.url);
 const read = (stem: string): string =>
   readFileSync(new URL(`./examples/${stem}.html`, import.meta.url), "utf8");
 
@@ -32,7 +31,7 @@ test("every resize handle zeros the button padding and the bottom corners seat a
     assert.strictEqual(lines.length, 8, `${stem} must render eight handles`);
     for (const line of lines) {
       assert.ok(
-        line.includes("p-0"),
+        line.includes("bare"),
         `${stem} must zero the button padding or the handle inflates to 32px: ${line.trim().slice(0, 80)}`,
       );
       assert.ok(

@@ -1,4 +1,4 @@
-import { starterThemes } from "@spinjs/spin/theme";
+import { starterThemes } from "@spinjs/theme";
 import { elementGroups, elementTokens, FLOORS, ROLES, schemaFacts, themeSummaries, TYPES } from "../../src/markdown/theme-docs.ts";
 import { THEMES_SNIPPETS } from "../../src/pages/docs/themes/themes.snippets.ts";
 
@@ -53,6 +53,50 @@ export function buildThemeMarkdown(routePath: string): string | undefined {
         "```",
       ].join("\n");
     }
+    case "/docs/themes/palettes": {
+      const floors = FLOORS.map(
+        (f) => `- \`${f.fg}\` on \`${f.bg}\`: **≥ ${f.min}:1**`,
+      ).join("\n");
+      return [
+        "## Why Fills and Inks Travel in Pairs",
+        "",
+        "Every painted fill role (`color.primary`, `color.secondary`, `color.accent`, `color.semantic.{success,warning,error,info}`, `color.selected`, `color.disabled`) owns a paired foreground ink (`color.on-primary`, `color.on-secondary`, etc.) verified against WCAG contrast floors across light and dark modes. `spin/no-unpaired-ink` flags any template that paints a fill (`bg-primary`) without its matching foreground ink (`text-on-primary`).",
+        "",
+        "## Neutral Ramps and Role Aliases",
+        "",
+        "```json",
+        THEMES_SNIPPETS.modeToken,
+        "```",
+        "",
+        "## Enforced WCAG Contrast Floors",
+        "",
+        floors,
+      ].join("\n");
+    }
+    case "/docs/themes/facets":
+      return [
+        "## Four Orthogonal Runtime Axes (`data-theme` / `data-palette` / `data-spacing` / `data-mode`)",
+        "",
+        "```html",
+        THEMES_SNIPPETS.composedAxes,
+        "```",
+        "",
+        "## Composing Facets in Nested Subtrees",
+        "",
+        "```html",
+        THEMES_SNIPPETS.composedSubtree,
+        "```",
+        "",
+        "## Authoring Palette and Spacing Facets (`*.palette.json` & `*.spacing.json`)",
+        "",
+        "```json",
+        THEMES_SNIPPETS.paletteFacet,
+        "```",
+        "",
+        "```json",
+        THEMES_SNIPPETS.spacingFacet,
+        "```",
+      ].join("\n");
     case "/docs/themes/modes":
       return [
         "## Subtree Mode Scoping (`data-mode`)",
@@ -91,9 +135,9 @@ export function buildThemeMarkdown(routePath: string): string | undefined {
         THEMES_SNIPPETS.webFonts,
         "```",
         "",
-        "## Sixteen Composite Type Styles (`font.style.<name>`, `$type: \"typography\"`)",
+        "## Thirteen Type Styles (`font.style.<name>`, `$type: \"typography\"`)",
         "",
-        "Each named type style is a composite tuple of family, size, weight, tracking, and leading, spent with `type-<name>`. Sixteen ship with every starter (`display`, `title`, `heading`, `subtitle`, `lead`, `body`, `quote`, `code`, `label`, `caption`, `overline`, `stat`, `badge`, `body-strong`, `caption-strong`, `card-title`):",
+        "Each named type style is a composite tuple of family, size, weight, tracking, and leading, spent with `type-<name>`. Thirteen ship with every starter (`display`, `title`, `heading`, `subtitle`, `lead`, `body`, `body-emphasized`, `quote`, `code`, `label`, `caption`, `caption-emphasized`, `overline`):",
         "",
         "```json",
         THEMES_SNIPPETS.compositeStyle,
@@ -101,7 +145,7 @@ export function buildThemeMarkdown(routePath: string): string | undefined {
         "",
         "## Type Style Assignment (`.type` aliases)",
         "",
-        "Elements and component slots read their default type style from a `.type` alias: `element.h1.type` reads `{font.style.display}` in `elements.json`, `card.title.type` reads `{font.style.card-title}` in `primitives/card.json`. `<a>` and `<strong>` are inline modifiers over inherited text, not type styles — a link adds only paint (`color.link`, `link.underline`, `link.offset`), strong adds only `font.weight.bold`:",
+        "Elements and component slots read their default type style from a `.type` alias: `element.h1.type` reads `{font.style.display}` in `elements.json`, `card.title.type` reads `{font.style.title}` in `primitives/card.json`. `<a>` and `<strong>` are inline modifiers over inherited text, not type styles — a link adds only paint (`color.link`, `link.underline`, `link.offset`), strong reads the `body-emphasized` weight:",
         "",
         "```json",
         THEMES_SNIPPETS.typeAlias,
@@ -152,15 +196,6 @@ export function buildThemeMarkdown(routePath: string): string | undefined {
       ].join("\n");
     }
     case "/docs/themes/reference": {
-      const schema = schemaFacts();
-      const groups = schema.groups
-        .map(
-          (g) =>
-            `- **\`${g}\`** (${
-              schema.requiredGroups.includes(g) ? "required" : "optional"
-            })`,
-        )
-        .join("\n");
       const roles = ROLES.map(
         (r) => `- \`${r.path}\` (\`${r.type}\`): ${r.doc}`,
       ).join("\n");
@@ -172,8 +207,8 @@ export function buildThemeMarkdown(routePath: string): string | undefined {
               .join(", ")}`,
         )
         .join("\n");
-      const spinDoc = starterThemes.spin as unknown as Record<string, unknown>;
-      const fontGroup = spinDoc["font"] as Record<string, unknown> | undefined;
+      const editorialDoc = starterThemes.editorial as unknown as Record<string, unknown>;
+      const fontGroup = editorialDoc["font"] as Record<string, unknown> | undefined;
       const styleGroup = fontGroup?.["style"] as
         | Record<string, unknown>
         | undefined;
@@ -191,9 +226,9 @@ export function buildThemeMarkdown(routePath: string): string | undefined {
         "",
         roles,
         "",
-        "## Named Type Styles (16 Composite Type Styles)",
+        "## Named Type Styles (13 Composite Type Styles)",
         "",
-        "Write `type-<name>` to spend one of these sixteen type styles — face, size, weight, tracking, leading, all at once, each declared as a composite `$type: \"typography\"` tuple in `font.style.<name>`. Elements and components read their default type style from their `.type` alias; `<a>` and `<strong>` are inline modifiers over inherited text, not type styles. The Typography guide (`/docs/styling/prose`) maps each type style to its default element with a live specimen.",
+        "Write `type-<name>` to spend one of these thirteen type styles — face, size, weight, tracking, leading, all at once, each declared as a composite `$type: \"typography\"` tuple in `font.style.<name>`. Elements and components read their default type style from their `.type` alias; `<a>` and `<strong>` are inline modifiers over inherited text, not type styles. The Typography guide (`/docs/styling/prose`) maps each type style to its default element with a live specimen.",
         "",
         styles,
         "",

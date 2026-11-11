@@ -12,9 +12,9 @@ const machine = splitter({
  <div class="gap-2" {...machine.getRootProps()}>
   <template for={machine.getItems()} as={row} key={row.id}>
    <div
-    class={["min-h-0 min-w-0 rounded-md border bg-surface-raised transition-colors duration-fast ease-decelerate", { "grid shrink-0 place-items-center border-transparent bg-transparent hover:bg-surface-sunken focus-visible:bg-surface-sunken": row.type === "handle", "w-2 cursor-col-resize": machine.orientation === "horizontal" && row.type === "handle", "h-2 cursor-row-resize": machine.orientation === "vertical" && row.type === "handle" }]}
+    class={["min-h-0 min-w-0 rounded-md border bg-surface-raised transition-colors duration-fast ease-decelerate", { "grid shrink-0 place-items-center border-transparent bg-transparent hover:bg-surface-sunken focus:bg-surface-sunken": row.type === "handle", "w-2 cursor-col-resize": machine.orientation === "horizontal" && row.type === "handle", "h-2 cursor-row-resize": machine.orientation === "vertical" && row.type === "handle" }]}
     {...machine.getItemProps(row)}
-   ><span class={["block p-3 type-caption-strong text-muted", { "hidden": row.type === "handle" }]} {...machine.getItemLabelProps(row)}>{row.id}</span><span
+   ><span class={["block p-3 type-caption-emphasized text-muted", { "hidden": row.type === "handle" }]} {...machine.getItemLabelProps(row)}>{row.id}</span><span
     class={["hidden rounded-full bg-border-strong transition-all duration-fast ease-decelerate", { "block": row.type === "handle", "h-8 w-1": machine.orientation === "horizontal" && row.type === "handle", "h-1 w-8": machine.orientation === "vertical" && row.type === "handle" }]}
     {...machine.getItemIndicatorProps(row)}
    ></span></div>

@@ -26,8 +26,8 @@ import { dirname, join, relative, resolve } from "node:path";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { importSpecifiers, reachableFiles } from "./dist-graph.ts";
-import { renderAuthoringSkill } from "../packages/spin/src/theme/skill/authoring.ts";
-import { renderSkill } from "../packages/spin/src/theme/skill/index.ts";
+import { renderAuthoringSkill } from "../packages/spin/src/skill/authoring.ts";
+import { renderSkill } from "../packages/spin/src/skill/index.ts";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PACKAGES_DIR = join(REPO, "packages");
@@ -251,17 +251,16 @@ async function checkPackage(name: string, findings: Findings): Promise<void> {
 
   // The dependencies are the ones the dist imports — the JavaScript and the
   // declarations both, because a type-only import is a dependency too. An
-  // `import("x")` type query is not one the package chose: it is tsc's
-  // serialization of a declared dependency's own types (unplugin's `Plugin`),
-  // resolved transitively through that dependency.
+  // `import("x")` type query in a declaration is not one the package chose:
+  // it is tsc's serialization of a declared dependency's own types
+  // (unplugin's `Plugin`), resolved transitively through that dependency.
+  // In JavaScript the same syntax is a dynamic import — a real dependency.
   const TYPE_QUERY = /\bimport\s*\(\s*["'][^"']+["']\s*\)/g;
   const imports = new Set<string>();
   for (const file of shipped) {
     if (!file.endsWith(".js") && !file.endsWith(".d.ts")) continue;
-    const text = (await readFile(join(dist, file), "utf8")).replace(
-      TYPE_QUERY,
-      "",
-    );
+    const raw = await readFile(join(dist, file), "utf8");
+    const text = file.endsWith(".d.ts") ? raw.replace(TYPE_QUERY, "") : raw;
     for (const specifier of importSpecifiers(text)) {
       if (specifier.startsWith(".") || specifier.startsWith("node:")) continue;
       imports.add(specifier);

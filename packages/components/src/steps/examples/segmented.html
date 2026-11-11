@@ -17,7 +17,7 @@ const machine = steps({
 
  <div class="flex items-center gap-4">
   <button
-   class="secondary icon s-sm p-2 transition-colors hover:bg-surface disabled:opacity-50"
+   class="secondary icon s-sm transition-colors hover:bg-surface disabled:opacity-50"
    {...machine.getPrevTriggerProps()}><span class="i-lucide-chevron-left"></span></button>
   <ol class="row-list flex-1 items-start gap-1" {...machine.getListProps()}>
    <template for={machine.getItems()} as={row} key={row}>
@@ -29,12 +29,12 @@ const machine = steps({
     ><span
       class={["relative grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-solid type-label", { "border bg-surface-raised text-muted": machine.getItemState(row).incomplete, "border-primary bg-primary text-on-primary": machine.getItemState(row).current || machine.getItemState(row).completed }]}
       {...machine.getIndicatorProps(row)}
-     ><span aria-hidden="true" show={machine.getItemState(row).completed}><span class="i-lucide-check type-code"></span></span><span aria-hidden="true" show={machine.getItemState(row).completed === false}>{row + 1}</span></span><span class="type-label">{machine.getItemTitle(row)}</span></button><span show={row < machine.count - 1} aria-hidden="true" class={["mx-3 h-1 flex-1", { "bg-border": machine.getItemState(row).completed === false, "bg-primary": machine.getItemState(row).completed }]} {...machine.getSeparatorProps(row)}></span>
+   ></span><span class="type-label">{machine.getItemTitle(row)}</span></button><span show={row < machine.count - 1} aria-hidden="true" class={["mx-3 h-1 flex-1", { "bg-primary/20": machine.getItemState(row).completed === false, "bg-primary": machine.getItemState(row).completed }]} {...machine.getSeparatorProps(row)}></span>
    </li>
    </template>
   </ol>
   <button
-   class="secondary icon s-sm p-2 transition-colors hover:bg-surface disabled:opacity-50"
+   class="secondary icon s-sm transition-colors hover:bg-surface disabled:opacity-50"
    {...machine.getNextTriggerProps()}><span class="i-lucide-chevron-right"></span></button>
  </div>
 </div>

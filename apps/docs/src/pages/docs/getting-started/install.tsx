@@ -125,10 +125,10 @@ const PACKAGE_ITEMS: readonly PropEntry[] = [
       "Headless state-machine components (combobox, date picker, select, toc, carousel, and more) with React, Solid, Vue, and Svelte adapters.",
   },
   {
-    name: "@spinjs/runtime",
-    badge: "transitive",
+    name: "@spinjs/components/runtime",
+    badge: "subpath",
     description:
-      "Signals, custom-element bridges, and finite-state machines installed automatically with @spinjs/components.",
+      "Signals, custom-element bridges, and finite-state machines — a subpath of @spinjs/components, no separate install.",
   },
 ];
 
@@ -206,9 +206,9 @@ const initFlags = (): readonly PropEntry[] => [
   },
   {
     name: "--starter",
-    defaultValue: "spin",
+    defaultValue: "editorial",
     description:
-      "The shipped starter theme to seed from (spin, silk, material, neobrut, industrial).",
+      "The shipped starter design language to seed from (minimal, editorial, material, neobrutalist, neumorphic, glassmorphic).",
   },
   {
     name: "--bundler",
@@ -242,6 +242,16 @@ const initFlags = (): readonly PropEntry[] => [
     ),
   },
   {
+    name: "--vendor",
+    description:
+      "Vendor the full starter text instead of a sparse $extends document.",
+  },
+  {
+    name: "--from",
+    description:
+      "Seed from an existing brand directory instead of a starter.",
+  },
+  {
     name: "--url",
     defaultValue: "in-process",
     description:
@@ -257,7 +267,7 @@ export default function Install(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Install & Bundlers"
+        title="Installation"
         lede="Package setup, spin init flags, bundler adapters, plugin configuration reference, and project layout."
       />
 

@@ -1,7 +1,7 @@
 import { bindSpinElement, type SpinHookOptions } from "./spin-element.ts";
-import { controllerOf, type SpinController } from "@spinjs/runtime";
-import { effect, scope, signal } from "@spinjs/runtime";
-import type { DefinedComponent } from "@spinjs/runtime";
+import { controllerOf, type SpinController } from "@spinjs/components/runtime";
+import { effect, scope, signal } from "@spinjs/components/runtime";
+import type { DefinedComponent } from "@spinjs/components/runtime";
 
 /**
  * The app-controller surface: `{ commands, state, bind, ref }`, for whichever

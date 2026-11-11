@@ -1,8 +1,8 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { parseHTML } from "@spinjs/runtime/testing";
-import { signal } from "@spinjs/runtime";
-import type { DragDelta, DragPress } from "@spinjs/runtime/actions";
+import { parseHTML } from "@spinjs/components/testing";
+import { signal } from "@spinjs/components/runtime";
+import type { DragDelta, DragPress } from "@spinjs/components/actions";
 import { angleSlider } from "./angle-slider.presentation.ts";
 const createAngleSliderBridge = angleSlider.createBridge;
 import type { AngleSliderValueChangeEnd } from "./angle-slider.presentation.ts";

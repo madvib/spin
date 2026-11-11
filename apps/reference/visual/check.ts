@@ -19,11 +19,11 @@ import {
   type Route,
   runCheck,
 } from "@spin/check";
-import { SECTIONS } from "@spinjs/spin/preset";
+import { SECTIONS } from "@spinjs/preset";
 import {
   starterThemes,
   themeModes,
-} from "@spinjs/spin/theme/themes";
+} from "@spinjs/theme/themes";
 import { PRIMITIVES } from "../src/primitives.ts";
 import { APP_ROUTES } from "../src/routes.ts";
 import { geometryAudit, geometryClaimsFor } from "./geometry.ts";

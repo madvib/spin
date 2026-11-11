@@ -60,8 +60,8 @@ export default function ThemesValidation(): JSX.Element {
           <code>spin/&lt;brand&gt;/</code> themes together with your source files: a
           contrast pair below its floor or a missing required role surfaces as
           a lint diagnostic with the exact token path. To inspect themes on
-          their own, <code>npx spin theme list</code> prints every resolved
-          theme and <code>npx spin theme analyze</code> reports every issue:
+          their own, <code>npx spin brand list</code> prints every resolved
+          theme and <code>npx spin brand analyze</code> reports every issue:
         </p>
         <div class="my-3">
           <Code
@@ -75,9 +75,9 @@ export default function ThemesValidation(): JSX.Element {
       <Section id="checks" title="The six validation checks">
         <p class="max-w-prose">
           The Studio, <code>npx spin lint</code>, and{" "}
-          <code>npx spin theme analyze</code> all run the same{" "}
+          <code>npx spin brand analyze</code> all run the same{" "}
           <code>validateTheme</code> pipeline from{" "}
-          <code>@spinjs/spin/theme</code>:
+          <code>@spinjs/theme</code>:
         </p>
         <PropList items={CHECK_ITEMS} />
 
@@ -105,7 +105,7 @@ export default function ThemesValidation(): JSX.Element {
       <Section id="programmatic" title="Validating in TypeScript">
         <p class="max-w-prose">
           Import <code>validateTheme</code> from{" "}
-          <code>@spinjs/spin/theme</code> to validate user-supplied or
+          <code>@spinjs/theme</code> to validate user-supplied or
           agent-authored theme documents in your own tests or build scripts:
         </p>
         <div class="my-3">
@@ -123,8 +123,8 @@ export default function ThemesValidation(): JSX.Element {
           <code>var(--color-primary)</code>). When you need resolved hex or
           pixel values in JavaScript — for <code>&lt;canvas&gt;</code>, WebGL,
           charting libraries, or <code>&lt;meta name="theme-color"&gt;</code>{" "}
-          — use <code>resolveTheme(spinTheme, "dark")</code> from{" "}
-          <code>@spinjs/spin/theme</code>:
+          — use <code>resolveTheme(editorialTheme, "dark")</code> from{" "}
+          <code>@spinjs/theme</code>:
         </p>
         <div class="my-3">
           <Code

@@ -11,17 +11,14 @@ import { implement } from "@orpc/server";
 import {
   primitiveComponents,
   primitiveReadsByGroup,
-} from "../compiler/rules/primitives/manifest.ts";
-import { componentExamples } from "../compiler/rules/primitives/examples-index.ts";
-import { EXAMPLE_ONLOAD } from "../examples/onload.ts";
+} from "@spinjs/preset";
+import { componentExamples } from "@spinjs/preset";
+import { EXAMPLE_ONLOAD } from "../examples/index.ts";
 import { componentsContract } from "./components-contract.ts";
-import { prefixOf, readConfiguration } from "../project/index.ts";
-import {
-  tagForProjectFile,
-  writeProjectComponentsDts,
-} from "../plugin/components-compiler.ts";
-import { rootFor } from "./project-procedures.ts";
-import * as catalog from "@spinjs/components";
+import { prefixOf, readConfiguration } from "@spinjs/server/project";
+import { writeProjectComponentsDts } from "@spinjs/server/project";
+import { tagForProjectFile } from "@spinjs/components/compiler";
+import { rootFor } from "@spinjs/server/procedures";
 
 export { componentsContract };
 
@@ -201,8 +198,10 @@ const camelOf = (name: string): string =>
       : word[0]?.toUpperCase() + word.slice(1)
   ).join("");
 
-const manifestOf = (name: string): ComponentManifest => {
-  const rec = catalog as unknown as Record<string, unknown>;
+let catalogCache: Record<string, unknown> | undefined;
+const manifestOf = async (name: string): Promise<ComponentManifest> => {
+  catalogCache ??= await import("@spinjs/components").catch(() => ({}));
+  const rec = catalogCache;
   const handle = rec[camelOf(name)] as {
     readonly manifest?: Partial<ComponentManifest>;
   } | undefined;
@@ -241,7 +240,12 @@ const machineReads = async (name: string): Promise<string[]> => {
   const found = await discover();
   const stems = found.get(name) ?? [];
   const classes = new Set<string>();
-  const { classTokens, parse } = await import("@spinjs/runtime");
+  const runtime = await import("@spinjs/components/runtime").catch(() => undefined);
+  if (runtime === undefined) {
+    readsCache.set(name, []);
+    return [];
+  }
+  const { classTokens, parse } = runtime;
   for (const stem of stems) {
     const row = await readExampleFile(name, stem);
     if (row === null) continue;
@@ -258,8 +262,8 @@ const machineReads = async (name: string): Promise<string[]> => {
     return [];
   }
   const { createGenerator } = await import("@unocss/core");
-  const { spinPreset } = await import("../compiler/index.ts");
-  const { starterThemes } = await import("../theme/themes/index.ts");
+  const { spinPreset } = await import("@spinjs/preset");
+  const { starterThemes } = await import("@spinjs/theme/themes");
   const generator = await createGenerator({
     presets: [spinPreset({ themes: starterThemes })],
   });
@@ -318,10 +322,10 @@ const list = os.components.list.handler(async ({ input }) => {
         tags: [`${moniker}-${name}`],
         variants: [...stems],
         reads,
-        manifest: manifestOf(name),
+        manifest: await manifestOf(name),
         examples: {
           note:
-            "Interactive machine component. Requires the runtime (@spinjs/runtime).",
+            "Interactive machine component. Requires the runtime (@spinjs/components/runtime).",
           rows,
         },
       };
@@ -374,10 +378,10 @@ const contract = os.components.contract.handler(async ({ input }) => {
     tags: [`${moniker}-${name}`],
     variants: [...stems],
     reads,
-    manifest: manifestOf(name),
+    manifest: await manifestOf(name),
     examples: {
       note:
-        "Interactive machine component. Requires the runtime (@spinjs/runtime).",
+        "Interactive machine component. Requires the runtime (@spinjs/components/runtime).",
       rows,
     },
   };

@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { spin } from "../../../../packages/spin/src/plugin/plugin.ts";
-import { describeCatalog, spinPreset } from "../../../../packages/spin/src/compiler/index.ts";
+import { describeCatalog, spinPreset } from "@spinjs/preset";
 import {
   indexTree,
   ownedStyleNames,
@@ -10,13 +10,20 @@ import {
   resolveAliases,
   starterThemes,
   themeGates,
-} from "../../../../packages/spin/src/theme/index.ts";
-import { parseArgs } from "../../../../packages/spin/src/diagnostics/cli.ts";
+} from "../../../../packages/theme/src/index.ts";
+import { parseArgs } from "../../../../packages/spin/src/cli/main.ts";
 import { mountSpinApp } from "../../../../packages/spin/src/api/index.ts";
 import { GETTING_STARTED_SNIPPETS } from "../pages/docs/getting-started/getting-started.snippets.ts";
 import { THEMES_SNIPPETS } from "../pages/docs/themes/themes.snippets.ts";
 import { AUTHORING_SNIPPETS } from "../pages/docs/authoring/authoring.snippets.ts";
 import { TOOLING_SNIPPETS } from "../pages/docs/tooling/tooling.snippets.ts";
+import { PAIRS } from "../pages/docs/tooling/lints.specimens.ts";
+import {
+  DEFAULT_SEMANTIC_OPTIONS,
+  lintMarkup,
+  RULE_NAMES,
+} from "../../../../packages/diagnostics/src/index.ts";
+import { engineAnswers } from "../../../../packages/preset/src/index.ts";
 
 const ALL_SNIPPETS = {
   ...GETTING_STARTED_SNIPPETS,
@@ -28,8 +35,11 @@ const ALL_SNIPPETS = {
 const ROOT = resolve(import.meta.dir, "../../../..");
 const PACKAGES: Readonly<Record<string, string>> = {
   "@spinjs/spin": "packages/spin",
-  "@spinjs/runtime": "packages/runtime",
+  "@spinjs/components/runtime": "packages/components",
   "@spinjs/components": "packages/components",
+  "@spinjs/theme": "packages/theme",
+  "@spinjs/preset": "packages/preset",
+  "@spinjs/server": "packages/server",
 };
 
 function specifiers(): readonly string[] {
@@ -190,7 +200,7 @@ describe("docs-to-catalog currency", () => {
     expect(worn.size).toBeGreaterThan(0);
     const owned = new Set(ownedStyleNames());
     const parsed = parseTokens(
-      starterThemes.spin as unknown as Parameters<typeof parseTokens>[0],
+      starterThemes.editorial as unknown as Parameters<typeof parseTokens>[0],
     );
     if (!parsed.ok) throw new Error(parsed.error);
     const catalog = new Set(
@@ -218,7 +228,7 @@ describe("docs-to-catalog currency", () => {
     const stated = statedTokenPaths(sources);
     expect(stated.size).toBeGreaterThan(0);
     const parsed = parseTokens(
-      starterThemes.spin as unknown as Parameters<typeof parseTokens>[0],
+      starterThemes.editorial as unknown as Parameters<typeof parseTokens>[0],
     );
     if (!parsed.ok) throw new Error(parsed.error);
     const index = indexTree(resolveAliases(parsed.tree).tree);
@@ -233,6 +243,36 @@ describe("docs-to-catalog currency", () => {
       if (!hit) {
         throw new Error(
           `${path} is stated by the docs but resolves in no starter tree node`,
+        );
+      }
+    }
+  });
+});
+
+describe("lints page specimens", () => {
+  test("every bad specimen trips its rule and every good specimen is clean", async () => {
+    const parsed = parseTokens(
+      starterThemes.editorial as unknown as Parameters<typeof parseTokens>[0],
+    );
+    if (!parsed.ok) throw new Error(parsed.error);
+    const answers = engineAnswers([starterThemes.editorial]);
+    const run = {
+      rules: RULE_NAMES,
+      semantic: DEFAULT_SEMANTIC_OPTIONS,
+      answers,
+    };
+    expect(PAIRS.length).toBeGreaterThan(0);
+    for (const pair of PAIRS) {
+      const bad = await lintMarkup("specimen.html", pair.bad, run);
+      if (!bad.some((finding) => finding.ruleId === pair.rule)) {
+        throw new Error(
+          `${pair.rule} specimen does not trip its rule: ${JSON.stringify(bad.map((f) => f.ruleId))}`,
+        );
+      }
+      const good = await lintMarkup("specimen.html", pair.good, run);
+      if (good.length > 0) {
+        throw new Error(
+          `${pair.rule} remedy is not clean: ${JSON.stringify(good.map((f) => `${f.ruleId}: ${f.message}`))}`,
         );
       }
     }

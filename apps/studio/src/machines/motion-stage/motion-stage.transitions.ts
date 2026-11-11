@@ -1,4 +1,4 @@
-import type { AssignFor, GuardFor } from "@spinjs/runtime/fsm";
+import type { AssignFor, GuardFor } from "@spinjs/components/fsm";
 import type { MotionStageEvents } from "./motion-stage.events.ts";
 import type { MotionLane, MotionStageContext, MotionSpeed } from "./motion-stage.state.ts";
 import { longestOf, withShares } from "./motion-stage.state.ts";

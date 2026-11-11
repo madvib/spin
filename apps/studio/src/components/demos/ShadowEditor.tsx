@@ -1,8 +1,7 @@
 import { createEffect, createSignal, on, Show } from "solid-js";
 import { createSpinComponent } from "@spinjs/components/solid";
 import { colorPicker } from "@spinjs/components/color-picker";
-import { formatHex, parseColor } from "@spinjs/spin/theme";
-
+import { formatHex, parseColor } from "@spinjs/theme";
 /**
  * A shadow is four lengths, a colour swatch picker, and an opacity percentage.
  * Every shadow color is normalized into hex + alpha% so rows never mix raw
@@ -62,7 +61,7 @@ export default function ShadowEditor(props: {
             </span>
             <button
               type="button"
-              class="secondary s-sm min-h-0 cursor-pointer px-2 py-1 type-caption normal-case shadow-none hover:border-primary"
+              class="secondary s-sm min-h-0 cursor-pointer type-caption normal-case hover:border-primary"
               onClick={() =>
                 props.onCommit("0 4px 12px 0 rgb(0 0 0 / 0.12)")
               }
@@ -72,31 +71,31 @@ export default function ShadowEditor(props: {
           </>
         }
       >
-        <label class="row-sm items-center gap-1 text-muted">
+        <label class="row-sm items-center gap-1">
           <span>x</span>
           <input
             type="text"
-            class="w-12 px-1 text-center tabular-nums"
+            class="w-12 text-center tabular-nums"
             value={draft().x}
             onKeyDown={(e) => stepKey(e, "x")}
             onChange={(e) => commit({ ...draft(), x: e.currentTarget.value })}
           />
         </label>
-        <label class="row-sm items-center gap-1 text-muted">
+        <label class="row-sm items-center gap-1">
           <span>y</span>
           <input
             type="text"
-            class="w-12 px-1 text-center tabular-nums"
+            class="w-12 text-center tabular-nums"
             value={draft().y}
             onKeyDown={(e) => stepKey(e, "y")}
             onChange={(e) => commit({ ...draft(), y: e.currentTarget.value })}
           />
         </label>
-        <label class="row-sm items-center gap-1 text-muted">
+        <label class="row-sm items-center gap-1">
           <span>blur</span>
           <input
             type="text"
-            class="w-12 px-1 text-center tabular-nums"
+            class="w-12 text-center tabular-nums"
             value={draft().blur}
             onKeyDown={(e) => stepKey(e, "blur")}
             onChange={(e) =>
@@ -104,11 +103,11 @@ export default function ShadowEditor(props: {
             }
           />
         </label>
-        <label class="row-sm items-center gap-1 text-muted">
+        <label class="row-sm items-center gap-1">
           <span>spread</span>
           <input
             type="text"
-            class="w-12 px-1 text-center tabular-nums"
+            class="w-12 text-center tabular-nums"
             value={draft().spread}
             onKeyDown={(e) => stepKey(e, "spread")}
             onChange={(e) =>
@@ -120,12 +119,12 @@ export default function ShadowEditor(props: {
           value={draft().hex}
           onCommit={(hex) => commit({ ...draft(), hex })}
         />
-        <label class="row-sm items-center gap-1 text-muted">
+        <label class="row-sm items-center gap-1">
           <span>α</span>
           <input
             type="text"
             aria-label="Shadow opacity"
-            class="w-12 px-1 text-center tabular-nums"
+            class="w-12 text-center tabular-nums"
             value={`${draft().alpha}%`}
             onKeyDown={stepAlpha}
             onChange={(e) => {

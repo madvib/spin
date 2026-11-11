@@ -4,7 +4,7 @@ import {
   createMachine,
   type Machine,
   type Transitions,
-} from "@spinjs/runtime/fsm";
+} from "@spinjs/components/fsm";
 import type { ToastArgs, ToastContext, ToastState } from "./toast.state.ts";
 import { initial } from "./toast.state.ts";
 import type { ToastEvents } from "./toast.events.ts";

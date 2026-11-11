@@ -32,13 +32,12 @@ export interface CropSize {
 /** A resize handle's position. */
 export type CropHandle = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
 
-var { min, max, abs, round } = Math;
+var { min, max, abs } = Math;
 
 /** A value held between two bounds, NaN folded to the low. */
 var clampValue = (v: number, vmin: number, vmax: number): number =>
   min(max(Number.isNaN(v) ? vmin : v, vmin), vmax);
 
-var MIN_PINCH_DISTANCE = 1;
 
 var isLeftHandle = (v: CropHandle | string) =>
   v === "w" || v === "nw" || v === "sw";
@@ -561,7 +560,6 @@ export var getMaxBounds = (
   y: max(0, viewportSize.height - cropSize.height),
 });
 
-var ZERO_POINT = { x: 0, y: 0 };
 
 export var clampPoint = (
   point: { x: number; y: number },

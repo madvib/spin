@@ -1,4 +1,4 @@
-import type { AssignFor } from "@spinjs/runtime/fsm";
+import type { AssignFor } from "@spinjs/components/fsm";
 import type { RatingGroupEvents } from "./rating-group.events.ts";
 import type { RatingGroupContext } from "./rating-group.state.ts";
 import { ratingValue, step } from "./rating-group.state.ts";

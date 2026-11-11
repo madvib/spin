@@ -2,6 +2,7 @@ import { deepStrictEqual } from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import {
   copyFileSync,
+  cpSync,
   mkdirSync,
   mkdtempSync,
   readdirSync,
@@ -11,9 +12,9 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { type Daemon, startDaemon } from "../../src/api/daemon.ts";
-import { parseTokens, themeModes, validateTokens } from "../../src/theme/index.ts";
-import { createSpinClient, type SpinClient } from "../../src/api/index.ts";
+import { type Daemon, startDaemon } from "@spinjs/server/daemon";
+import { parseTokens, themeModes, validateTokens } from "@spinjs/theme";
+import { createSpinApp, createSpinClient, type SpinClient } from "../../src/api/index.ts";
 
 /**
  * The production path for theme add/remove/rename, end to end: a real daemon
@@ -39,11 +40,8 @@ describe("daemon project.themes over HTTP", () => {
     // copied into a temp dir shaped like a project: root with a themes/
     // directory inside it. The product's own themes are never touched.
     dir = mkdtempSync(join(tmpdir(), "spin-daemon-"));
-    mkdirSync(join(dir, "spin"));
-    for (const entry of readdirSync(fixture)) {
-      copyFileSync(join(fixture.pathname, entry), join(dir, "spin", entry));
-    }
-    daemon = await startDaemon({ root: dir, port: 0 });
+    cpSync(fixture.pathname, join(dir, "spin"), { recursive: true });
+    daemon = await startDaemon({ root: dir, app: createSpinApp({ root: dir, base: "/rpc" }), port: 0 });
     client = createSpinClient(daemon.url);
   });
 
@@ -55,10 +53,10 @@ describe("daemon project.themes over HTTP", () => {
   });
 
   it("keeps the fixtures in the shape the pipeline currently speaks", async () => {
-    // The fixtures were copied from the starters before per-token `$modes`
-    // existed, so a dark-mode edit in the studio showed the light value while
-    // it wrote the override. A guard, because a stale fixture is exactly the
-    // kind of thing that passes every other test.
+    // Sparse brands over a shipped starter: the composed document is what
+    // parses, serves modes, and carries dark values — the layer text is a
+    // diff, never judged alone. A guard, because a stale fixture is exactly
+    // the kind of thing that passes every other test.
     const listed = (await client.project.themes.list({}))
       .filter((theme) => theme.file !== null);
     for (const theme of listed) {
@@ -69,13 +67,13 @@ describe("daemon project.themes over HTTP", () => {
         `${theme.name}: no dark group — a token carries its own $modes`,
       );
       const parsed = parseTokens(theme.text);
-      deepStrictEqual(parsed.ok, true, `${theme.name}: parses`);
+      deepStrictEqual(parsed.ok, true, `${theme.name}: parses with its parent`);
       if (!parsed.ok) return;
       const modes = themeModes(doc as never);
       deepStrictEqual(
         modes.includes("dark"),
         true,
-        `${theme.name}: declares dark`,
+        `${theme.name}: serves dark`,
       );
       deepStrictEqual(
         validateTokens(parsed.tree, { modes: [...modes] }).issues,
@@ -90,10 +88,10 @@ describe("daemon project.themes over HTTP", () => {
     deepStrictEqual(
       listed.map((t) => [t.name, t.file]),
       [
-        ["acme", "spin/acme.json"],
-        ["starter", "spin/starter.json"],
+        ["acme", "spin/acme"],
+        ["starter", "spin/starter"],
       ],
-      "a file carries its path; a fixture with no brand lists nothing else",
+      "a brand carries its identity path; a fixture with no brand lists nothing else",
     );
     // Project-relative, never absolute: a path a developer sees carries no
     // machine with it — no screenshot, log line, or issue report says where
@@ -114,7 +112,7 @@ describe("daemon project.themes over HTTP", () => {
     const branded = mkdtempSync(join(tmpdir(), "spin-branded-"));
     mkdirSync(join(branded, "spin"));
     copyFileSync(
-      join(fixture.pathname, "acme.json"),
+      join(fixture.pathname, "acme", "tokens.json"),
       join(branded, "brand.json"),
     );
     writeFileSync(
@@ -184,7 +182,7 @@ describe("daemon project.themes over HTTP", () => {
     const report = await client.project.detect({ root: dir });
     deepStrictEqual(report.spin, true, "the fixture's spin directory is seen");
     deepStrictEqual(report.uno, false, "the fixture has no uno config");
-    deepStrictEqual(report.themes, ["acme.json", "starter.json"]);
+    deepStrictEqual(report.themes, ["acme", "starter"]);
 
     const bare = mkdtempSync(join(tmpdir(), "spin-bare-"));
     const empty = await client.project.detect({ root: bare });
@@ -197,7 +195,7 @@ describe("daemon project.themes over HTTP", () => {
     deepStrictEqual(noPlugin.wired, false, "a build config without the preset");
     writeFileSync(
       join(bare, "vite.config.ts"),
-      'import { spin } from "@spinjs/spin";\nspin.vite();',
+      'import { spin } from "@spinjs/spin/vite";\nspin.vite();',
     );
     const wired = await client.project.detect({ root: bare });
     deepStrictEqual(wired.wired, true, "a build config naming the plugin");
@@ -212,7 +210,7 @@ describe("daemon project.themes over HTTP", () => {
     const report = await client.project.current({});
     deepStrictEqual(report.root, dir);
     deepStrictEqual(report.spin, true);
-    deepStrictEqual(report.themes, ["acme.json", "starter.json"]);
+    deepStrictEqual(report.themes, ["acme", "starter"]);
   });
 
   it("serves two projects from one daemon, named per call", async () => {
@@ -223,7 +221,7 @@ describe("daemon project.themes over HTTP", () => {
     const other = mkdtempSync(join(tmpdir(), "spin-other-"));
     mkdirSync(join(other, "spin"));
     copyFileSync(
-      join(fixture.pathname, "acme.json"),
+      join(fixture.pathname, "acme", "tokens.json"),
       join(other, "spin", "solo.json"),
     );
     const theirs = await client.project.themes.list({ root: other });
@@ -249,7 +247,7 @@ describe("daemon project.themes over HTTP", () => {
     const init = await client.project.init({
       root: fresh,
       name: "first",
-      starter: "silk",
+      starter: "minimal",
     });
     deepStrictEqual(init.error, null);
     const detect = await client.project.detect({ root: fresh });
@@ -283,7 +281,7 @@ describe("daemon project.themes over HTTP", () => {
     });
     deepStrictEqual(
       JSON.parse(seeded.text ?? "{}").$extends,
-      "silk",
+      "minimal",
       "the seeded theme extends its starter, not an empty file",
     );
     rmSync(fresh, { recursive: true, force: true });
@@ -332,7 +330,7 @@ describe("daemon project.themes over HTTP", () => {
       "the fixture theme reads",
     );
     const edited = (before.text as string).replace(
-      "#0369a1",
+      "#3355ff",
       "#ff0000",
     );
     const written = await client.project.themes.write({

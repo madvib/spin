@@ -13,7 +13,7 @@ Write `<button>`, `<card>`, or `<input>` directly in your template and get a fin
 </div>
 ```
 
-Compose `<card>` with `<card-header>`, `<card-title>`, `<card-description>`, `<card-action>`, `<card-content>`, `<card-footer>`, and `<card-figure>` when a surface needs structured regions, or wrap an `<input>` and an inline icon inside `<field>` so the outer box carries the single border and focus ring instead of drawing a box inside a box. Every primitive tag is registered in `src/spin-components.d.ts` when your bundler runs `spin.vite()`, so TypeScript and JSX autocomplete `<card>`, `<field>`, `<badge>`, and `<alert>` alongside native HTML elements (browse all 28 primitives in the [Components catalog](/components?kind=elements)):
+Compose `<card>` with `<card-header>`, `<card-content>`, and `<card-footer>` when a surface needs structured regions, or wrap an `<input>` and an inline icon inside `<field>` so the outer box carries the single border and focus ring. Every primitive tag is registered in `src/spin-components.d.ts` when your bundler runs `spin.vite()`, giving TypeScript and JSX autocomplete for all 28 primitives in the [Components catalog](/components?kind=elements):
 
 ```html
 <card>
@@ -42,7 +42,7 @@ Compose `<card>` with `<card-header>`, `<card-title>`, `<card-description>`, `<c
 
 ## Atomic CSS: you ship what you use
 
-Use `<card>` on a page without `<card-footer>` or `<card-figure>` and your stylesheet emits `326 B` minified (`200 B` gzipped) for `<card>` alone — unused child tags and variants emit zero bytes because each primitive tag, child part, and variant class is an independent atomic rule generated on demand by UnoCSS. Across the 3-control slice above (`<button class="primary">`, `<card>` with `<card-header>`, `<card-title>`, and `<card-content>`, and `<input>`) and across the 22 components shared by both libraries (`alert`, `badge`, `breadcrumbs`, `button`, `card`, `checkbox`, `details`/`collapse`, `dialog`/`modal`, `field`/`input`+`textarea`+`select`, `fieldset`, `hr`/`divider`, `join`, `kbd`, `label`, `progress`, `radio`, `range`, `skeleton`, `stat`, `switch`/`toggle`, `table`, and `tooltip`), compiling equivalent markup against `@spinjs/spin` (`starterThemes.spin`) versus daisyUI `5.7.50` on `@tailwindcss/node` `4.3.2` measures as follows (on an empty page with zero components, Spin's reset, light/dark token variables, and base document typography start at `14.47 kB` minified / `2.55 kB` gzipped versus daisyUI's `10.56 kB` minified / `2.76 kB` gzipped):
+Each primitive tag, child slot, and variant class is an independent atomic rule generated on demand by UnoCSS. Using `<card>` on a page without `<card-footer>` emits only the `326 B` rule for `<card>` — unused parts and variants emit zero bytes:
 
 | Workload | Spin (rules only) | daisyUI 5.7.50 (rules only) | Spin (full sheet) | daisyUI 5.7.50 (full sheet) |
 | --- | --- | --- | --- | --- |
@@ -67,7 +67,7 @@ Add `.primary`, `.secondary`, `.outline`, `.ghost`, `.contrast`, or `.danger` (o
 </div>
 ```
 
-Reach for a variant when one button on a screen plays a different role; reach for component tokens in `spin/<brand>/tokens.json` (`button.radius`, `button.shadow`, `card.radius`, `card.padding`, `field.radius`) when you want to change what *your* button, card, or field looks like everywhere (see [Theme Customization](/docs/themes/customization#elements) and [Per-Element Token Overrides](/docs/themes/reference#elements)). Every UI surface in Spin climbs one three-step staircase so no layer pretends the others don't exist: your **theme** (`spin/<brand>/`) sets the palette, scales, and per-element tokens; **primitives** (`<button>`, `<card>`, `<input>`, `<field>`) turn single HTML and custom tags into finished controls for static and native interactions; and when a widget needs multi-part state orchestration, keyboard navigation, and roving focus — a combobox, select, tabs, dialog, or menu — you **vendor a state-machine component** into `src/lib/components/` with `npx spin component copy <name> <example>` so you own its markup the same way shadcn/ui vendors templates while the theme and primitives still style every part inside it (see the [Components catalog](/components)).
+Reach for a variant class (`.primary`, `.secondary`, `.ghost`) when one button on a screen plays a different role. Edit component tokens in `spin/<brand>/primitives/*.json` (such as `button.radius` or `card.padding`) when you want to change how that element looks everywhere in your app (see [Layers](/docs/themes/customization#layers) and [Reference](/docs/themes/reference#elements)). When a widget needs multi-part state orchestration, keyboard navigation, and roving focus — a combobox, select, tabs, dialog, or menu — vendor a statechart machine into `src/lib/components/` with `npx spin component copy <name> <example>` so you own its markup while your brand and primitives style every part inside it (see the [Components catalog](/components)).
 
 ## How the system reasons about your markup
 

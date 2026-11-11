@@ -1,4 +1,4 @@
-import type { AssignFor } from "@spinjs/runtime/fsm";
+import type { AssignFor } from "@spinjs/components/fsm";
 import type { ModePickerEvents } from "./mode-picker.events.ts";
 import type { ModePickerContext, ModeChoice, ResolvedMode } from "./mode-picker.state.ts";
 import { isSingleMode, nextModeChoice } from "./mode-picker.state.ts";

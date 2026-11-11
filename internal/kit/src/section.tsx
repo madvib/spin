@@ -22,7 +22,7 @@ export function Marker(props: { tone?: "primary" | "accent" }) {
   return (
     <span
       class={`block h-1 w-4 shrink-0 rounded-full ${
-        props.tone === "accent" ? "bg-accent" : "bg-primary"
+        props.tone === "accent" ? "bg-accent text-on-accent" : "bg-primary text-on-primary"
       }`}
       aria-hidden="true"
     />
@@ -64,7 +64,7 @@ export function Section(props: {
           <Marker tone={props.tone} />
           <Show when={props.id} fallback={<span class="min-w-0">{props.title}</span>}>
             {(id) => (
-              <a href={`#${id()}`} class="group inline-flex min-w-0 items-center gap-2 no-underline hover:underline"><span class="min-w-0">{props.title}</span><span class="type-code text-muted opacity-0 transition-opacity duration-fast group-hover:opacity-100" aria-hidden="true">#</span></a>
+              <a href={`#${id()}`} class="bare group inline-flex min-w-0 items-center gap-2 no-underline hover:underline"><span class="min-w-0">{props.title}</span><span class="type-code text-muted opacity-0 transition-opacity duration-fast group-hover:opacity-100" aria-hidden="true">#</span></a>
             )}
           </Show>
           <Show when={props.info}>
@@ -149,7 +149,7 @@ export function CodeBlock(props: {
   return (
     <div class="relative">
       <pre
-        class={`m-0 overflow-x-auto rounded-md border bg-surface p-4 type-code text-muted ${
+        class={`overflow-x-auto rounded-md border bg-surface p-4 type-code text-muted${
           props.class ? ` ${props.class}` : ""
         }`}
       >

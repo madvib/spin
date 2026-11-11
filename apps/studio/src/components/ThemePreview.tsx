@@ -60,12 +60,12 @@ export function ThemePreview(props: { text: string; name: string; static?: boole
       }
     >
       <div
-        class="w-full min-w-0 rounded-md border border-solid p-3"
+        class="stack-xs w-full min-w-0 rounded-md border border-solid p-3"
         style={{ background: surface() ?? "transparent", "border-color": border() ?? "currentColor" }}
       >
         <div class="flex items-center justify-between gap-2">
           <span
-            class="truncate type-body-strong"
+            class="truncate type-body-emphasized"
             style={{ "font-family": headingStack() ?? "inherit", color: text() ?? "inherit" }}
           >
             {props.name}
@@ -93,7 +93,6 @@ export function ThemePreview(props: { text: string; name: string; static?: boole
         </div>
         <Show when={props.static !== true}>
           <p
-            class="mt-1"
             style={{ "font-family": bodyStack() ?? "inherit", color: muted() ?? "inherit" }}
           >
             {PANGRAM}

@@ -1,7 +1,8 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { indexTree, parseTokens, themeKey, themeRef } from "../../src/theme/index.ts";
-import { starterThemes } from "../../src/theme/themes/index.ts";
+import { indexTree, parseTokens } from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
+import { themeKey, themeRef } from "@spinjs/preset";
 
 /**
  * The projection's contract: total, and named by the property itself.
@@ -19,7 +20,7 @@ function refOf(name: keyof typeof starterThemes) {
 }
 
 test("the projection carries every token of a theme", () => {
-  const { tree, ref } = refOf("silk");
+  const { tree, ref } = refOf("minimal");
   for (const leaf of Object.values(indexTree(tree).leaves)) {
     const name = themeKey(leaf.path.join("."));
     deepStrictEqual(
@@ -31,7 +32,7 @@ test("the projection carries every token of a theme", () => {
 });
 
 test("a dotted path and its dashes name one entry", () => {
-  const { ref } = refOf("silk");
+  const { ref } = refOf("minimal");
   deepStrictEqual(ref[themeKey("font.family.sans")], "var(--font-family-sans)");
   deepStrictEqual(ref[themeKey("color.neutral.500")], "var(--color-neutral-500)");
   deepStrictEqual(

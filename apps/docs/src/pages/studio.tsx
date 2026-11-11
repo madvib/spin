@@ -17,10 +17,13 @@ export default function Studio(): JSX.Element {
       <div class="mx-auto w-full max-w-screen-lg px-6 pt-10">
         <h1>Using the Studio</h1>
         <p class="max-w-prose text-muted">
-          The Studio is Spin's theme editor: change a color, a type ramp, an
-          icon, or a spacing step, and the running page repaints before anything
-          is saved. When it is right, save; the theme document lands in{" "}
-          <code>spin/</code>. Below is the live editor, editing this site.
+          The Studio is Spin's visual brand and theme workbench: create your
+          brand in four steps, tune colors, type styles, faces, spacing, shape,
+          motion, and icons against live specimens, and inspect every primitive
+          and statechart machine. Edits repaint your running app in memory
+          immediately; pressing <strong>Save</strong> writes clean DTCG JSON to{" "}
+          <code>spin/&lt;brand&gt;/</code>. Below is the live Studio, editing
+          this site.
         </p>
       </div>
       <div class="mx-auto mt-6 w-full max-w-screen-lg flex-1 px-6 pb-6">
@@ -58,40 +61,38 @@ export default function Studio(): JSX.Element {
         </p>
       </Section>
 
-      <Section id="themes" title="Managing themes">
+      <Section id="themes" title="Top bar, navigation, and the routes">
         <p>
-          The Overview page (the mark at the top of the rail) lists every
-          theme the project serves, with live swatches painted by the
-          stylesheet's own cascade. The top bar switches the active theme and
-          its light or dark mode; the preview below follows both. Its
-          middle reads the document's state — the theme, the mode, the
-          token count, and whether the file agrees.
+          The top bar holds three zones: on the left, the page title is the
+          menu — rest on it (or click it) and a card names every route, with
+          the six token-group cards inline. In the center, the command palette
+          searches routes, themes, modes, components, and tokens behind{" "}
+          <kbd>⌘K</kbd>. On the right, the edit pill carries undo, redo, and{" "}
+          <strong>Save</strong> (plus discard when the editor holds unsaved
+          edits, and reload when the file moved on disk), beside the seat pill
+          naming the active mode and theme.
         </p>
         <p>
-          A theme the project serves from its brand or from verbatim
-          options is read-only here: saving it offers a copy into{" "}
-          <code>spin/</code> under a name you choose, and the copy is
-          what the project then edits. A theme the project owns saves
-          in place.
-        </p>
-        <p>
-          The Overview's Project section edits <code>spin/config.json</code>:
-          a select names the active theme, and up and down verbs order
-          the list. With no file the Studio serves its defaults and
-          says so — saving writes the file.
-        </p>
-        <p>
-          <strong>New theme</strong> opens a stepped dialog: pick a starter
-          (or Blank, which scaffolds the required roles), choose the primary,
-          secondary, and accent fills plus the body and heading faces, name
-          the theme, and the Studio writes the new{" "}
-          <code>spin/&lt;brand&gt;/tokens.json</code> beside the others.
+          The <strong>Overview</strong> page (<code>/</code>) is the project
+          dashboard: the active brand, its token groups, its components, and
+          its diagnostics at a glance. <strong>Brand</strong> (<code>/brand</code>)
+          manages identity — the parent design language, the authored layers
+          (<code>tokens.json</code>, <code>reference.json</code>,{" "}
+          <code>elements.json</code>, <code>primitives/*.json</code>), and the
+          runtime facets (<code>*.palette.json</code>, <code>*.spacing.json</code>).
+          <strong>Tokens</strong> (<code>/tokens/*</code>) holds the six concern
+          workbenches below; <strong>Components</strong> (<code>/components</code>)
+          catalogs primitives and machines; <strong>Diagnostics</strong> (<code>
+          /diagnostics</code>) reads the theme contract checks and the source
+          lints together. Opening <code>/init</code> launches the four-step{" "}
+          <strong>Create your brand</strong> wizard (Brand → Design language →
+          Color → Type &amp; icons).
         </p>
       </Section>
 
       <Section id="colors" title="Editing colors">
         <p>
-          The Themes page's Color group (<code>/themes/colors</code>) edits every{" "}
+          The Tokens page's Color group (<code>/tokens/colors</code>) edits every{" "}
           <code>color.*</code> role in both modes: the base surfaces (<code>surface</code>,{" "}
           <code>surface-raised</code>, <code>surface-sunken</code>), the acting fills (<code>primary</code>,{" "}
           <code>secondary</code>, <code>accent</code>), the semantic fills
@@ -108,34 +109,47 @@ export default function Studio(): JSX.Element {
         </p>
       </Section>
 
-      <Section id="type" title="Changing fonts and type">
+      <Section id="type" title="Type styles, faces, and ramps">
         <p>
-          The Themes page's Type group (<code>/themes/type</code>) edits everything under <code>font.*</code>. The{" "}
-          <strong>Faces</strong> section picks the family ladder —{" "}
-          <code>sans</code>, <code>heading</code>, <code>body</code>,{" "}
-          <code>serif</code>, and <code>mono</code> — from the built-in
-          Fontsource catalog. Choosing a face writes its declaration into the
-          theme's <code>$extensions.spin.fonts</code>, and Spin emits the
-          matching <code>@font-face</code> blocks into the sheet.
+          Under <code>Tokens ▾ → Type</code>, typography is split into three
+          focused workbenches:
         </p>
+        <ul>
+          <li>
+            <strong>Styles (<code>/tokens/type/styles</code>):</strong> A
+            two-column master-detail workbench for the 13 named{" "}
+            <code>font.style.*</code> tuples (<code>display</code> through{" "}
+            <code>overline</code>), paired with the HTML{" "}
+            <strong>Elements</strong> table mapping <code>h1</code>–
+            <code>h6</code>, <code>p</code>, <code>code</code>, and{" "}
+            <code>blockquote</code> to their default type styles in{" "}
+            <code>elements.json</code>.
+          </li>
+          <li>
+            <strong>Faces (<code>/tokens/type/faces</code>):</strong> Curated
+            three-face pairings (display, body, mono) and individual{" "}
+            <code>font.family.*</code> slots backed by the built-in Fontsource
+            catalog, emitting <code>$extensions.spin.fonts</code>{" "}
+            <code>@font-face</code> rules automatically.
+          </li>
+          <li>
+            <strong>Ramps (<code>/tokens/type/ramps</code>):</strong> Live
+            specimens for the <code>font.size.*</code> scale,{" "}
+            <code>font.weight.*</code> steps, <code>font.tracking.*</code>, and{" "}
+            <code>font.leading.*</code> ratios.
+          </li>
+        </ul>
         <p>
-          The <strong>Scale</strong>, <strong>Weight</strong>,{" "}
-          <strong>Tracking</strong>, and <strong>Leading</strong> sections tune
-          the <code>font.size.*</code> ramp (<code>xs</code> through{" "}
-          <code>4xl</code>), the <code>font.weight.*</code> steps, the{" "}
-          <code>font.tracking.*</code> steps, and the{" "}
-          <code>font.leading.*</code> ratios. The <strong>Element map</strong>{" "}
-          re-points an element at a named style — a heading or a code run
-          reads the style the theme means it to — and the{" "}
-          <strong>Styles</strong> section manages the named{" "}
-          <code>font.style.*</code> set the <code>type-&lt;name&gt;</code>{" "}
-          utilities spend. Elements inherit from the scale unless re-pointed.
+          Component-specific typography tokens (<code>button.type</code>,{" "}
+          <code>card.title.type</code>, <code>badge.type</code>) live directly on
+          each primitive's page under <code>/components/:name</code> beside its
+          live specimen.
         </p>
       </Section>
 
       <Section id="icons" title="Searching and vendoring icons">
         <p>
-          The Themes page's Icons group (<code>/themes/icons</code>) searches the five installed Iconify collections —{" "}
+          The Tokens page's Icons group (<code>/tokens/icons</code>) searches the five installed Iconify collections —{" "}
           <code>lucide</code>, <code>material-symbols</code>, <code>tabler</code>,{" "}
           <code>carbon</code>, and <code>ph</code> — tens of thousands of names
           between them. Filter by collection, size the glyphs, and search by
@@ -153,7 +167,7 @@ export default function Studio(): JSX.Element {
 
       <Section id="motion" title="Editing animations">
         <p>
-          The Themes page's Motion group (<code>/themes/motion</code>) edits <code>motion.*</code>: the{" "}
+          The Tokens page's Motion group (<code>/tokens/motion</code>) edits <code>motion.*</code>: the{" "}
           <strong>Durations</strong> ramp (<code>fast</code>, <code>base</code>,{" "}
           <code>slow</code>, and the endless <code>loop</code> period), the{" "}
           <strong>Easings</strong> curves (<code>linear</code>,{" "}
@@ -173,37 +187,40 @@ export default function Studio(): JSX.Element {
 
       <Section id="geometry" title="Spacing, radius, borders, and elevation">
         <p>
-          The Themes page's Spacing group (<code>/themes/spacing</code>) edits the <code>spacing.*</code> scale — the
+          The Tokens page's Spacing group (<code>/tokens/spacing</code>) edits the <code>spacing.*</code> scale — the
           monotonic ramp every margin, padding, and gap utility spends — and
           the <code>breakpoint.*</code> widths the responsive variants answer
-          to. The Themes page's Style group (<code>/themes/style</code>) edits <code>radius.*</code>, the{" "}
+          to. The Tokens page's Style group (<code>/tokens/style</code>) edits <code>radius.*</code>, the{" "}
           <code>shadow.*</code> elevation steps, <code>z-index.*</code>,{" "}
           <code>opacity.*</code>, <code>border.width*</code> with its
           composites, <code>focus.*</code>, and the gradient fills.
         </p>
       </Section>
 
-      <Section id="elements" title="Component recipes">
+      <Section id="elements" title="Primitives and Machines">
         <p>
-          The Components page (the Elements entry in the rail) lists every primitive and every statechart machine
-          under the active theme, grouped by what each is for, each row wearing
-          its glyph. Open one to see its live specimens, the classes they
-          read, and the tokens they spend — a theme that has never spelled{" "}
-          <code>button.shadow</code> meets that token here, on the page for
-          the button.
+          The <strong>Components</strong> catalog (<code>/components</code>)
+          filters between <strong>Primitives</strong> (CSS-only intrinsic HTML
+          tags and Spin custom elements that own editable theme tokens) and{" "}
+          <strong>Machines</strong> (interactive statechart components from{" "}
+          <code>@spinjs/components</code>). Opening a primitive such as{" "}
+          <code>/components/button</code> or <code>/components/card</code> shows
+          its live variant specimens alongside its editable token table (surface,
+          radius, spacing, and typography tokens in{" "}
+          <code>spin/&lt;brand&gt;/primitives/&lt;name&gt;.json</code>).
         </p>
         <p>
-          Each machine example carries <strong>copy to project</strong>, which
-          writes the recipe into <code>src/lib/components/</code> through the
-          daemon — the same bytes <code>npx spin component copy</code> writes,
-          vendored from the page that shows them.
+          Opening a machine component shows its interactive recipes and a{" "}
+          <strong>Copy to project</strong> action that vendors the{" "}
+          <code>.html</code> template into <code>src/lib/components/</code> —
+          the same file written by <code>npx spin component copy</code>.
         </p>
       </Section>
 
-      <Section id="findings" title="Source findings">
+      <Section id="findings" title="Diagnostics">
         <p>
-          The Findings page reads what the lints say about the project's own
-          source, grouped by the rule that said them: the same rule firing in
+          The Diagnostics page (<code>/diagnostics</code>) reads the theme contract
+          checks and what the lints say about the project's own source, grouped by the rule that said them: the same rule firing in
           five files is one problem with five instances, and one kind of edit
           to apply. A fix is applied on demand, to the file — the daemon owns
           the project's files, re-reads before it writes, and the page re-reads

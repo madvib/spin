@@ -14,10 +14,10 @@ export default function BoxPage() {
   const total = () => box().reduce((sum, item) => sum + item.price, 0);
 
   return (
-    <div class="mx-auto flex max-w-3xl flex-col gap-8 p-8">
+    <div class="mx-auto flex max-w-xl flex-col gap-8 p-8">
       <header class="flex flex-col gap-4">
-        <h1 class="m-0">Your box</h1>
-        <p class="m-0 text-text-muted">
+        <h1>Your box</h1>
+        <p class="text-muted">
           Roasted Tuesday, shipped Wednesday — orders close Monday at noon.
         </p>
       </header>
@@ -37,7 +37,7 @@ export default function BoxPage() {
         : box().length === 0
         ? (
           <card class="flex flex-col items-start gap-4 p-6">
-            <p class="m-0 text-text-muted">Your box is empty.</p>
+            <p class="text-muted">Your box is empty.</p>
             <A href="/" role="button" class="no-underline">
               Browse this week's beans
             </A>
@@ -88,7 +88,7 @@ export default function BoxPage() {
                 </For>
               </tbody>
             </table>
-            <div class="flex items-center justify-between gap-4 border-t border-border pt-4">
+            <div class="flex items-center justify-between gap-4 border-t border pt-4">
               <span>
                 Total <strong>{`$${total()}`}</strong>
               </span>

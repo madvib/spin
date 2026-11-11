@@ -2,10 +2,10 @@
 
 ## Signals
 
-The fine-grained reactive core in `@spinjs/runtime`:
+The fine-grained reactive core in `@spinjs/components/runtime`:
 
 ```ts
-import { batch, computed, effect, scope, signal, untrack } from "@spinjs/runtime";
+import { batch, computed, effect, scope, signal, untrack } from "@spinjs/components/runtime";
 
 const count = signal(0);
 const doubled = computed(() => count() * 2);
@@ -23,10 +23,10 @@ Effects re-run only when a signal they read changes. Compiled `.html` templates 
 
 ## Statecharts
 
-Author finite-state machines with `createMachine` and `interpret` from `@spinjs/runtime/fsm`:
+Author finite-state machines with `createMachine` and `interpret` from `@spinjs/components/fsm`:
 
 ```ts
-import { createMachine, interpret } from "@spinjs/runtime/fsm";
+import { createMachine, interpret } from "@spinjs/components/fsm";
 
 interface ToggleContext { presses: number }
 type ToggleEvent = { type: "PRESS" } | { type: "RESET" };
@@ -66,7 +66,7 @@ actor.state.context;  // { presses: 1 }
 `defineComponent` turns a `ComponentDef` into a `DefinedComponent` that the `.html` compiler mounts and framework controllers drive:
 
 ```ts
-import { defineComponent } from "@spinjs/runtime";
+import { defineComponent } from "@spinjs/components/runtime";
 
 export const toggle = defineComponent({
   name: "toggle",
@@ -96,6 +96,6 @@ export const toggle = defineComponent({
 
 ## Platform controllers & DOM actions
 
-When the browser already owns the state (such as native popover or tooltip triggers), use `defineController` from `@spinjs/runtime`. Reusable DOM behaviors (`anchor`, `drag`, `hover-delay`, `interact-outside`, `form-control`, `scroll-into-view`, `observe`) live in `@spinjs/runtime/actions`.
+When the browser already owns the state (such as native popover or tooltip triggers), use `defineController` from `@spinjs/components/runtime`. Reusable DOM behaviors (`anchor`, `drag`, `hover-delay`, `interact-outside`, `form-control`, `scroll-into-view`, `observe`) live in `@spinjs/components/actions`.
 
 <!-- USER COPY SLOT: machines-close — your own patterns or migration guidance. -->

@@ -95,9 +95,9 @@ function GridSwitch(props: {
               <li class="m-0">
                 <button
                   type="button"
-                  class="secondary s-sm stack-sm w-full items-center py-2 text-muted hover:border-primary"
+                  class="bare flex w-full flex-col items-center gap-2 rounded-md border bg-surface-raised p-2 text-muted hover:border-primary"
                   classList={{
-                    "border-primary": props.copied ===
+                    "border-primary border-2": props.copied ===
                         iconUtility(entry) ||
                       (props.chosen?.collection === entry.collection &&
                         props.chosen?.name === entry.name),
@@ -202,10 +202,10 @@ function LibraryBrowser(props: {
       </Match>
       <Match when={(props.saved ?? []).length === 0}>
         <card class="stack-xs p-5">
-          <p class="m-0">
+          <p>
             No saved icons in this project yet
           </p>
-          <p class="m-0 text-muted">
+          <p class="text-muted">
             Select any glyph in the Available tab and press “Keep in library” to vendor its SVG into spin/icons/.
           </p>
         </card>
@@ -286,12 +286,12 @@ function InspectorAside(props: {
           <section class="stack rounded-lg border bg-surface p-4">
             <div class="split flex-wrap items-start gap-3">
               <div class="stack-xs min-w-0">
-                <p class="m-0 truncate">
+                <p class="truncate">
                   {entry().collection} · {entry().name}
                 </p>
-                <code class="truncate text-muted">
+                <span class="truncate type-code text-muted">
                   {iconUtility(entry())}
-                </code>
+                </span>
               </div>
               <div class="row-sm flex-wrap">
                 <button
@@ -324,16 +324,16 @@ function InspectorAside(props: {
                       <span class="type-code">
                         {step.step}
                       </span>
-                      <code class="text-muted">
+                      <span class="type-code text-muted">
                         {currentVal()}
-                      </code>
+                      </span>
                     </div>
                   );
                 }}
               </For>
             </div>
             <Show when={props.notice !== null}>
-              <p class="m-0 text-muted" role="status">
+              <p class="text-muted" role="status">
                 {props.notice}
               </p>
             </Show>
@@ -376,7 +376,7 @@ function InspectorAside(props: {
                         <span class="type-label">
                           {stepName()}
                         </span>
-                        <code class="text-muted">{row.path}</code>
+                        <span class="type-code text-muted">{row.path}</span>
                       </div>
                     </div>
                     <ValueInput
@@ -612,7 +612,7 @@ export default function IconsPage() {
                 type="button"
                 role="tab"
                 aria-selected={tab() === "available"}
-                class="bare rounded-sm px-3 py-1 type-caption-strong transition-colors"
+                class="bare rounded-sm px-3 py-1 type-caption-emphasized transition-colors"
                 classList={{
                   "bg-surface shadow-sm": tab() === "available",
                   "text-muted": tab() !== "available",
@@ -625,7 +625,7 @@ export default function IconsPage() {
                 type="button"
                 role="tab"
                 aria-selected={tab() === "library"}
-                class="bare rounded-sm px-3 py-1 type-caption-strong transition-colors"
+                class="bare rounded-sm px-3 py-1 type-caption-emphasized transition-colors"
                 classList={{
                   "bg-surface shadow-sm": tab() === "library",
                   "text-muted": tab() !== "library",
@@ -671,11 +671,11 @@ export default function IconsPage() {
           <div class="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              class="secondary s-sm"
+              class="bare rounded-md border px-2 py-1 type-caption"
               aria-pressed={picked() === ""}
               classList={{
-                "border-primary": picked() === "",
-                "border text-muted": picked() !== "",
+                "border-primary bg-primary text-on-primary": picked() === "",
+                "bg-surface text-muted": picked() !== "",
               }}
               onClick={() => setPicked("")}
             >
@@ -685,12 +685,12 @@ export default function IconsPage() {
               {(collection) => (
                 <button
                   type="button"
-                  class="secondary s-sm"
+                  class="bare rounded-md border px-2 py-1 type-caption"
                   aria-pressed={picked() === collection}
                   classList={{
-                    "border-primary": picked() ===
+                    "border-primary bg-primary text-on-primary": picked() ===
                       collection,
-                    "border text-muted": picked() !== collection,
+                    "bg-surface text-muted": picked() !== collection,
                   }}
                   onClick={() => setPicked(collection)}
                 >

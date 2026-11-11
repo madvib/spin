@@ -12,7 +12,7 @@ import {
   type ViewFor,
   sliderThumb,
   type SlotViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import {
   hasNextStep,
   hasPrevStep,

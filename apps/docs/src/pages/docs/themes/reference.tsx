@@ -69,7 +69,7 @@ const GROUP_DESCRIPTIONS: Readonly<Record<string, string>> = {
   color:
     "Surfaces, inks, primary/secondary/accent actions, semantic status pairs, borders, and raw palette ramps.",
   font:
-    "Font family stacks, the sixteen named type styles (font.style.* — the styles type-<name> spends, each a composite $type typography tuple), and the size/weight/tracking/leading scales the styles alias.",
+    "Font family stacks, the thirteen named type styles (font.style.* — the styles type-<name> spends, each a composite $type typography tuple), and the size/weight/tracking/leading scales the styles alias.",
   spacing:
     "Monotonic spatial scale (0, 1..64) consumed by padding, margin, and gap utilities.",
   radius:
@@ -243,8 +243,8 @@ export default function ThemesReference(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Token Reference"
-        lede="Switch starter themes and every table below rewrites itself — the groups, the roles, and the tokens your active theme declares. The Typography guide shows what to write; this page lists everything a theme can hold."
+        title="Reference"
+        lede="Switch starter themes and every table below updates to show the groups, roles, contrast floors, and element tokens declared by the active theme."
       />
 
       <Section id="grammar" title="Document keys and token types">
@@ -304,7 +304,7 @@ export default function ThemesReference(): JSX.Element {
 
       <Section id="styles" title="Named type styles">
         <p class="max-w-prose">
-          Write <code>type-&lt;name&gt;</code> to spend one of these sixteen
+          Write <code>type-&lt;name&gt;</code> to spend one of these thirteen
           styles — the face, the size, the weight, the tracking, the leading,
           all at once, each declared as a composite{" "}
           <code>$type: "typography"</code> tuple in{" "}

@@ -1,4 +1,4 @@
-import type { EventUnion } from "@spinjs/runtime/fsm";
+import type { EventUnion } from "@spinjs/components/fsm";
 
 /**
  * The toggle-group's events, as a MAP: the contract with the outside. The

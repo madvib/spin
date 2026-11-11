@@ -69,7 +69,7 @@ export function CodeFrame(props: {
             aria-label={
               props.title ? `Copy ${props.title}` : "Copy code snippet"
             }
-            class="bare inline-flex items-center gap-1 rounded-sm px-2 py-1 type-code text-muted transition-colors duration-fast hover:bg-surface"
+             class="bare inline-flex items-center gap-1 rounded-sm px-2 py-1 type-code text-muted transition-colors duration-fast hover:bg-surface"
           >
             <span
               class={
@@ -83,7 +83,7 @@ export function CodeFrame(props: {
           </button>
         </Show>
       </div>
-      <pre class="m-0 max-w-full overflow-x-auto rounded-none border-0 bg-surface p-4 type-code">
+      <pre class="max-w-full overflow-x-auto rounded-none border-0 bg-surface p-4 type-code">
         <code>
           <For each={tokens()}>
             {(token) => (

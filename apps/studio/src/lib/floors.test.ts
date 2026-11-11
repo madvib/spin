@@ -1,6 +1,6 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { contrastRatio } from "@spinjs/spin/theme";
+import { contrastRatio } from "@spinjs/theme";
 import { checks, floorFindings, measureFloors, remedyText } from "./floors.ts";
 import { applyEdits } from "./theme.ts";
 

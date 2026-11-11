@@ -6,7 +6,7 @@
 import { createMemo, createSignal, For } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
-import { animationContract } from "@spinjs/spin/animation";
+import { animationContract } from "@spinjs/preset";
 import {
   PageHeader,
   PropList,
@@ -421,7 +421,7 @@ function useReferenceGroups(): readonly UtilityGroupSpec[] {
     summary: (
       <>
         State transitions, hardware transforms, and{" "}
-        <code>@spinjs/spin/animation</code> keyframe utilities — tokens live
+        <code>@spinjs/preset</code> keyframe utilities — tokens live
         on <A href="/docs/themes/reference#groups">Token Reference</A> and
         the live previews on{" "}
         <A href="/docs/styling/animation">Animations & Motion</A>.
@@ -451,7 +451,7 @@ function useReferenceGroups(): readonly UtilityGroupSpec[] {
       },
       {
         name: animationContract.variants.join(" / "),
-        badge: "@spinjs/spin/animation",
+        badge: "@spinjs/preset",
         description: (
           <>
             Keyframe utilities spending <code>--motion-distance</code>,{" "}
@@ -500,8 +500,8 @@ export default function Catalog(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Utility Catalog"
-        lede="Grammar reference for every utility class family in @spinjs/spin/preset: the class pattern you write, the CSS declarations it emits, and the active theme token steps that back it."
+        title="Catalog"
+        lede="Grammar reference for every utility class family in @spinjs/preset: the class pattern you write, the CSS declarations it emits, and the active theme token steps that back it."
       />
 
       <Section id="search" title="Filter utility rules">

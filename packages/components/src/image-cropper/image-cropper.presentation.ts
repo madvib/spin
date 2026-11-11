@@ -10,10 +10,9 @@ import {
   isComposing,
   isRecord,
   sliderThumb,
-  type SlotViewFor,
   type ViewFor,
-} from "@spinjs/runtime";
-import type { DragDelta, DragPress } from "@spinjs/runtime/actions";
+} from "@spinjs/components/runtime";
+import type { DragDelta, DragPress } from "@spinjs/components/actions";
 import { imageCropper as imageCropperMachine } from "./image-cropper.machine.ts";
 import {
   type CropHandle,
@@ -76,16 +75,6 @@ type ScopeLike = ViewFor<
   ImageCropperEvents,
   ImageCropperState
 >;
-type SlotLike<R> = SlotViewFor<
-  R,
-  ImageCropperContext,
-  ImageCropperEvents,
-  ImageCropperState
->;
-
-const sameRect = (a: CropRect, b: CropRect): boolean =>
-  a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
-
 /** A numeric prop: numbers pass, numeric strings parse, everything else
  * absent. Named once; transport owns the grammar. */
 const countOf = (raw: unknown): number | null => {
@@ -158,7 +147,6 @@ const HANDLE_NAMES: readonly string[] = [
 const isHandle = (raw: unknown): raw is CropHandle =>
   typeof raw === "string" && (HANDLE_NAMES as readonly string[]).includes(raw);
 
-const textOf = (raw: unknown): string => typeof raw === "string" ? raw : "";
 
 /** The image's natural size off the load target: positive numbers
  * only. The constructor may not exist (linkedom) — read the shape. */

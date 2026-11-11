@@ -1,10 +1,6 @@
 import type { PinInputContext } from "./pin-input.state.ts";
 import { pinView } from "./pin-input.state.ts";
 import type { PinInputEvents } from "./pin-input.events.ts";
-import type { EventUnion } from "@spinjs/runtime/fsm";
-
-type PinInputEvent = EventUnion<PinInputEvents>;
-
 const viewOf = (ctx: PinInputContext) => pinView(ctx.value, ctx.count);
 
 export const clearFocusedValue = (

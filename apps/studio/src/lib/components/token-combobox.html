@@ -16,7 +16,7 @@ const machine = combobox({});
       <span aria-hidden="true" {...machine.getTriggerIndicatorProps()}><span class="inline-block icon-sm i-lucide-chevron-down" aria-hidden="true"></span></span>
     </button>
     <div
-      class={["absolute left-0 top-full z-dropdown mt-1 w-full origin-top transition duration-fast ease-decelerate", { "pointer-events-none invisible scale-95 opacity-0": !machine.open }]}
+      class={["absolute left-0 top-full z-dropdown mt-1 w-max min-w-[16rem] max-w-[24rem] origin-top transition duration-fast ease-decelerate", { "pointer-events-none invisible scale-95 opacity-0": !machine.open }]}
       {...machine.getPositionerProps()}
     >
       <div
@@ -25,7 +25,7 @@ const machine = combobox({});
       >
         <div class="border-b p-1">
           <input
-            class="w-full rounded-md placeholder:text-muted"
+            class="w-full placeholder:text-muted"
             data-testid="token-combobox-input"
             placeholder="Search the palette…"
             {...machine.getInputProps()}
@@ -34,14 +34,20 @@ const machine = combobox({});
         <div class="max-h-[15rem] overflow-y-auto p-1" {...machine.getListProps()}>
           <template for={machine.getBlocks()} as={block} key={block.id}>
             <div class="py-1" {...machine.getItemGroupProps(block)}>
-              <span class="block px-2 py-1 type-caption-strong text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
+              <span class="block px-2 py-1 type-caption-emphasized text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
               <template for={machine.getRows(block)} as={row} key={row.value}>
                 <div
                   class="relative flex cursor-pointer select-none items-center gap-3 rounded-md px-2 py-1 type-body hover:bg-surface-sunken"
                   {...machine.getItemProps(row)}
                 >
-                  <swatch class="s-md shrink-0" aria-hidden="true" style={'--swatch: ' + (row.meta?.swatch ?? 'transparent')}></swatch>
-                  <span class="min-w-0 flex-1 truncate" {...machine.getItemTextProps(row)}>{row.label}</span>
+                  <swatch show={!row.meta?.kind || row.meta?.kind === "color"} class="s-md shrink-0" aria-hidden="true" style={'--swatch: ' + (row.meta?.swatch ?? 'transparent')}></swatch>
+                  <span show={row.meta?.kind === "family"} class="shrink-0 type-body" aria-hidden="true" style={'font-family: ' + (row.meta?.sample ?? 'inherit')}>Ag</span>
+                  <span show={row.meta?.kind === "size"} class="shrink-0" aria-hidden="true" style={'font-size: ' + (row.meta?.sample ?? 'inherit')}>Ag</span>
+                  <span show={row.meta?.kind === "weight"} class="shrink-0 type-body" aria-hidden="true" style={'font-weight: ' + (row.meta?.sample ?? 'inherit')}>Ag</span>
+                  <span show={row.meta?.kind === "tracking"} class="shrink-0 type-body" aria-hidden="true" style={'letter-spacing: ' + (row.meta?.sample ?? 'normal')}>Ag</span>
+                  <span show={row.meta?.kind === "leading"} class="shrink-0 type-body" aria-hidden="true" style={'line-height: ' + (row.meta?.sample ?? 'normal')}>Ag</span>
+                  <span show={row.meta?.kind === "value"} class="shrink-0 type-code text-muted" aria-hidden="true">{row.meta?.sample}</span>
+                  <span class="min-w-0 flex-1 break-all" {...machine.getItemTextProps(row)}>{row.label}</span>
                   <span
                     aria-hidden="true"
                     class="shrink-0 type-caption text-primary"

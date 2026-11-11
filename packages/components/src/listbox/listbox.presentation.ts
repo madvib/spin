@@ -9,7 +9,7 @@ import {
   type ComponentDef,
   type ViewFor,
   type SlotViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import { listbox as listboxMachine } from "./listbox.machine.ts";
 import type { ListboxArgs, ListboxArgsItem, ListboxContext } from "./listbox.state.ts";
 import type { ListboxEvents } from "./listbox.events.ts";

@@ -3,15 +3,15 @@ import { deepEqual, equal } from "node:assert/strict";
 import { previewKey } from "./preview.ts";
 
 test("withholds the key while the theme text has not arrived", () => {
-  equal(previewKey("", "neobrut", undefined), undefined);
-  equal(previewKey("   ", "neobrut", undefined), undefined);
+  equal(previewKey("", "neobrutalist", undefined), undefined);
+  equal(previewKey("   ", "neobrutalist", undefined), undefined);
 });
 
 test("keys the fetch once text lands", () => {
-  const key = previewKey('{"color":{}}', "neobrut", undefined, "<div/>");
+  const key = previewKey('{"color":{}}', "neobrutalist", undefined, "<div/>");
   deepEqual(key, {
     tree: undefined,
-    name: "neobrut",
+    name: "neobrutalist",
     markup: "<div/>",
     text: '{"color":{}}',
   });

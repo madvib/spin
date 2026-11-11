@@ -28,12 +28,12 @@ const machine = tags({
     </span>
     <input
    class="bare w-20 rounded-sm px-1 py-1"
-   {...machine.getItemInputProps(row)} />
+   {...machine.getItemInputProps(row)}>
    </span>
   </template>
   <input
   class="bare min-w-16 flex-1 bg-transparent py-1 outline-none "
-  {...machine.getInputProps()} />
+  {...machine.getInputProps()}>
   <button aria-label="Clear tags"
    class="ghost icon s-sm"
    {...machine.getClearTriggerProps()}><span class="i-lucide-x type-caption" aria-hidden="true"></span></button>

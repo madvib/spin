@@ -14,7 +14,6 @@ const byId = (id: string): string => `[id="${id}"]`;
 const STOPWATCH_ROOT = byId("timer:stopwatch");
 const STOPWATCH_AREA = byId("timer:stopwatch:area");
 const AUTO_ROOT = byId("timer:auto");
-const AUTO_AREA = byId("timer:auto:area");
 const SHORT_ID = "timer:short";
 const SHORT_ROOT = byId(SHORT_ID);
 const SHORT_AREA = byId("timer:short:area");

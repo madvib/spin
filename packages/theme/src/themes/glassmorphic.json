@@ -1,0 +1,572 @@
+{
+  "$extends": "base",
+  "$extensions": {
+    "spin": {
+      "fonts": [
+        {
+          "family": "Space Grotesk",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/space-grotesk:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "300 700",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
+          "family": "Inter",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/inter:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "100 900",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
+          "family": "JetBrains Mono",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/jetbrains-mono:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "100 800",
+          "style": "normal",
+          "display": "swap"
+        }
+      ]
+    }
+  },
+  "color": {
+    "$type": "color",
+    "$description": "A cool iris over a slate ramp: frosted alpha surfaces, hairline light borders, and an iris primary that stays legible through the blur.",
+    "primary": {
+      "$value": "#4a5ce0",
+      "$description": "The iris: primary actions, links, focus rings.",
+      "$modes": {
+        "dark": "#9aa6ff"
+      }
+    },
+    "secondary": {
+      "$value": "#223148",
+      "$description": "Deep slate: secondary actions and highlights.",
+      "$modes": {
+        "dark": "#d7dee9"
+      }
+    },
+    "accent": {
+      "$value": "#0a7a88",
+      "$description": "Glacial cyan: supporting emphasis, distinct from primary.",
+      "$modes": {
+        "dark": "#67e8f9"
+      }
+    },
+    "neutral": {
+      "50": {
+        "$value": "#f4f7fb",
+        "$modes": {
+          "dark": "#0b1220"
+        }
+      },
+      "100": {
+        "$value": "#e9eff7",
+        "$modes": {
+          "dark": "#111a2c"
+        }
+      },
+      "200": {
+        "$value": "#d9e2ee",
+        "$modes": {
+          "dark": "#1b2740"
+        }
+      },
+      "300": {
+        "$value": "#bcc9dd",
+        "$modes": {
+          "dark": "#2a3a56"
+        }
+      },
+      "400": {
+        "$value": "#8fa1ba",
+        "$modes": {
+          "dark": "#4b5f7d"
+        }
+      },
+      "500": {
+        "$value": "#647693",
+        "$modes": {
+          "dark": "#7d90ac"
+        }
+      },
+      "600": {
+        "$value": "#4a5b76",
+        "$modes": {
+          "dark": "#a3b2c8"
+        }
+      },
+      "700": {
+        "$value": "#33405a",
+        "$modes": {
+          "dark": "#c3cede"
+        }
+      },
+      "800": {
+        "$value": "#1b2740",
+        "$modes": {
+          "dark": "#dde4ef"
+        }
+      },
+      "900": {
+        "$value": "#0b1220",
+        "$modes": {
+          "dark": "#f2f6fb"
+        }
+      },
+      "$description": "The slate ramp, 50 (lightest) through 900 (darkest)."
+    },
+    "semantic": {
+      "$description": "Status colors. Named by meaning, never by hue.",
+      "success": {
+        "$value": "#1e7a45",
+        "$modes": {
+          "dark": "#6fdc8c"
+        }
+      },
+      "warning": {
+        "$value": "#8a5a06",
+        "$modes": {
+          "dark": "#f2c66d"
+        }
+      },
+      "error": {
+        "$value": "#c0362c",
+        "$modes": {
+          "dark": "#f88d7f"
+        }
+      },
+      "info": {
+        "$value": "#0e6ea8",
+        "$modes": {
+          "dark": "#73c2ec"
+        }
+      }
+    },
+    "surface": {
+      "$value": "rgb(244 247 251 / 0.72)",
+      "$description": "The page: a light mist the glass floats over.",
+      "$modes": {
+        "dark": "rgb(11 18 32 / 0.66)"
+      }
+    },
+    "surface-sunken": {
+      "$value": "rgb(233 239 247 / 0.6)",
+      "$description": "Recessed wells and stripes: mist one step deeper.",
+      "$modes": {
+        "dark": "rgb(27 39 64 / 0.55)"
+      }
+    },
+    "surface-raised": {
+      "$value": "rgb(255 255 255 / 0.55)",
+      "$description": "The frosted pane: cards, popovers, menus read through it.",
+      "$modes": {
+        "dark": "rgb(27 39 64 / 0.5)"
+      }
+    },
+    "text": {
+      "$value": "{color.neutral.900}",
+      "$description": "Default body text.",
+      "$modes": {
+        "dark": "#eef3f9"
+      }
+    },
+    "text-muted": {
+      "$value": "{color.neutral.600}",
+      "$description": "Secondary text: captions, helper copy, placeholders.",
+      "$modes": {
+        "dark": "#9fadc2"
+      }
+    },
+    "border": {
+      "$value": "rgb(255 255 255 / 0.65)",
+      "$description": "The hairline of light every pane edges with.",
+      "$modes": {
+        "dark": "rgb(255 255 255 / 0.14)"
+      }
+    },
+    "scrim": {
+      "$value": "rgb(11 18 32 / 0.35)",
+      "$description": "What dims the page behind a modal: the night water itself, so the blur has something to frost.",
+      "$modes": {
+        "dark": "rgb(4 7 14 / 0.55)"
+      }
+    },
+    "on-primary": {
+      "$value": "#ffffff",
+      "$type": "color",
+      "$modes": {
+        "dark": "#111923"
+      }
+    },
+    "focus-ring": {
+      "$value": "#5b6cff",
+      "$modes": {
+        "dark": "#9aa6ff"
+      }
+    },
+    "link": {
+      "$value": "#4a5ce0",
+      "$description": "Links read against body text, so they follow the primary.",
+      "$modes": {
+        "dark": "#9aa6ff"
+      }
+    },
+    "on-secondary": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#111923"
+      }
+    },
+    "on-accent": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#111923"
+      }
+    },
+    "selected": {
+      "$type": "color",
+      "$value": "{color.text}"
+    },
+    "on-selected": {
+      "$type": "color",
+      "$value": "{color.surface}"
+    },
+    "on-semantic-success": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#111923"
+      }
+    },
+    "on-semantic-warning": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#111923"
+      }
+    },
+    "field": {
+      "$value": "rgb(255 255 255 / 0.45)",
+      "$description": "A field's own pane: frosted, so a control reads as glass set into glass.",
+      "$modes": {
+        "dark": "rgb(27 39 64 / 0.45)"
+      }
+    },
+    "border-strong": {
+      "$type": "color",
+      "$value": "rgb(255 255 255 / 0.8)",
+      "$description": "A control's own edge: the brightest hairline, so a field reads at a glance.",
+      "$modes": {
+        "dark": "rgb(255 255 255 / 0.22)"
+      }
+    },
+    "on-semantic-error": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents.",
+      "$modes": {
+        "dark": "#111923"
+      }
+    },
+    "on-danger": {
+      "$type": "color",
+      "$value": "{color.on-semantic-error}",
+      "$description": "The legacy name for the ink on the error fill. It points at `color.on-semantic-error` \u2014 the role the contract requires, the floor is measured on, and the danger button and the danger badge wear \u2014 so the two names can never disagree."
+    },
+    "on-semantic-info": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents.",
+      "$modes": {
+        "dark": "#111923"
+      }
+    },
+    "disabled": {
+      "$value": "{color.neutral.200}",
+      "$description": "The fill a dead control wears: the ramp one step off the page.",
+      "$modes": {
+        "dark": "{color.neutral.200}"
+      }
+    },
+    "on-disabled": {
+      "$type": "color",
+      "$value": "{color.neutral.600}",
+      "$description": "The ink on that fill.",
+      "$modes": {
+        "dark": "{color.neutral.600}"
+      }
+    }
+  },
+  "font": {
+    "$description": "Typography: which face, how large, how heavy, and how open the tracking sits.",
+    "family": {
+      "$type": "fontFamily",
+      "sans": {
+        "$value": "Inter, ui-sans-serif, system-ui, sans-serif",
+        "$description": "Body and UI text."
+      },
+      "heading": {
+        "$value": "{font.family.brand}",
+        "$description": "The display face. Glass answers with the grotesk; a theme with a serif voice states its own."
+      },
+      "body": {
+        "$value": "{font.family.sans}",
+        "$description": "The body face. Distinct from `sans` only when a theme wants the two to differ."
+      },
+      "serif": {
+        "$value": "ui-serif, Georgia, Cambria, serif",
+        "$description": "Long-form editorial text."
+      },
+      "mono": {
+        "$value": "\"JetBrains Mono\", ui-monospace, SFMono-Regular, Menlo, monospace",
+        "$description": "Code, identifiers, tabular figures."
+      },
+      "brand": {
+        "$type": "fontFamily",
+        "$value": "\"Space Grotesk\", Inter, ui-sans-serif, system-ui, sans-serif",
+        "$description": "The display face \u2014 one cool grotesk, every glass surface."
+      }
+    },
+    "style": {
+      "display": {
+        "$type": "typography",
+        "$description": "Display \u2014 the largest statement on the page. Hero headings (h1 reads it). Not section titles (that's title).",
+        "$value": {
+          "family": "{font.family.brand}",
+          "size": "{font.size.3xl}",
+          "weight": "{font.weight.bold}",
+          "tracking": "{font.tracking.tight}",
+          "leading": "{font.leading.tight}"
+        }
+      },
+      "title": {
+        "$type": "typography",
+        "$description": "Title \u2014 the section title. h2 and stat figures read it. Not subsections (that's heading).",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.2xl}",
+          "weight": "{font.weight.semibold}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.snug}"
+        }
+      },
+      "heading": {
+        "$type": "typography",
+        "$description": "Heading \u2014 the subsection title. h3 reads it. Not UI labels (that's label).",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.xl}",
+          "weight": "{font.weight.semibold}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.snug}"
+        }
+      },
+      "subtitle": {
+        "$type": "typography",
+        "$description": "Subtitle \u2014 the large UI step. Large buttons (button s-lg falls back to it). Not intro paragraphs (that's lead).",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.lg}",
+          "weight": "{font.weight.medium}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.snug}"
+        }
+      },
+      "lead": {
+        "$type": "typography",
+        "$description": "Lead \u2014 the intro paragraph. Article ledes and empty-state subheads. Not default reading text (that's body).",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.lg}",
+          "weight": "{font.weight.regular}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.relaxed}"
+        }
+      },
+      "body": {
+        "$type": "typography",
+        "$description": "Body \u2014 the default reading text. Every paragraph. Not UI labels (that's label), not emphasis (that's body-emphasized).",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.md}",
+          "weight": "{font.weight.regular}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.relaxed}"
+        }
+      },
+      "quote": {
+        "$type": "typography",
+        "$description": "Quote \u2014 somebody else's words (blockquote reads it). Not default reading text (that's body).",
+        "$value": {
+          "family": "{font.family.serif}",
+          "size": "{font.size.lg}",
+          "weight": "{font.weight.regular}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.relaxed}"
+        }
+      },
+      "code": {
+        "$type": "typography",
+        "$description": "Code \u2014 identifiers and paths (code reads it). Monospace. Not prose of any kind.",
+        "$value": {
+          "family": "{font.family.mono}",
+          "size": "{font.size.sm}",
+          "weight": "{font.weight.regular}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.normal}"
+        }
+      },
+      "label": {
+        "$type": "typography",
+        "$description": "Label \u2014 the short named thing. Field labels, card headers, badges (badge falls back to it). Not annotations (that's caption).",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.sm}",
+          "weight": "{font.weight.medium}",
+          "tracking": "{font.tracking.wide}",
+          "leading": "{font.leading.snug}"
+        }
+      },
+      "caption": {
+        "$type": "typography",
+        "$description": "Caption \u2014 the annotation. Timestamps, helper text, stat context. Not named emphasis (that's caption-emphasized).",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.xs}",
+          "weight": "{font.weight.regular}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.snug}"
+        }
+      },
+      "overline": {
+        "$type": "typography",
+        "$description": "Overline \u2014 the kicker above a title (h5/h6 read it). Tracked out. Not a label (that's label).",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.xs}",
+          "weight": "{font.weight.semibold}",
+          "tracking": "{font.tracking.wider}",
+          "leading": "{font.leading.snug}"
+        }
+      },
+      "body-emphasized": {
+        "$type": "typography",
+        "$description": "Body, emphasized \u2014 definition terms (dt reads it). Same tuple as body except the semibold step. Not a second family (see the variant convention).",
+        "$value": {
+          "family": "{font.style.body.family}",
+          "size": "{font.style.body.size}",
+          "weight": "{font.weight.semibold}",
+          "tracking": "{font.style.body.tracking}",
+          "leading": "{font.style.body.leading}"
+        }
+      },
+      "caption-emphasized": {
+        "$type": "typography",
+        "$description": "Caption, emphasized \u2014 figcaptions and table headers (figcaption, th read it). Same tuple as caption except the semibold step.",
+        "$value": {
+          "family": "{font.style.caption.family}",
+          "size": "{font.style.caption.size}",
+          "weight": "{font.weight.semibold}",
+          "tracking": "{font.style.caption.tracking}",
+          "leading": "{font.style.caption.leading}"
+        }
+      }
+    }
+  },
+  "shadow": {
+    "$type": "shadow",
+    "$description": "Elevation, as CSS box-shadow values.",
+    "sm": {
+      "$value": "0 1px 2px 0 rgb(11 18 32 / 0.06), 0 1px 8px -1px rgb(91 108 255 / 0.12)"
+    },
+    "md": {
+      "$value": "0 8px 24px -6px rgb(11 18 32 / 0.14), 0 2px 8px -2px rgb(91 108 255 / 0.16)"
+    },
+    "lg": {
+      "$value": "0 24px 64px -12px rgb(11 18 32 / 0.22), 0 8px 24px -8px rgb(91 108 255 / 0.22)"
+    }
+  },
+  "$description": "Translucency-first glass: frosted alpha surfaces, hairline light borders, backdrop-blur depth, and layered soft shadows \u2014 a cool slate iris over light mist and night water.",
+  "radius": {
+    "sm": {
+      "$value": "0.375rem"
+    },
+    "md": {
+      "$value": "0.625rem"
+    },
+    "lg": {
+      "$value": "1rem"
+    },
+    "full": {
+      "$value": "9999px"
+    }
+  },
+  "border": {
+    "width": {
+      "$value": "1px"
+    },
+    "width-2": {
+      "$value": "2px"
+    }
+  },
+  "button": {
+    "$description": "Component tokens: the decisions a theme owns for its buttons. Glass buttons are frosted panes with a hairline of light, lifting deeper into the blur on hover.",
+    "edge": {
+      "$type": "color",
+      "$value": "{color.border-strong}",
+      "$description": "The hairline of light the button edges with."
+    },
+    "shadow": {
+      "$type": "shadow",
+      "$value": "{shadow.sm}",
+      "$description": "The resting elevation: a soft lift under the frost."
+    },
+    "shadow-hover": {
+      "$type": "shadow",
+      "$value": "{shadow.md}",
+      "$description": "The hovered elevation: the pane rises deeper into the blur."
+    },
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.md}",
+      "$description": "The corner rounding of a button."
+    }
+  },
+  "card": {
+    "$description": "The card's own decisions: frosted pane, generous air, hairline light edge, and layered depth.",
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.lg}",
+      "$description": "A slow corner: glass rounds like water, not like paper."
+    },
+    "padding": {
+      "$type": "dimension",
+      "$value": "{spacing.5}",
+      "$description": "The air inside the card, between its parts and around its edge."
+    },
+    "border": {
+      "$type": "color",
+      "$value": "{color.border}",
+      "$description": "The hairline of light the card edges with."
+    },
+    "elevation": {
+      "$type": "shadow",
+      "$value": "{shadow.md}",
+      "$description": "The resting depth: layered soft shadow under the frost."
+    }
+  },
+  "badge": {
+    "$description": "Component tokens: the decisions a theme owns for its badges. A frosted pill with a hairline edge.",
+    "edge": {
+      "$type": "dimension",
+      "$value": "0px",
+      "$description": "No drawn edge: the frost and the pill shape hold the badge apart from the page."
+    },
+    "pill": {
+      "$type": "boolean",
+      "$value": true,
+      "$description": "Fully round reads as a pill; false squares it into a tag."
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { createMachine, type Machine } from "@spinjs/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/components/fsm";
 import type { TimerArgs, TimerContext, TimerState } from "./timer.state.ts";
 import { initial } from "./timer.state.ts";
 import type { TimerEvents } from "./timer.events.ts";

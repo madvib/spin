@@ -26,13 +26,13 @@ const machine_combobox = combobox({items: [{"value":"react","label":"React"},{"v
     </span>
     <input
    class="bare w-20 rounded-sm px-1 py-1"
-   {...machine_tags.getItemInputProps(row)} />
+   {...machine_tags.getItemInputProps(row)}>
    </span>
   </template>
-  <div class="relative min-w-16 flex-1" {...machine_combobox.getRootProps()}>
+  <div class="relative flex min-w-16 flex-1" {...machine_combobox.getRootProps()}>
    <input
-  class="w-full border-0 bg-transparent py-1"
-  {...machine_combobox.getInputProps()} />
+  class="bare min-w-16 flex-1"
+  {...machine_combobox.getInputProps()}>
    <button aria-hidden="true" tabindex="-1" class="hidden"
     {...machine_combobox.getClearTriggerProps()}></button>
    <div class="absolute left-0 top-full z-dropdown mt-1 w-full origin-top"

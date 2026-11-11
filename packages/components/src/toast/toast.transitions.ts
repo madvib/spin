@@ -1,4 +1,4 @@
-import type { AssignFor, GuardFor } from "@spinjs/runtime/fsm";
+import type { AssignFor, GuardFor } from "@spinjs/components/fsm";
 import {
   amend,
   durationFor,

@@ -19,7 +19,7 @@ import {
 import {
   starterThemes,
   themeModes,
-} from "@spinjs/spin/theme/themes";
+} from "@spinjs/theme/themes";
 import {
   geometryAudit,
   geometryClaimsFor,
@@ -100,7 +100,7 @@ const SERVED: Record<string, Parameters<typeof themeModes>[0]> = {
   ...(await projectThemes()),
 };
 
-const THEME_NAMES = ["industrial", "material", "neobrut", "silk", "spin"];
+const THEME_NAMES = ["neumorphic", "material", "neobrutalist", "minimal", "spin"];
 
 function modesFor(theme: string): readonly string[] {
   const served = themeModes(SERVED[theme]!).filter((mode) =>

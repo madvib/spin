@@ -85,61 +85,6 @@ const PROJECT_COMPOSITIONS: readonly PropEntry[] = [
   },
 ];
 
-const PAIRED_ROLES: readonly {
-  readonly label: string;
-  readonly fill: string;
-  readonly ink: string;
-  readonly classes: string;
-}[] = [
-  {
-    label: "primary",
-    fill: "bg-primary",
-    ink: "text-on-primary",
-    classes: "bg-primary text-on-primary",
-  },
-  {
-    label: "secondary",
-    fill: "bg-secondary",
-    ink: "text-on-secondary",
-    classes: "bg-secondary text-on-secondary",
-  },
-  {
-    label: "accent",
-    fill: "bg-accent",
-    ink: "text-on-accent",
-    classes: "bg-accent text-on-accent",
-  },
-  {
-    label: "semantic-success",
-    fill: "bg-semantic-success",
-    ink: "text-on-semantic-success",
-    classes: "bg-semantic-success text-on-semantic-success",
-  },
-  {
-    label: "semantic-warning",
-    fill: "bg-semantic-warning",
-    ink: "text-on-semantic-warning",
-    classes: "bg-semantic-warning text-on-semantic-warning",
-  },
-  {
-    label: "semantic-error",
-    fill: "bg-semantic-error",
-    ink: "text-on-semantic-error",
-    classes: "bg-semantic-error text-on-semantic-error",
-  },
-  {
-    label: "semantic-info",
-    fill: "bg-semantic-info",
-    ink: "text-on-semantic-info",
-    classes: "bg-semantic-info text-on-semantic-info",
-  },
-  {
-    label: "surface-raised",
-    fill: "bg-surface-raised",
-    ink: "text-muted",
-    classes: "border bg-surface-raised text-muted",
-  },
-];
 
 export default function StylingUtilities(): JSX.Element {
 
@@ -159,35 +104,10 @@ export default function StylingUtilities(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Utilities & Shortcuts"
-        lede="Token-backed utility classes, paired fills and inks, project compositions, and how Spin's editor tooling catches unknown classes before you leave your editor."
+        title="Shortcuts"
+        lede="Declare the layout compositions your project repeats in spin.vite({ shortcuts }), verify every expanded utility against your brand, and let spin lint spot repeated utility strings for you."
       />
       <Markdown text={cssMd} />
-
-      <Section id="paired-fills" title="Paired fills & inks, live">
-        <p class="max-w-prose">
-          Each pill below uses its exact fill and paired foreground ink utility
-          from the active theme. Toggle light and dark mode in the top bar —
-          every pair maintains its WCAG contrast floor without a{" "}
-          <code>dark:</code> class:
-        </p>
-        <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          <For each={PAIRED_ROLES}>
-            {(item) => (
-              <div
-                class={`flex flex-col gap-1 rounded-md p-3 ${item.classes}`}
-              >
-                <span class="type-caption-strong">
-                  {item.label}
-                </span>
-                <span class="type-code opacity-90">
-                  {item.fill} + {item.ink}
-                </span>
-              </div>
-            )}
-          </For>
-        </div>
-      </Section>
 
       <Section id="shortcuts" title="Project shortcuts, live">
         <p class="max-w-prose">

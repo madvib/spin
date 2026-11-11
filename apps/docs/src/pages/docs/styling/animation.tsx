@@ -6,7 +6,7 @@
 import { A } from "@solidjs/router";
 import { createSignal, For } from "solid-js";
 import type { JSX } from "solid-js";
-import { animationContract } from "@spinjs/spin/animation";
+import { animationContract } from "@spinjs/preset";
 import { PageHeader, Section, Specimen } from "../../../ui/index.ts";
 
 const THEME_MOTION_SNIPPET = `<button type="button" class="primary">
@@ -50,8 +50,8 @@ export default function StylingAnimation(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Motion & Animation"
-        lede="How does motion work? Add a transition or an entrance to an element and let your theme set the pace. Every hover state, dialog entrance, and loading indicator moves at the speed and curve your theme sets once — and stills automatically when a visitor asks for less motion."
+        title="Motion"
+        lede="Add a transition or an entrance to an element and let your brand set the pace. Every hover state, dialog entrance, and loading indicator moves at the duration and curve your theme sets once — and stills automatically under prefers-reduced-motion."
       />
 
       <Section id="theme-motion" title="Motion comes from the theme">
@@ -179,9 +179,8 @@ export default function StylingAnimation(): JSX.Element {
           <code>@media (prefers-reduced-motion: reduce)</code>, and continuous
           loops like <code>animate-spin</code> and <code>animate-pulse</code>{" "}
           carry a <code>250ms</code> floor so loops that could strobe
-          can&apos;t. Both guarantees are verified automatically by{" "}
-          <A href="/docs/themes/validation">theme validation</A> and{" "}
-          <A href="/docs/tooling/check">browser checks</A>.
+          can&apos;t, verified automatically by{" "}
+          <A href="/docs/themes/validation">theme validation</A>.
         </p>
 
         <div class="flex min-w-0 flex-wrap items-center gap-4 rounded-lg border bg-surface-raised px-4 py-3">

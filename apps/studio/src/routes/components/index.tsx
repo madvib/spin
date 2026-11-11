@@ -20,8 +20,8 @@
  * the family they want is scanning the same marks they scan everywhere else.
  */
 
-import { createMemo, createSignal, For, Match, Switch } from "solid-js";
-import { A } from "@solidjs/router";
+import { createMemo, For, Match, Switch } from "solid-js";
+import { A, useLocation } from "@solidjs/router";
 import { COMPONENT_ICONS } from "@spinjs/components";
 import { primitiveElements } from "@spinjs/preset";
 import {
@@ -38,13 +38,17 @@ const ICONS: Readonly<Record<string, string>> = Object.fromEntries([
   ),
 ]);
 export default function ComponentsIndex() {
+  const location = useLocation();
   const drawer = createMemo(() => inDrawer());
-  const [kindFilter, setKindFilter] = createSignal<"all" | "primitive" | "machine">("all");
+  const activeKind = createMemo((): "all" | "primitive" | "machine" => {
+    const kind = new URLSearchParams(location.search).get("kind");
+    return kind === "primitive" ? "primitive" : kind === "machine" ? "machine" : "all";
+  });
 
   const groups = createMemo(() => {
     const all = library() ?? [];
     const byName = new Map(all.map((component) => [component.name, component]));
-    return unifiedComponentGroups(all, kindFilter(), "", ICONS).map((group) => ({
+    return unifiedComponentGroups(all, activeKind(), "", ICONS).map((group) => ({
       label: group.label,
       rows: group.rows.map((row) => ({
         ...row,
@@ -61,23 +65,9 @@ export default function ComponentsIndex() {
         <header class="stack-sm">
           <h1>Components</h1>
           <p class="max-w-screen-md text-muted">
-            Every primitive and interactive component in the library. Pick one
-            to inspect its variants, interactive examples, and tokens.
+            Every primitive and machine component in the library. Pick one
+            to inspect its variants, specimens, and tokens.
           </p>
-          <div role="group" aria-label="Component kind" class="flex w-fit shrink-0 gap-1 rounded-md border p-1">
-            <For each={(["all", "primitive", "machine"] as const)}>
-              {(kind) => (
-                <button
-                  type="button"
-                  aria-pressed={kindFilter() === kind}
-                  onClick={() => setKindFilter(kind)}
-                  class="bare rounded-md border border-solid border-transparent px-2 py-1 type-caption text-muted aria-[pressed=true]:border aria-[pressed=true]:bg-surface-raised"
-                >
-                  {kind === "all" ? "All" : kind === "primitive" ? "CSS" : "Interactive"}
-                </button>
-              )}
-            </For>
-          </div>
         </header>
         <Switch
           fallback={
@@ -117,8 +107,8 @@ export default function ComponentsIndex() {
                               examples
                             </span>
                             <span>
-                              {row.name.startsWith("component-")
-                                ? "interactive"
+                              {row.component?.kind === "machine"
+                                ? "machine"
                                 : "primitive"}
                             </span>
                           </span>

@@ -1,6 +1,6 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { parseHTML } from "@spinjs/runtime/testing";
+import { parseHTML } from "@spinjs/components/testing";
 import { attachPopover } from "./popover.controller-def.ts";
 
 const win = parseHTML("<!doctype html><html><body></body></html>") as unknown as Record<

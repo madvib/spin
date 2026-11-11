@@ -13,7 +13,7 @@ const machine = pinInput({
   <div class="flex items-center gap-2" {...machine.getControlProps()}>
     <template for={machine.getItems()} as={cell} key={cell}>
       <input
-        class={["w-10 p-0 text-center tabular-nums transition-colors duration-fast ease-decelerate", { "cursor-not-allowed opacity-50": machine.disabled }]}
+        class={["w-10 text-center tabular-nums transition-colors duration-fast ease-decelerate", { "cursor-not-allowed opacity-50": machine.disabled }]}
         {...machine.getInputProps(cell)}
       />
       <span show={cell === 2} class="type-body text-muted">-</span>

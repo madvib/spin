@@ -49,8 +49,10 @@ export function FindingGroups(props: {
                 <Marker />
                 <span class="min-w-0">{group.title}</span>
               </h2>
-              <span class="shrink-0 type-caption text-muted">
-                {group.findings.length}
+              <span class="row-sm shrink-0 type-caption text-muted">
+                <code>{group.ruleId}</code>
+                <span>·</span>
+                <span>{group.findings.length}</span>
               </span>
             </div>
             <ul class="stack-sm">

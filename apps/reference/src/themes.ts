@@ -15,7 +15,7 @@
  * project serves under them.
  */
 
-import { starterThemes, themeModes } from "@spinjs/spin/theme/themes";
+import { starterThemes, themeModes } from "@spinjs/theme/themes";
 
 /**
  * The project's own theme documents, read at build time.

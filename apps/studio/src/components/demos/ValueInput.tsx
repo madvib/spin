@@ -5,7 +5,6 @@ import {
   For,
   Match,
   on,
-  onCleanup,
   Show,
   Switch,
 } from "solid-js";
@@ -13,8 +12,8 @@ import { createSpinComponent } from "@spinjs/components/solid";
 import { combobox } from "@spinjs/components/combobox";
 import { colorPicker } from "@spinjs/components/color-picker";
 
-import { formatHex, indexTree, parseColor } from "@spinjs/spin/theme";
-import { measure, quantize, sliderRange } from "../../lib/scale.ts";
+import { formatHex, indexTree, parseColor } from "@spinjs/theme";
+import { measure, sliderRange } from "../../lib/scale.ts";
 import {
   activeLadders,
   activeMode,
@@ -31,6 +30,7 @@ import {
 } from "../../lib/live-edit.ts";
 import { removeToken } from "../../lib/editing.ts";
 import { isCompositeType } from "../../lib/tokens.ts";
+import { tokenValue } from "../../lib/overview.ts";
 import ShadowEditor from "./ShadowEditor.tsx";
 import BezierEditor from "./BezierEditor.tsx";
 import CompositeEditor from "./CompositeEditor.tsx";
@@ -339,7 +339,7 @@ function ResetButton(props: {
   return (
     <button
       type="button"
-      class="secondary s-sm shrink-0 shadow-none"
+      class="secondary s-sm shrink-0"
       title={title()}
       aria-label={title()}
       disabled={inert()}
@@ -524,7 +524,7 @@ function TextTransformControl(props: {
             <button
               type="button"
               aria-pressed={active()}
-              class={`min-h-0 cursor-pointer rounded-sm border px-2 py-1 normal-case shadow-none ${
+              class={`bare min-h-0 cursor-pointer rounded-sm border px-2 py-1 normal-case ${
                 active()
                   ? "border-transparent bg-primary text-on-primary"
                   : "bare border-transparent text-muted"
@@ -662,7 +662,7 @@ function RangeControl(props: {
           <button
             id={props.id === undefined ? undefined : `${props.id}-dec`}
             type="button"
-            class="secondary s-sm px-2 type-code shadow-none"
+            class="secondary s-sm type-code"
             aria-label={`Decrease ${props.label ?? "value"}`}
             disabled={(shownNumber() ?? range().min) <= range().min}
             onClick={() => stepBy(-1)}
@@ -680,7 +680,7 @@ function RangeControl(props: {
             aria-label={props.label === undefined
               ? "Token value"
               : `${props.label} value`}
-            class="w-24 shrink-0 px-2 text-center tabular-nums"
+            class="w-24 shrink-0 text-center tabular-nums"
             value={shown()}
             onChange={(event) => {
               const raw = event.currentTarget.value.trim();
@@ -696,7 +696,7 @@ function RangeControl(props: {
           <button
             id={props.id === undefined ? undefined : `${props.id}-inc`}
             type="button"
-            class="secondary s-sm px-2 type-code shadow-none"
+            class="secondary s-sm type-code"
             aria-label={`Increase ${props.label ?? "value"}`}
             disabled={(shownNumber() ?? range().max) >= range().max}
             onClick={() => stepBy(1)}
@@ -789,8 +789,36 @@ function ReferenceField(props: {
 }) {
   const [element, setElement] = createSignal<HTMLElement>();
   const box = createSpinComponent(element, combobox);
-  const items = () =>
-    props.paths.map((path) => ({ value: `{${path}}`, label: `{${path}}` }));
+  const items = () => {
+    const tree = activeTree();
+    const mode = activeMode();
+    return props.paths.map((path) => {
+      const resolved = tree === undefined ? undefined : tokenValue(tree, mode, path);
+      const kind = path.startsWith("color.")
+        ? "color"
+        : path.startsWith("font.family.")
+        ? "family"
+        : path.startsWith("font.size.")
+        ? "size"
+        : path.startsWith("font.weight.")
+        ? "weight"
+        : path.startsWith("font.tracking.")
+        ? "tracking"
+        : path.startsWith("font.leading.")
+        ? "leading"
+        : "value";
+      const meta: Record<string, string> | undefined = resolved === undefined
+        ? undefined
+        : kind === "color"
+        ? { kind, swatch: resolved }
+        : { kind, sample: resolved };
+      return {
+        value: `{${path}}`,
+        label: `{${path}}`,
+        ...(meta === undefined ? {} : { meta }),
+      };
+    });
+  };
   const commitLiteral = (input: HTMLInputElement | null): void => {
     if (input === null) return;
     props.onCommit(input.value);

@@ -9,13 +9,13 @@ const machine = toc({
 
 <div class="w-full" {...machine.getRootProps()}>
   <nav class="flex flex-col gap-2" {...machine.getNavProps()}>
-    <p
-      class="flex items-center gap-2 uppercase text-muted"
+    <span
+      class="flex items-center gap-2 type-overline uppercase text-muted"
       {...machine.getTitleProps()}
     >
       <span class="i-lucide-align-left icon-sm shrink-0" aria-hidden="true"></span>
       <span>On this page</span>
-    </p>
+    </span>
     <ul
       class="flex flex-col"
       {...machine.getListProps()}
@@ -23,7 +23,7 @@ const machine = toc({
       <template for={machine.items} as={row} key={row.value}>
         <li {...machine.getItemProps(row)}>
           <a
-            class="block border-s-2 py-1 ps-3 text-muted no-underline transition-colors duration-fast hover:border-strong data-[deep]:ps-6 aria-[current=location]:border-primary aria-[current=location]:text-primary"
+            class="bare block border-s-2 py-1 ps-3 type-caption text-muted transition-colors duration-fast hover:border-strong data-[deep]:ps-6 aria-[current=location]:border-primary aria-[current=location]:text-primary"
             {...machine.getLinkProps(row)}
           >{row.label}</a>
         </li>

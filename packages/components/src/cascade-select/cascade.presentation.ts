@@ -4,7 +4,6 @@ import {
   ariaHidden,
   ariaLabelledBy,
   ariaOwns,
-  coerceJsonArray,
   type ComponentDef,
   defineComponent,
   disclosureTrigger,
@@ -13,7 +12,7 @@ import {
   optionRow,
   type ViewFor,
   type SlotViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import { cascade as cascadeMachine } from "./cascade.machine.ts";
 import {
   type CascadeArgs,
@@ -21,7 +20,6 @@ import {
   type CascadeState,
   parseCollection as parseCollectionState,
   parsePath,
-  parsePaths,
   startOpen,
 } from "./cascade.state.ts";
 import type { CascadeEvents } from "./cascade.events.ts";
@@ -122,8 +120,6 @@ export const pathKey = (path: readonly string[]): string => path.join(SEP);
  *  at every read. */
 export const parseCollection = parseCollectionState;
 
-const isString = (segment: unknown): segment is string =>
-  typeof segment === "string";
 
 export const nodeAtPath = (
   collection: readonly CascadeNode[],
@@ -164,18 +160,9 @@ const itemAt = <T>(list: readonly T[], index: number): T | undefined =>
 const samePath = (a: readonly string[], b: readonly string[]): boolean =>
   a.length === b.length && a.every((v, i) => v === b[i]);
 
-const samePaths = (a: readonly string[][], b: readonly string[][]): boolean =>
-  a.length === b.length && a.every((path, i) => samePath(path, b[i] ?? []));
-
 type ScopeLike = ViewFor<CascadeContext, CascadeEvents, CascadeState>;
 type SlotLike<R> = SlotViewFor<R, CascadeContext, CascadeEvents, CascadeState>;
 
-const isNode = (value: unknown): value is CascadeNode => {
-  if (!isRecord(value)) return false;
-  if (typeof value["value"] !== "string") return false;
-  const children: unknown = value["children"];
-  return children === undefined || Array.isArray(children);
-};
 
 /** Derive the visible levels: every node along the highlighted path
  *  contributes its children as the next level. Memoized on the collection
@@ -612,7 +599,6 @@ const textFor = (context: CascadeContext): string => {
     .join(", ");
 };
 
-const valueAsString = (scope: ScopeLike): string => textFor(scope.context);
 
 /** A host readout formatter: functions cannot cross the scope channel, so
  * the shape is checked at the call — anything else is the default text. */
@@ -640,7 +626,6 @@ const callScroll = (custom: unknown, details: CascadeScrollDetails): void => {
   custom(details);
 };
 
-const propText = (raw: unknown): string => typeof raw === "string" ? raw : "";
 
 const levelOf = (arg: unknown): CascadeLevel => {
   if (!isRecord(arg)) return { depth: 0, path: [], key: "root", items: [] };
@@ -663,39 +648,6 @@ const isCascadeItem = (value: unknown): value is CascadeItem => {
   return typeof value["value"] === "string" && Array.isArray(value["path"]);
 };
 
-const itemOf = (arg: unknown): CascadeItem => {
-  if (isCascadeItem(arg)) {
-    const depth: unknown = arg["depth"];
-    const indexInLevel: unknown = arg["indexInLevel"];
-    const indexPath: unknown = arg["indexPath"];
-    return {
-      key: typeof arg["key"] === "string" ? arg["key"] : "",
-      path: arg["path"].filter((p): p is string => typeof p === "string"),
-      value: arg["value"],
-      label: typeof arg["label"] === "string" ? arg["label"] : "",
-      disabled: arg["disabled"] === true,
-      hasChildren: arg["hasChildren"] === true,
-      depth: typeof depth === "number" ? depth : 0,
-      indexInLevel: typeof indexInLevel === "number" ? indexInLevel : 0,
-      indexPath: Array.isArray(indexPath) && indexPath.every((n): n is number =>
-          typeof n === "number"
-        )
-        ? indexPath
-        : [],
-    };
-  }
-  return {
-    key: "",
-    path: [],
-    value: "",
-    label: "",
-    disabled: false,
-    hasChildren: false,
-    depth: 0,
-    indexInLevel: 0,
-    indexPath: [],
-  };
-};
 
 /** Zag's `scrollToIndexFn`: a host that scrolls its own content supplies the
  *  how (with the active row's position in its level), the reflex still owns
@@ -1115,18 +1067,13 @@ export const def = {
     hasSelectedItems: { read: (context) => context.value.length > 0 },
     empty: { read: (context) => context.value.length === 0 },
     levels: {
-      read: (context, _state, props) =>
+      read: (context) =>
         levelsOf(context.collection, context.highlightedValue),
     },
   },
   methods: {
     getLevels: {
-      call: (
-        context: CascadeContext,
-        _state,
-        _args,
-        props,
-      ): readonly CascadeLevel[] =>
+      call: (context: CascadeContext): readonly CascadeLevel[] =>
         levelsOf(context.collection, context.highlightedValue),
     },
     getItems: {

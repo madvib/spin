@@ -16,8 +16,8 @@ import {
 } from "@jibe/embed/sdk";
 import { spinPreset } from "@spinjs/preset";
 import { mode, theme } from "@spinjs/kit";
-import { resolveTheme, type ThemeDocument } from "@spinjs/spin/theme";
-import { starterThemes } from "@spinjs/spin/theme/themes";
+import { resolveTheme, type ThemeDocument } from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 import { SUBJECT_HTML, type Subject } from "../../examples/shared.ts";
 
 export type PlaygroundFramework =
@@ -144,7 +144,7 @@ function spinModules(): Promise<Record<string, string>> {
       fetch("/jibe/spin-preset.js").then((response) => response.text()),
       fetch("/jibe/spin-runtime.js").then((response) => response.text()),
     ]);
-    return { "@spinjs/preset": preset, "@spinjs/runtime": runtime };
+    return { "@spinjs/preset": preset, "@spinjs/components/runtime": runtime };
   })();
   return spinModulesPromise;
 }
@@ -277,7 +277,7 @@ function hostSeedFiles(): Record<string, string> {
 export function resolveSpinJibeTheme(activeTheme: string, activeMode: string) {
   const doc =
     starterThemes[activeTheme as keyof typeof starterThemes] ??
-    starterThemes.spin;
+    starterThemes.editorial;
   const resolved = resolveTheme(doc, activeMode);
   const str = (key: string, fallback: string): string => {
     const val = resolved.values[key];
@@ -426,7 +426,7 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
         };
       }
       case "preview/css": {
-        const name = String(input["name"] ?? "spin");
+        const name = String(input["name"] ?? "editorial");
         const text = String(input["text"] ?? "");
         try {
           const document = JSON.parse(text) as ThemeDocument;
@@ -641,7 +641,7 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
       <Show when={props.studio === true && ready()}>
         <button
           type="button"
-          class="bare absolute right-3 top-3 z-dropdown cursor-pointer rounded-full border bg-surface-raised px-3 py-1 type-code shadow-sm"
+           class="bare absolute right-3 top-3 z-dropdown cursor-pointer rounded-full border bg-surface-raised px-3 py-1 type-code shadow-sm"
           onClick={() => {
             studioConnected = false;
             setStudioOpen((open) => !open);

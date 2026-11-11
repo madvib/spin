@@ -8,7 +8,7 @@ import {
   optionRow,
   type ViewFor,
   type SlotViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import { themePicker as themePickerMachine } from "./theme-picker.machine.ts";
 import type {
   ThemePickerEvents,

@@ -13,9 +13,9 @@ import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { rpcHandler } from "../../src/api/index.ts";
-import { OVERLAY_SCRIPT } from "../../src/api/overlay-client.ts";
-import { setProjectRoot } from "../../src/api/project-procedures.ts";
-import { clearOverlay } from "../../src/compiler/index.ts";
+import { OVERLAY_SCRIPT } from "@spinjs/server";
+import { setProjectRoot } from "@spinjs/server/procedures";
+import { clearOverlay } from "@spinjs/server/project";
 
 function clientFor<T>(procedure: string, input?: unknown): Promise<T> {
   return rpcHandler.handle(

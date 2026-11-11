@@ -1,5 +1,5 @@
 import type { RefObject } from "react";
-import type { DefinedComponent } from "@spinjs/runtime";
+import type { DefinedComponent } from "@spinjs/components/runtime";
 import {
   type CtlFor,
   type ElementTarget,

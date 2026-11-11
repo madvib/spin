@@ -14,7 +14,7 @@ import { test } from "bun:test";
  *   resolution takes over.
  */
 import assert from "node:assert/strict";
-import { readdir, stat } from "node:fs/promises";
+import { stat } from "node:fs/promises";
 import { spinAliases } from "../../src/plugin/plugin.ts";
 
 test("the specifier table resolves spin packages to source that exists", async () => {
@@ -25,19 +25,16 @@ test("the specifier table resolves spin packages to source that exists", async (
     const isPrefix = entry.replacement.includes("$1") &&
       entry.replacement.includes("/");
     if (isPrefix) {
-      // A prefix entry: its directory is the part before the capture.
-      const dir = entry.replacement.replace(/\$1$/, "");
-      const info = await stat(dir);
-      assert(info.isDirectory, `${dir} should be the source dir`);
-      // …and it is a source dir itself: the index module beside the
-      // rewrite target proves the capture can't land on a file's name —
-      // or, for the spin catch-all, the area dirs it fans out to.
-      const names: string[] = [];
-      for (const name of await readdir(dir)) names.push(name);
-      assert(
-        names.includes("index.ts") || names.includes("theme"),
-        `${dir} should be a source dir`,
-      );
+      // A prefix entry: resolve a known subpath through it and prove the
+      // capture lands on a real file.
+      const probe = entry.replacement.replace("$1", "index.ts");
+      const info = await stat(probe).catch(() => null);
+      if (info?.isFile()) continue;
+      // The spin catch-all fans out to area dirs, not a root index: probe
+      // one area each consumer actually spells.
+      const area = entry.replacement.replace("$1", "plugin/plugin.ts");
+      const areaInfo = await stat(area);
+      assert(areaInfo.isFile(), `${entry.replacement} resolves no known subpath`);
     } else {
       // An exact entry: the replacement is a file that is really there.
       const info = await stat(entry.replacement);

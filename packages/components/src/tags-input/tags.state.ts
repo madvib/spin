@@ -1,4 +1,4 @@
-import { defaultTwin } from "@spinjs/runtime";
+import { defaultTwin } from "@spinjs/components/runtime";
 import type { TagsEvent } from "./tags.events.ts";
 
 export interface TagsValidateArgs {

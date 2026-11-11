@@ -106,7 +106,7 @@ export default function PreferencesPage() {
       <Section
         title="The studio's own theme"
         fact={`${studioChips().length} roles`}
-        note="The rail and the bar along the bottom wear this theme and never the project's, so editing a theme cannot restyle the tool you are editing it with."
+        note="The top bar and studio chrome wear this theme and never the project's, so editing a theme cannot restyle the tool you are editing it with."
       >
         <Frame>
           <div class="flex flex-wrap gap-3">

@@ -1,4 +1,4 @@
-import type { AssignFor, GuardFor } from "@spinjs/runtime/fsm";
+import type { AssignFor, GuardFor } from "@spinjs/components/fsm";
 import type { TourEvents } from "./tour.events.ts";
 import type { TourContext } from "./tour.state.ts";
 import { bailStep, stepOf } from "./tour.state.ts";

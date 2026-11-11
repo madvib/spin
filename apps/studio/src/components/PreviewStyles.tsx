@@ -7,7 +7,7 @@
  */
 
 import { createEffect, createResource, Show } from "solid-js";
-import type { Mode, TokenTree } from "@spinjs/spin/theme";
+import type { Mode, TokenTree } from "@spinjs/theme";
 import studioTheme from "../../theme.json" with { type: "json" };
 import { previewCssSafely, previewKey } from "../lib/preview.ts";
 import {

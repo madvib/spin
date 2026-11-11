@@ -7,7 +7,7 @@ import {
   liveRegion,
   type SlotViewFor,
   type ViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import {
   formatTime,
   msToTime,

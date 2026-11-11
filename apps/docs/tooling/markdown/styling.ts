@@ -1,9 +1,9 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { parseTokens, starterThemes } from "@spinjs/spin/theme";
-import { describeCatalog, SECTIONS, utilitiesFor } from "@spinjs/spin/preset";
-import { configurationIn } from "@spinjs/spin/project";
-import { animationContract } from "@spinjs/spin/animation";
+import { parseTokens, starterThemes } from "@spinjs/theme";
+import { describeCatalog, SECTIONS, utilitiesFor } from "@spinjs/preset";
+import { configurationIn } from "../../../../packages/server/src/project/index.ts";
+import { animationContract } from "@spinjs/preset";
 
 const DOCS_ROOT = resolve(import.meta.dir, "../..");
 
@@ -116,8 +116,7 @@ export function buildStylingMarkdown(routePath: string): string | undefined {
       "",
       "## What Spin adds, and why each earns its place",
       "",
-      "Write `row-list` on a horizontal `<ul>` or `<ol>` to lay items out in a centered flex row with markers cleared and every item aligned on the same baseline, or `flow-list` for a vertical UI list with markers off and theme block spacing preserved. Because document lists space adjacent `li + li` items vertically so prose lists breathe, putting plain `flex` on a `<ul>` leaves the second item sitting lower than the first; `row-list` zeroes that sibling margin and sets the row gap in one class.",
-      "",
+      "Put `flex`, `inline-flex`, `grid`, or `inline-grid` on a `<ul>` or `<ol>` and Spin automatically clears list markers, inline padding, and the prose `li + li` top margin so flex and grid items align on the exact same baseline. Write `row-list` when you want a centered horizontal flex-row shorthand, or `flow-list` for a vertical UI list with markers off and theme block spacing preserved.",
       "Name a trigger control with `anchor-<name>` (such as `anchor-region-menu`) and pin its floating panel to it with `position-anchor-<name>` and a `position-area-*` placement like `position-area-bottom-span-right` or `position-area-top`. When a native `[popover]` or menu renders in the browser's top layer, no ancestor box positions it — `absolute top-full` measures against the viewport instead of the button that opened it — so anchor utilities let the panel track its trigger directly in markup.",
       "",
       "Apply a named type style such as `type-label`, `type-caption`, or `type-code` when a custom surface needs to spend the exact typographic decision your theme made for that role. Instead of guessing whether the active theme styles labels in semibold wide or medium tight, your custom trigger reads the named style directly and follows every theme change (see [Customization](/docs/themes/customization) and [Token Reference](/docs/themes/reference#elements)):",
@@ -148,7 +147,7 @@ export function buildStylingMarkdown(routePath: string): string | undefined {
       "",
       "Reach for the Spin equivalent below whenever a Tailwind habit is deliberately absent from the vocabulary — every omission either avoids a second way to state a theme decision or points to the roadmap item tracking it:",
       "",
-      "- **`text-base` → `text-md` (or bare `<p>`):** Use `text-md` or write a bare `<p>` when you want the body font-size step. The type scale uses the same `2xs`–`3xl` step names as radii, shadows, and control sizes so you never switch between `base` on type and `md` everywhere else.",
+      "- **`text-base` → `type-body` (or bare `<p>`):** Write `type-body` or a bare `<p>` when you want the body style. The theme declares one named style per role, so a paragraph reads the same in every theme without guessing which size step the active theme calls body.",
       "- **`dark:bg-*` / `light:bg-*` → `bg-surface` + `data-mode=\"dark\"`:** Switch modes with `data-mode=\"light\"` or `data-mode=\"dark\"` instead of prefixing utilities with `dark:` or `light:`. Your theme declares its own dark values under `$modes.dark`, so a single role class repaints cleanly in both modes (see [Color & Dark Mode](/docs/styling/color#dark-mode)).",
       "- **`container` / `@container` / `@md:*` → `mx-auto w-full max-w-screen-lg`:** Cap and center columns explicitly with `mx-auto`, `w-full`, and a named breakpoint measure such as `max-w-screen-lg` or `max-w-lg` so the stopping edge is visible in markup. Container-query variants (`@container`, `@md:`) are not yet in the vocabulary and are tracked on the post-launch roadmap (see [Space, Layout & Responsive](/docs/styling/space#responsive)).",
       "- **`bg-[#fff]` / `bg-blue-500` / `text-[14px]` → `bg-surface` / `bg-primary` / `type-body`:** Reach for semantic color roles (`bg-surface`, `bg-primary`, `text-muted`) and named `type-*` styles (`type-body`, `type-label`, `type-code`), or add a token to `spin/<brand>/tokens.json`. Default numbered color palettes and bracketed color or font-size literals are omitted so switching themes never leaves unthemed colors or off-scale type behind.",
@@ -162,13 +161,13 @@ export function buildStylingMarkdown(routePath: string): string | undefined {
       "",
       "The `font.size`, `font.family`, `font.weight`, `font.tracking`, and `font.leading` scales are internal building blocks, not utilities. A theme aliases steps from these scales into complete named type styles under `font.style.*`; nothing in markup names a scale step directly. Move a scale step and every type style built on it moves together.",
       "",
-      "## Sixteen Type Styles, Spent Whole",
+      "## Thirteen Type Styles, Spent Whole",
       "",
-      "Each entry under `font.style.*` is a complete tuple — family, size, weight, tracking, and leading in one `$type: \"typography\"` token — and one `type-<name>` class spends the whole tuple at once. The 16 type styles every starter declares: `display`, `title`, `heading`, `subtitle`, `lead`, `body`, `quote`, `code`, `label`, `caption`, `overline`, `stat`, `badge`, `body-strong`, `caption-strong`, and `card-title`. Four render live on the page (`type-display`, `type-heading`, `type-body`, `type-code`); the full 16-style table lives at `/docs/themes/reference#styles`.",
+      "Each entry under `font.style.*` is a complete tuple — family, size, weight, tracking, and leading in one `$type: \"typography\"` token — and one `type-<name>` class spends the whole tuple at once. The 13 type styles every starter declares: `display`, `title`, `heading`, `subtitle`, `lead`, `body`, `body-emphasized`, `quote`, `code`, `label`, `caption`, `caption-emphasized`, and `overline`. Four render live on the page (`type-display`, `type-heading`, `type-body`, `type-code`); the full 13-style table lives at `/docs/themes/reference#styles`.",
       "",
       "## Element and primitive `.type` Aliases Assign Type Styles; Links and Strong Modify",
       "",
-      "Every element arrives carrying a type style because its `.type` token aliases one: `element.h1.type` reads `{font.style.display}`, `element.p.type` reads `{font.style.body}`, `card.title.type` reads `{font.style.card-title}`. Re-point one target by aliasing another style in `spin/<brand>/elements.json` (elements) or `spin/<brand>/primitives/<component>.json` (component slots). While elements carry a type style, `<a>` and `<strong>` are inline modifiers over inherited text: a link adds only paint (`color.link`, an underline of `link.underline` thickness at `link.offset` distance, with transition and hover/focus states), and `<strong>` adds only `font.weight.bold`, so emphasis inside a caption or a heading never resets the size, family, or leading around it.",
+      "Every element arrives carrying a type style because its `.type` token aliases one: `element.h1.type` reads `{font.style.display}`, `element.p.type` reads `{font.style.body}`, `card.title.type` reads `{font.style.title}`. Re-point one target by aliasing another style in `spin/<brand>/elements.json` (elements) or `spin/<brand>/primitives/<component>.json` (component slots). While elements carry a type style, `<a>` and `<strong>` are inline modifiers over inherited text: a link adds only paint (`color.link`, an underline of `link.underline` thickness at `link.offset` distance, with transition and hover/focus states), and `<strong>` reads the `body-emphasized` weight, so emphasis inside a caption or a heading never resets the size, family, or leading around it.",
       "",
       "```json",
       "{ \"element\": { \"h1\": { \"type\": { \"$type\": \"typography\", \"$value\": \"{font.style.title}\" } } } }",
@@ -359,7 +358,7 @@ export function buildStylingMarkdown(routePath: string): string | undefined {
       "<!-- Painted bare trigger: names its paired ink explicitly -->",
       "<button",
       "  type=\"button\"",
-      "  class=\"bare inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-on-primary\"",
+      "  class=\"bare inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 type-caption-emphasized text-on-primary\"",
       ">",
       "  <span>Live filter</span>",
       "</button>",
@@ -412,7 +411,7 @@ export function buildStylingMarkdown(routePath: string): string | undefined {
       "",
       "## Respect is automatic",
       "",
-      "Turn on reduced motion in your operating system or browser and every transition and entrance on the page settles immediately without a single media-query class in your markup: your visitors who asked for less motion get it through `@media (prefers-reduced-motion: reduce)`, and continuous loops like `animate-spin` and `animate-pulse` carry a `250ms` floor so loops that could strobe can't. Both guarantees are verified automatically by [theme validation](/docs/themes/validation) and [browser checks](/docs/tooling/check).",
+      "Turn on reduced motion in your operating system or browser and every transition and entrance on the page settles immediately without a single media-query class in your markup: your visitors who asked for less motion get it through `@media (prefers-reduced-motion: reduce)`, and continuous loops like `animate-spin` and `animate-pulse` carry a `250ms` floor so loops that could strobe can't, verified automatically by [theme validation](/docs/themes/validation).",
       "",
       "## Every entrance and loop, live",
       "",
@@ -423,7 +422,7 @@ export function buildStylingMarkdown(routePath: string): string | undefined {
   }
   if (routePath !== "/docs/styling/catalog") return undefined;
   const parsed = parseTokens(
-    starterThemes.spin as unknown as Parameters<typeof parseTokens>[0],
+    starterThemes.editorial as unknown as Parameters<typeof parseTokens>[0],
   );
   if (!parsed.ok) return undefined;
   const catalog = describeCatalog(parsed.tree);
@@ -455,7 +454,7 @@ export function buildStylingMarkdown(routePath: string): string | undefined {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([name, classes]) => `- \`${name}\` → \`${classes.join(" ")}\``),
     "",
-    "## Animation Utilities (`@spinjs/spin/animation`)",
+    "## Animation Utilities (`@spinjs/preset`)",
     "",
     animations,
   ].join("\n");

@@ -2,7 +2,6 @@ import { test } from "bun:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 
-const dir = new URL("./examples/", import.meta.url);
 const read = (stem: string): string =>
   readFileSync(new URL(`./examples/${stem}.html`, import.meta.url), "utf8");
 
@@ -36,7 +35,7 @@ test("every specimen tints its handles on hover and keyboard focus", () => {
     const html = read(stem);
     assert.ok(
       html.includes("hover:bg-surface-sunken")
-      && html.includes("focus-visible:bg-surface-sunken"),
+      && html.includes("focus:bg-surface-sunken"),
       `${stem} must show the handle under the pointer and under the keyboard`,
     );
   }

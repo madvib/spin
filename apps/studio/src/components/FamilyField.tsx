@@ -108,10 +108,10 @@ export function FamilyField(props: {
   });
   createEffect(() => {
     const host = element() ?? null;
-    const input = host?.querySelector("input") ?? null;
-    if (input === null || input.dataset["family"] === "wired") return;
-    input.dataset["family"] = "wired";
+    if (host === null) return;
     const commit = (fromEnter: boolean) => {
+      const input = host.querySelector("input");
+      if (input === null) return;
       const typed = input.value.trim();
       if (typed === "") return;
       if (
@@ -136,10 +136,16 @@ export function FamilyField(props: {
       const clean = typed.replace(/^["']|["']$/g, "");
       props.onCommit(`"${clean}", ui-sans-serif, system-ui, sans-serif`);
     };
-    input.addEventListener("keydown", (event) => {
+    const onKeyDown = (event: Event) => {
       if ((event as KeyboardEvent).key === "Enter") commit(true);
+    };
+    const onFocusOut = () => commit(false);
+    host.addEventListener("keydown", onKeyDown);
+    host.addEventListener("focusout", onFocusOut);
+    onCleanup(() => {
+      host.removeEventListener("keydown", onKeyDown);
+      host.removeEventListener("focusout", onFocusOut);
     });
-    input.addEventListener("focusout", () => commit(false));
   });
   return (
     <studio-font-combobox

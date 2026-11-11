@@ -14,12 +14,15 @@ export default function Quickstart(): JSX.Element {
         lede="From an empty project to a themed app with the Studio and MCP server wired."
       />
 
-      <Section id="init" title="1. Install and initialize">
+      <Section id="init" title="1. Install and create your brand">
         <p class="max-w-prose">
-          Install the packages and run <code>npx spin init</code>. Spin detects
-          your bundler, writes <code>spin/default.json</code>, wires{" "}
-          <code>spin.vite()</code> into <code>vite.config.ts</code>, and
-          generates <code>.mcp.json</code> plus{" "}
+          Install the packages and run <code>npx spin init</code> (or open{" "}
+          <code>/__spin/studio/init</code> in the browser for the four-step
+          visual brand wizard: Brand name → Design language → Seed color → Type
+          &amp; icons). Spin detects your bundler, scaffolds{" "}
+          <code>spin/&lt;brand&gt;/tokens.json</code> extending your chosen
+          design language, wires <code>spin.vite()</code> into{" "}
+          <code>vite.config.ts</code>, and generates <code>.mcp.json</code> plus{" "}
           <code>src/spin-components.d.ts</code>.
         </p>
         <div class="my-3 grid gap-3 sm:grid-cols-2">
@@ -31,7 +34,14 @@ export default function Quickstart(): JSX.Element {
           <Code
             code={GETTING_STARTED_SNIPPETS.init}
             lang="bash"
-            title="2. Initialize"
+            title="2. Initialize your brand"
+          />
+        </div>
+        <div class="my-3">
+          <Code
+            code={GETTING_STARTED_SNIPPETS.brandTree}
+            lang="bash"
+            title="Your brand directory on disk"
           />
         </div>
       </Section>

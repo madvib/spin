@@ -1,14 +1,12 @@
-import type { AssignFor, GuardFor } from "@spinjs/runtime/fsm";
+import type { AssignFor, GuardFor } from "@spinjs/components/fsm";
 import type { ColorPickerEvents } from "./color-picker.events.ts";
 import {
   type AreaFormat,
-  type ColorFormat,
   type ColorPickerContext,
   parse,
   serialize,
 } from "./color-picker.state.ts";
 import { isFormat } from "./color-picker.state.ts";
-import type { ColorChannel } from "./color.ts";
 
 type ColorPickerAssign<
   K extends keyof ColorPickerEvents = keyof ColorPickerEvents,

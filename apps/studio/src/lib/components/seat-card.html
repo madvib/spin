@@ -1,0 +1,17 @@
+<script lang="ts">
+import { hoverCard } from "@spinjs/components/hover-card";
+
+const card = hoverCard();
+</script>
+
+<span class="inline-flex items-center" {...card.getRootProps()}>
+<span class="inline-flex h-8 items-center justify-center px-2 text-muted transition-colors hover:bg-surface-sunken" {...card.getTriggerProps()}>
+  <slot name="badge"></slot>
+</span>
+<div
+  class="fixed z-dropdown m-0 w-max max-w-[20rem] rounded-lg border bg-surface-raised p-3 shadow-lg"
+  {...card.getContentProps()}
+>
+  <slot name="card"></slot>
+</div>
+</span>

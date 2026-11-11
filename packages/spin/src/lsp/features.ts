@@ -1,5 +1,6 @@
 /**
- * The features: diagnostics, hover, and completion over the same core.
+ * The features: diagnostics, hover, completion, and quick fixes over the
+ * same core.
  *
  * The server delivers diagnostics; it never invents them. The findings
  * come from the lint service over staged text — the staged path exists
@@ -7,16 +8,22 @@
  * are two readings of one decision. Hover reads the preset's own rules
  * through the surfaces the lint reads, and the unknown-class suggestion
  * rides the build error's edit distance. Completion names the project
- * vocabulary the closed-vocabulary rule enforces.
+ * vocabulary the closed-vocabulary rule enforces; a quick fix is the
+ * finding's own edit, in the shape the editor applies.
  */
 
-import { lintFiles } from "../diagnostics/service.ts";
-import type { Diagnostic } from "../diagnostics/engine.ts";
-import { factsForFile } from "../diagnostics/provider.ts";
-import { nearestSuggestion, suggestFor } from "../plugin/strict-classes.ts";
-import { lintMarkup, lintTree, parseFile } from "../diagnostics/engine.ts";
-import { RULE_NAMES } from "../diagnostics/rules.ts";
-import { DEFAULT_SEMANTIC_OPTIONS } from "../diagnostics/core.ts";
+import {
+  type Diagnostic,
+  type EngineAnswers,
+  factsForFile,
+  fallbackAnswers,
+  lintFiles,
+  lintTree,
+  parseFile,
+  RULE_NAMES,
+} from "@spinjs/diagnostics";
+import { DEFAULT_SEMANTIC_OPTIONS } from "@spinjs/diagnostics";
+import { nearestSuggestion, suggestFor } from "@spinjs/build";
 
 /* ------------------------------------------------------------ the document -- */
 
@@ -36,7 +43,10 @@ export function readableLanguage(languageId: string): boolean {
     languageId === "javascriptreact" ||
     languageId === "typescript" ||
     languageId === "typescriptreact" ||
-    languageId === "html";
+    languageId === "html" ||
+    languageId === "vue" ||
+    languageId === "svelte" ||
+    languageId === "astro";
 }
 
 /* ---------------------------------------------------------- the diagnostics -- */
@@ -62,11 +72,13 @@ export interface LspDiagnostic {
 export async function diagnosticsFor(
   uri: string,
   document: OpenDocument,
+  answers: EngineAnswers = fallbackAnswers(),
 ): Promise<LspDiagnostic[]> {
   const path = filePathOf(uri);
   const report = await lintFiles(
     [path],
     { kind: "staged", documents: [{ path, text: document.text }] },
+    { answers },
   );
   return report.findings.map(toLsp);
 }
@@ -138,10 +150,12 @@ function attributeAt(
   character: number,
 ): { readonly text: string; readonly start: number } | undefined {
   // A class attribute's value: `class="…"` or `className="…"` (bare or
-  // wrapped in braces), in any of the three quotes. The search walks
-  // backwards to the nearest opener before the cursor and forwards to
-  // its closer.
-  const pattern = /(?:class|className)\s*=\s*\{?\s*["'`]/g;
+  // wrapped in braces), in any of the three quotes, plus the framework
+  // spellings that carry the same list (`classList`, `:class`,
+  // `v-bind:class`). The braces repeat for the object form (`{{ "…": … }}`),
+  // and the search walks backwards to the nearest opener before the cursor
+  // and forwards to its closer.
+  const pattern = /(?:class|className|classList|:class|v-bind:class)\s*=\s*\{*\s*["'`]/g;
   let open: { readonly text: string; readonly start: number } | undefined;
   for (let match = pattern.exec(row); match !== null; match = pattern.exec(row)) {
     const raw = match[0];
@@ -170,11 +184,12 @@ export function hoverAt(
   text: string,
   line: number,
   character: number,
+  answers: EngineAnswers = fallbackAnswers(),
 ): { readonly contents: { readonly kind: string; readonly value: string } } | undefined {
   const found = wordAt(text, line, character);
   if (found === undefined) return undefined;
   const path = filePathOf(uri);
-  const facts = factsForFile(path);
+  const facts = factsForFile(path, answers);
   if (!facts.readable) return undefined;
   const declarations = facts.surfaces.utility(found.word);
   if (declarations.size > 0) {
@@ -225,23 +240,23 @@ export function completionsAt(
   text: string,
   line: number,
   character: number,
+  answers: EngineAnswers = fallbackAnswers(),
 ): LspCompletion[] {
   const row = text.split("\n")[line];
   if (row === undefined) return [];
   const attribute = attributeAt(row, character);
   if (attribute === undefined) return [];
   const path = filePathOf(uri);
-  const facts = factsForFile(path);
+  const facts = factsForFile(path, answers);
   if (!facts.readable) return [];
   if (facts.shortcuts === null) return [];
   const names = new Set<string>([...facts.utilities, ...facts.variants, ...facts.shortcuts.keys()]);
   const spent = new Set<string>();
   try {
-    const run = { rules: RULE_NAMES, semantic: DEFAULT_SEMANTIC_OPTIONS };
-    const findings = path.endsWith(".html")
-      ? lintMarkup(path, text, run)
-      : lintTree(path, parseFile(text, path), run);
-    void findings;
+    const run = { rules: RULE_NAMES, semantic: DEFAULT_SEMANTIC_OPTIONS, answers };
+    if (!path.endsWith(".html")) {
+      void lintTree(path, parseFile(text, path), run);
+    }
     for (const token of text.split(/[^a-zA-Z0-9:_\-./[\]()]+/)) {
       if (names.has(token)) spent.add(token);
     }
@@ -272,6 +287,114 @@ export function completionsAt(
   });
 }
 
+/* --------------------------------------------------------------- the actions -- */
+
+/** A quick fix, in the shape an editor applies. */
+export interface LspAction {
+  readonly title: string;
+  readonly kind: "quickfix";
+  readonly diagnostics: readonly LspDiagnostic[];
+  readonly edit: {
+    readonly changes: Record<string, readonly {
+      readonly range: {
+        readonly start: { readonly line: number; readonly character: number };
+        readonly end: { readonly line: number; readonly character: number };
+      };
+      readonly newText: string;
+    }[]>;
+  };
+}
+
+/**
+ * The quick fixes inside a range — the findings' own edits.
+ *
+ * The range selects the diagnostics: a finding whose start the range
+ * covers offers its edit, and a finding without one offers nothing. The
+ * edit is not constructed here — the rule that found the thing carries
+ * the mechanical way out — so only the coordinates are translated, from
+ * the source's own offsets into the editor's lines and characters.
+ */
+export async function actionsFor(
+  uri: string,
+  document: OpenDocument,
+  range: {
+    readonly start: { readonly line: number; readonly character: number };
+    readonly end: { readonly line: number; readonly character: number };
+  },
+  answers: EngineAnswers = fallbackAnswers(),
+): Promise<LspAction[]> {
+  const path = filePathOf(uri);
+  const report = await lintFiles(
+    [path],
+    { kind: "staged", documents: [{ path, text: document.text }] },
+    { answers },
+  );
+  const out: LspAction[] = [];
+  for (const finding of report.findings) {
+    if (finding.fix === undefined) continue;
+    // A code action answers the cursor, not the file: only a diagnostic
+    // under the requested range offers its edit.
+    if (!covers(range, finding)) continue;
+    const edit = rangeOf(document.text, finding.fix.range);
+    if (edit === undefined) continue;
+    out.push({
+      title: finding.remedy ?? `Fix ${finding.ruleId}`,
+      kind: "quickfix",
+      diagnostics: [toLsp(finding)],
+      edit: {
+        changes: {
+          [uri]: [{ range: edit, newText: finding.fix.text }],
+        },
+      },
+    });
+  }
+  return out;
+}
+
+/** Whether a request's range covers a finding's own position. */
+function covers(
+  range: {
+    readonly start: { readonly line: number; readonly character: number };
+    readonly end: { readonly line: number; readonly character: number };
+  },
+  finding: Diagnostic,
+): boolean {
+  const line = finding.line - 1;
+  const character = finding.column - 1;
+  if (line < range.start.line || line > range.end.line) return false;
+  if (line === range.start.line && character < range.start.character) return false;
+  if (line === range.end.line && character > range.end.character) return false;
+  return true;
+}
+
+/** An offset range, in the shape an editor applies. */
+function rangeOf(
+  text: string,
+  range: readonly [number, number],
+): {
+  readonly start: { readonly line: number; readonly character: number };
+  readonly end: { readonly line: number; readonly character: number };
+} | undefined {
+  const positionOf = (offset: number) => {
+    if (offset < 0 || offset > text.length) return undefined;
+    let line = 0;
+    let character = 0;
+    for (let i = 0; i < offset; i++) {
+      if (text[i] === "\n") {
+        line += 1;
+        character = 0;
+      } else {
+        character += 1;
+      }
+    }
+    return { line, character };
+  };
+  const start = positionOf(range[0]);
+  const end = positionOf(range[1]);
+  if (start === undefined || end === undefined) return undefined;
+  return { start, end };
+}
+
 /** The file a document URI names. */
 export function filePathOf(uri: string): string {
   try {
@@ -284,7 +407,7 @@ export function filePathOf(uri: string): string {
 }
 
 /** The project vocabulary one name away, for tests. */
-export function suggestionFor(uri: string, cls: string): string | undefined {
-  const facts = factsForFile(filePathOf(uri));
+export function suggestionFor(uri: string, cls: string, answers: EngineAnswers = fallbackAnswers()): string | undefined {
+  const facts = factsForFile(filePathOf(uri), answers);
   return nearestSuggestion(cls, new Set([...facts.utilities, ...facts.variants]));
 }

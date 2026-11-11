@@ -490,7 +490,7 @@ function EasingChart(props: {
           </Show>
         </svg>
         <ul
-          class="stack-xs flex-1"
+          class="flex flex-1 flex-col gap-1"
           style={{ "min-width": "14rem" }}
         >
           <For each={props.lanes}>
@@ -528,7 +528,7 @@ function EasingChart(props: {
                       <span class="type-code">
                         {lane.path.split(".").pop()}
                       </span>
-                      <code class="text-muted">{lane.utility}</code>
+                      <span class="type-code text-muted">{lane.utility}</span>
                     </span>
                     <Show when={lane.points}>
                       {(points) => (

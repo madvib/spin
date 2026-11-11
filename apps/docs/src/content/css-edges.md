@@ -6,15 +6,9 @@ Every utility class in Spin maps to a declared token in your `spin/<brand>/` the
 
 The lint reads your project's themes and enforces the closed vocabulary in your editor and CI — the same rules everywhere, no `uno.config.ts` required. See [Lints & Verification](/docs/tooling/lints) for the rule table and setup.
 
-## Paired fills, semantic inks, and dark mode
+## Color roles, paired inks, and dark mode
 
-Every fill token in your theme has a paired foreground ink role verified against WCAG contrast floors in every declared mode:
-
-- **Surfaces:** `bg-surface`, `bg-surface-raised`, `bg-surface-sunken` (with `text-muted` for secondary copy — the default ink needs no naming)
-- **Alpha modifier (`/0`–`/100`):** Any theme color supports an opacity percentage suffix (`bg-surface/80`, `border-primary/40`), compiling to `color-mix(in srgb, var(--color-surface) 80%, transparent)` without minting a new color token.
-
-Spin switches light and dark palettes via `[data-mode="dark"]` on `<html>` or any container subtree. There is no `dark:` utility prefix — `bg-surface` and the default ink resolve to the active mode's tokens automatically.
-
+Every painted fill role in your theme has a paired foreground ink verified against WCAG contrast floors across light and dark modes (see [Palettes & Paired Inks](/docs/themes/palettes) and [Color & Alpha Utilities](/docs/styling/color)). Any theme color also accepts an `/0`–`/100` opacity suffix (`bg-surface/80`, `border-primary/40`), compiling to `color-mix(in srgb, ...)` without minting a new token.
 ## State variants and responsive breakpoints
 
 - **Interactive states:** `hover:`, `focus:`, `focus-visible:`, `active:`, `disabled:`, `aria-[current]:`, `data-[state=open]:`, `group-hover:`, `peer-hover:`

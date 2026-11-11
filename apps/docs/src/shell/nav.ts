@@ -10,7 +10,7 @@ import {
 import {
   primitiveContracts,
   primitiveElements,
-} from "@spinjs/spin/preset";
+} from "@spinjs/preset";
 
 export interface NavLink {
   readonly title: string;
@@ -59,27 +59,32 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
       {
         title: "Overview",
         href: "/docs/getting-started/overview",
-        summary: "How themes, bare-tag HTML elements, utilities, and state machines fit together.",
+        summary:
+          "Why Spin claims bare HTML tags, enforces a closed token vocabulary, and prevents CSS drift across humans and coding agents.",
       },
       {
-        title: "Installation",
-        href: "/docs/getting-started/install",
-        summary: "Project layout, spin init flags, and configurations for all seven bundlers.",
+        title: "Ownership",
+        href: "/docs/getting-started/architecture",
+        summary:
+          "Which layer owns each visual or behavioral change, why lints refuse callsite overrides, and the 4-step customization staircase.",
       },
       {
         title: "Quickstart",
         href: "/docs/getting-started/quickstart",
-        summary: "Install the packages, wire your bundler, and open the Studio in two minutes.",
+        summary:
+          "Install the packages, scaffold spin/<brand>/, and open the Studio in two minutes.",
       },
       {
-        title: "Adoption Paths",
+        title: "Installation",
+        href: "/docs/getting-started/install",
+        summary:
+          "Project layout, spin init flags, and configurations for all seven bundlers.",
+      },
+      {
+        title: "Adoption",
         href: "/docs/getting-started/paths",
-        summary: "Full bundler plugin, UnoCSS preset-only, or standalone Studio daemon.",
-      },
-      {
-        title: "Architecture",
-        href: "/docs/getting-started/architecture",
-        summary: "Which layer owns each visual or behavioral change, and the checks that verify it.",
+        summary:
+          "Full bundler plugin, shared brand packages, UnoCSS preset-only, or standalone Studio daemon.",
       },
     ],
   },
@@ -88,66 +93,52 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
     label: "Themes",
     items: [
       {
-        title: "Overview",
+        title: "Brands",
         href: "/docs/themes/overview",
-        summary: "Designing your brand theme in the Studio, previewing starters, and configuring spin/<brand>/.",
-      },
-      {
-        title: "Tokens & Customization",
-        href: "/docs/themes/customization",
-        summary: "How tokens map to utilities, semantic palette roles, spatial scales, and per-element overrides.",
-      },
-      {
-        title: "Modes, Palettes & Density",
-        href: "/docs/themes/modes",
-        summary: "Light and dark mode resolution, subtree scoping with data-mode, mode invariance, and mode pickers.",
-      },
-      {
-        title: "Fonts & Type Styles",
-        href: "/docs/themes/fonts",
-        summary: "Loading web fonts with @font-face generation, font family roles, and the monotonic type scale.",
-      },
-      {
-        title: "Validation & CLI",
-        href: "/docs/themes/validation",
-        summary: "Automatic theme checks in spin lint, CLI analysis, WCAG contrast floors, and validateTheme().",
-      },
-      {
-        title: "Theme Reference",
-        href: "/docs/themes/reference",
-        summary: "Complete reference of DTCG token groups, required roles, contrast pairs, and per-element tokens.",
-      },
-    ],
-  },
-  {
-    id: "styling",
-    label: "Styling",
-    items: [
-      {
-        title: "Spin vs Tailwind",
-        href: "/docs/styling/tailwind",
         summary:
-          "Use the Tailwind utility and variant grammar you already know over a theme your project owns. Every utility reads a declared token, unknown classes fail the build instead of disappearing, and elements arrive styled by their HTML tags.",
+          "Design languages ($extends), your brand in spin/<brand>/, runtime facets, and live editing in the Studio.",
+      },
+      {
+        title: "Layers",
+        href: "/docs/themes/customization",
+        summary:
+          "How spin/<brand>/ splits tokens.json, reference.json, elements.json, and primitives/*.json, and how tokens map to CSS variables.",
+      },
+      {
+        title: "Palettes",
+        href: "/docs/themes/palettes",
+        summary:
+          "Semantic color roles, paired foreground inks (bg-* + text-on-*), neutral ramps, and enforced WCAG contrast floors.",
+      },
+      {
+        title: "Modes",
+        href: "/docs/themes/modes",
+        summary:
+          "Light and dark mode resolution via $modes, mode-relative aliases, subtree scoping with data-mode, and mode invariance.",
+      },
+      {
+        title: "Facets",
+        href: "/docs/themes/facets",
+        summary:
+          "Optional *.palette.json (data-palette) and *.spacing.json (data-spacing) overlays that compose with your brand and mode.",
       },
       {
         title: "Typography",
-        href: "/docs/styling/prose",
-        summary: "Named type styles your theme declares (type-<name>), carried by elements by default — plus list primitives (ul/ol reset, row-list, flow-list).",
+        href: "/docs/themes/fonts",
+        summary:
+          "Loading web fonts with @font-face generation, font family roles, the 13 named font.style.* tuples, and .type aliases.",
       },
       {
-        title: "Color & Dark Mode",
-        href: "/docs/styling/color",
-        summary: "Name the job an element performs on the page and let your theme supply the palette. Write role utilities once for light and dark mode, pair every painted fill with its readable ink, and thin any theme color toward transparency without minting new values.",
+        title: "Validation",
+        href: "/docs/themes/validation",
+        summary:
+          "Automatic theme checks in spin lint, CLI analysis, WCAG contrast floors, and validateTheme().",
       },
       {
-        title: "Space & Layout",
-        href: "/docs/styling/space",
-        summary: "Pad, gap, and size elements from your theme's spacing scale, name the flex and grid compositions your project repeats, and reflow across your theme's breakpoints. Pin floating panels to their triggers in the top layer and strip default control chrome when a custom trigger needs button semantics without button paint.",
-      },
-      {
-        title: "Motion & Animation",
-        href: "/docs/styling/animation",
-        summary: "Add a transition or an entrance to an element and let your theme set the pace. Every hover state, dialog entrance, and loading indicator moves at the speed and curve your theme sets once — and stills automatically when a visitor asks for less motion.",
+        title: "Reference",
+        href: "/docs/themes/reference",
+        summary:
+          "Complete reference of DTCG token groups, required roles, contrast pairs, and per-element tokens.",
       },
     ],
   },
@@ -156,39 +147,72 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
     label: "Primitives",
     items: [
       {
-        title: "Classless Elements",
+        title: "Elements",
         href: "/docs/styling/elements",
-        summary: "Write semantic HTML tags and Spin custom elements — <button>, <card>, <input> — and get finished controls that agree across your page. Ship only the rules your markup actually uses, adjust emphasis with variants or customize the component's own tokens in your theme, and adopt one element at a time.",
+        summary:
+          "Write semantic HTML tags and Spin custom elements — <button>, <card>, <input> — and get finished controls that agree across your page, with variants, .bare semantics, and incremental adoption.",
+      },
+      {
+        title: "Prose",
+        href: "/docs/styling/prose",
+        summary:
+          "Named type styles (type-<name>), default heading and paragraph typography, inline link/strong modifiers, and document vs. UI list rules.",
       },
     ],
   },
   {
-    id: "utilities",
+    id: "styling",
     label: "Utilities",
     items: [
       {
-        title: "Utilities & Shortcuts",
-        href: "/docs/styling/utilities",
-        summary: "Closed-scale utility classes, linter-neutral editor diagnostics, paired fills and inks, and project compositions.",
+        title: "Tailwind",
+        href: "/docs/styling/tailwind",
+        summary:
+          "Use the Tailwind utility and variant grammar you already know over a theme your project owns — with closed-vocabulary build verification, numeric measurement brackets, and automatic dark mode.",
       },
       {
-        title: "Utility Catalog",
+        title: "Layout",
+        href: "/docs/styling/space",
+        summary:
+          "Pad, gap, and size elements from your theme's spacing scale, reflow across breakpoints, pin top-layer popovers with CSS anchors, and clear control chrome with .bare.",
+      },
+      {
+        title: "Color",
+        href: "/docs/styling/color",
+        summary:
+          "Spend semantic surface, fill, border, and ink utilities once for light and dark mode, and thin any theme color with /0–/100 alpha modifiers.",
+      },
+      {
+        title: "Motion",
+        href: "/docs/styling/animation",
+        summary:
+          "Theme-governed transition durations, cubic-bezier easing curves, keyframe entrances, and automatic prefers-reduced-motion support.",
+      },
+      {
+        title: "Shortcuts",
+        href: "/docs/styling/utilities",
+        summary:
+          "Declare repeated layout arrangements in spin.vite({ shortcuts }), verify shortcut utilities at build time, and detect repeated class strings with spin lint.",
+      },
+      {
+        title: "Catalog",
         href: "/docs/styling/catalog",
-        summary: "Grammar reference for every utility rule family, the CSS declarations it emits, and the active theme token scale it reads.",
+        summary:
+          "Grammar reference for every utility rule family, the CSS declarations it emits, and the active theme token scale it reads.",
       },
     ],
   },
   {
     id: "authoring",
-    label: "Components & Machines",
+    label: "Authoring",
     items: [
       {
-        title: "HTML Components",
+        title: "Components",
         href: "/docs/authoring/components",
         summary: "HTML component compiler and framework controllers for React, Solid, Vue, and Svelte.",
       },
       {
-        title: "State Machines",
+        title: "Machines",
         href: "/docs/authoring/machines",
         summary: "Authoring headless statecharts, reactive signals, and DOM directives.",
       },
@@ -199,22 +223,17 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
     label: "Tooling",
     items: [
       {
-        title: "Lints & Diagnostics",
+        title: "Lints",
         href: "/docs/tooling/lints",
         summary: "Every spin/* lint rule, strictness dial, and autofix behavior.",
       },
       {
-        title: "Visual Check",
-        href: "/docs/tooling/check",
-        summary: "Running automated geometry, contrast, and interaction checks in a real browser.",
-      },
-      {
-        title: "CLI Reference",
+        title: "CLI",
         href: "/docs/tooling/cli",
         summary: "Complete reference for spin CLI subcommands, flags, and SpinPluginOptions.",
       },
       {
-        title: "MCP Server",
+        title: "MCP",
         href: "/docs/tooling/mcp",
         summary: "Connecting coding agents to your live Spin project over MCP.",
       },
@@ -290,7 +309,6 @@ export const LEGACY_DOCS_REDIRECTS: Readonly<Record<string, string>> = {
   "/tooling/lints": "/docs/tooling/lints",
   "/tooling/cli": "/docs/tooling/cli",
   "/tooling/mcp": "/docs/tooling/mcp",
-  "/tooling/check": "/docs/tooling/check",
 };
 
 export interface ComponentNavItem {

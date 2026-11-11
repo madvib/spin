@@ -5,8 +5,8 @@ import {
   indexTree,
   parseTokens,
   type TokenTree,
-} from "@spinjs/spin/theme";
-import { silkTheme } from "@spinjs/spin/theme/themes";
+} from "@spinjs/theme";
+import { minimalTheme } from "@spinjs/theme/themes";
 import {
   attachedStyle,
   declaredStyles,
@@ -27,7 +27,7 @@ import {
   trimStyle,
   typeTarget,
 } from "./tokens.ts";
-import { ownedStyleNames } from "@spinjs/spin/theme";
+import { ownedStyleNames } from "@spinjs/theme";
 import { ROUTE_PATHS, ROUTES } from "./routes.ts";
 import { createToken, setToken } from "./theme.ts";
 
@@ -111,7 +111,7 @@ test("tokenRowAt does not read a token under a path as the path itself", () => {
 test("every token in the reference theme links to a route that exists", () => {
   // The reference app serves the shipped default as its own theme: the
   // document is the package's, not a file anyone maintains a copy of.
-  const parsed = parseTokens(silkTheme);
+  const parsed = parseTokens(minimalTheme);
   if (!parsed.ok) {
     throw new Error(`reference theme does not parse: ${parsed.error}`);
   }
@@ -248,7 +248,7 @@ test("a type the studio has no parts for is not a composite", () => {
 });
 
 test("the ladders a composite offers are the theme's own steps", () => {
-  const parsed = parseTokens(silkTheme);
+  const parsed = parseTokens(minimalTheme);
   if (!parsed.ok) {
     throw new Error(`the shipped theme does not parse: ${parsed.error}`);
   }
@@ -320,7 +320,7 @@ function styleFixture(): string {
       },
       stat: {
         title: {
-          type: { $type: "typography", $value: "{font.style.caption-strong}" },
+          type: { $type: "typography", $value: "{font.style.caption-emphasized}" },
         },
       },
     },
@@ -352,7 +352,7 @@ function repointAlias(text: string, dotted: string, style: string): string {
 }
 
 test("styleGroups lists the owned set before the user extension, in the theme's words", () => {
-  const parsed = parseTokens(silkTheme);
+  const parsed = parseTokens(minimalTheme);
   if (!parsed.ok) {
     throw new Error(`the shipped theme does not parse: ${parsed.error}`);
   }
@@ -434,7 +434,7 @@ test("referenceTargets lists the component type groups in tree order", () => {
 test("typeTarget reads a reference row's alias style", () => {
   const tree = aliasTree(styleFixture());
   deepStrictEqual(typeTarget(tree, "button.type"), "label");
-  deepStrictEqual(typeTarget(tree, "stat.title.type"), "caption-strong");
+  deepStrictEqual(typeTarget(tree, "stat.title.type"), "caption-emphasized");
   deepStrictEqual(typeTarget(tree, "button.missing.type"), undefined);
   const plain = parseTokens({
     font: { style: { body: styleTuple("x", "1rem", "400") } },

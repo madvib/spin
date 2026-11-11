@@ -1,11 +1,13 @@
 /**
- * Lints & Verification: the six theme-aware rules, dials, and side-by-side specimens.
+ * Lints & Verification: the principles, the six theme-aware rules, dials, and side-by-side specimens.
  */
 import type { JSX } from "solid-js";
 import { For } from "solid-js";
 import { Markdown } from "../../../markdown/markdown.tsx";
 import { Code, PageHeader, Section } from "../../../ui/index.ts";
 import lintsMd from "../../../content/lints.md?raw";
+import principlesMd from "../../../content/lint-principles.md?raw";
+import { PAIRS } from "./lints.specimens.ts";
 
 function Pair(props: {
   rule: string;
@@ -25,63 +27,14 @@ function Pair(props: {
   );
 }
 
-const PAIRS: readonly {
-  rule: string;
-  bad: string;
-  good: string;
-  note: string;
-}[] = [
-  {
-    rule: "spin/closed-vocabulary",
-    bad: `<p class="type-caption p-13">Quarterly revenue</p>`,
-    good: `<p class="type-caption p-4">Quarterly revenue</p>`,
-    note:
-      "p-13 is not a declared spacing step — it emits no CSS. The fix names a declared step.",
-  },
-  {
-    rule: "spin/no-redundant-class",
-    bad: `<button type="button" class="type-label">Save changes</button>`,
-    good: `<button type="button">Save changes</button>`,
-    note:
-      "The button already reads the label style. The fix drops the redundant class.",
-  },
-  {
-    rule: "spin/prefer-theme-value",
-    bad: `<button class="bg-accent">Pay now</button>`,
-    good: `<button class="secondary">Pay now</button>`,
-    note:
-      "The button owns its background. Pick the variant or update the theme token.",
-  },
-  {
-    rule: "spin/prefer-element",
-    bad: `<span class="type-display">Revenue</span>`,
-    good: `<h1>Revenue</h1>`,
-    note:
-      "The display style belongs to exactly one element, so this is an error. A style several elements read stays a suggestion.",
-  },
-  {
-    rule: "spin/no-unpaired-ink",
-    bad: `<badge variant="primary" class="text-primary">new</badge>`,
-    good: `<badge variant="primary" class="text-on-primary">new</badge>`,
-    note:
-      "The primary fill pairs with text-on-primary. Surfaces are the exception — the default ink belongs there.",
-  },
-  {
-    rule: "spin/no-handwritten-tokens",
-    bad: `el.style.setProperty("color", "var(--color-primary)")`,
-    good: `<span class="text-primary">…</span>`,
-    note:
-      "Spend the token through a utility instead of referencing CSS custom properties by hand.",
-  },
-];
-
 export default function Lints(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Lints & Verification"
-        lede="Six theme-aware rules that run across oxlint, ESLint, and the standalone spin lint CLI, reading your project's live themes and shortcuts."
+        title="Lints"
+        lede="Six theme-aware rules that run across oxlint, ESLint, and the standalone spin lint CLI, reading your project's live brand tokens and shortcuts."
       />
+      <Markdown text={principlesMd} />
       <Markdown text={lintsMd} />
 
       <Section id="specimens" title="Flagged and fixed, side by side">

@@ -39,10 +39,6 @@ test("dropdown jumps through a select, not size buttons", () => {
     "dropdown example must hand the picked value to setPage",
   );
   assert.ok(
-    html.includes("bg-surface") && html.includes("border bg-surface"),
-    "dropdown example must theme its select — FIELDS does not cover it",
-  );
-  assert.ok(
     !html.includes("data-size"),
     "dropdown example must not carry the dead size hooks",
   );

@@ -1,6 +1,6 @@
 import { test } from "bun:test";
 import assert from "node:assert/strict";
-import { parseHTML } from "@spinjs/runtime/testing";
+import { parseHTML } from "@spinjs/components/testing";
 import { def as comboboxDef } from "@spinjs/components/combobox";
 import { EXAMPLE_ONLOAD } from "./onload.ts";
 type RubricPart = { id?: string } & Record<string, unknown>;

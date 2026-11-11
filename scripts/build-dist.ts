@@ -32,8 +32,8 @@
 import { dirname, join, relative, resolve } from "node:path";
 import { mkdir, rm, copyFile, chmod, stat, symlink, readdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { renderAuthoringSkill } from "../packages/spin/src/theme/skill/authoring.ts";
-import { renderSkill } from "../packages/spin/src/theme/skill/index.ts";
+import { renderAuthoringSkill } from "../packages/spin/src/skill/authoring.ts";
+import { renderSkill } from "../packages/spin/src/skill/index.ts";
 import { importSpecifiers, reachableFiles } from "./dist-graph.ts";
 import { build } from "tsdown";
 

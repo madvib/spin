@@ -1,17 +1,22 @@
 /**
- * The server: the lifecycle, and the three features.
+ * The server: the lifecycle, and the four features.
  *
  * Thin by design: it holds the open documents, and every question is
  * asked of the core the linters and the CLI read. `didOpen` and
  * `didChange` lint the staged text and push the findings; hover resolves
  * the class under the cursor through the preset's own rules; completion
- * names the project vocabulary the closed-vocabulary rule enforces. The
- * answers cannot disagree with the CLI by construction — there is only
- * one core, and this is its third reader.
+ * names the project vocabulary the closed-vocabulary rule enforces; a
+ * code action is the finding's own edit, in the shape the editor
+ * applies. The answers cannot disagree with the CLI by construction —
+ * there is only one core, and this is its third reader.
  */
 
 import { z } from "zod";
+import { engineAnswers } from "@spinjs/preset";
+import type { EngineAnswers } from "@spinjs/diagnostics";
+import { readProjectThemes } from "@spinjs/diagnostics";
 import {
+  actionsFor,
   completionsAt,
   diagnosticsFor,
   hoverAt,
@@ -26,6 +31,8 @@ export interface LspState {
   readonly documents: Map<string, OpenDocument>;
   /** The root the server was started in. */
   readonly root: string;
+  /** What the style engine answers, filled once per root. */
+  answers?: EngineAnswers;
 }
 
 /** A server pointed at a project root, holding no documents. */
@@ -71,6 +78,17 @@ const AtPosition = z.object({
   position: z.object({ line: z.number(), character: z.number() }),
 }).catchall(z.unknown());
 
+const AtRange = z.object({
+  textDocument: z.object({ uri: z.string() }).catchall(z.unknown()),
+  range: z.object({
+    start: z.object({ line: z.number(), character: z.number() }),
+    end: z.object({ line: z.number(), character: z.number() }),
+  }),
+  context: z.object({
+    diagnostics: z.array(z.unknown()).optional(),
+  }).catchall(z.unknown()).optional(),
+}).catchall(z.unknown());
+
 /**
  * One message in, zero or more messages out.
  *
@@ -94,6 +112,7 @@ export async function handleMessage(
             textDocumentSync: 1,
             hoverProvider: true,
             completionProvider: { triggerCharacters: ["\"", "'", "`", " ", "-"] },
+            codeActionProvider: true,
           },
           serverInfo: { name: "spin", version: "0.1.0" },
         },
@@ -145,6 +164,7 @@ export async function handleMessage(
         held.text,
         parsed.data.position.line,
         parsed.data.position.character,
+        answersFor(state),
       );
       return [{ id: message.id, result: hovered ?? null }];
     }
@@ -159,8 +179,23 @@ export async function handleMessage(
         held.text,
         parsed.data.position.line,
         parsed.data.position.character,
+        answersFor(state),
       );
       return [{ id: message.id, result: { isIncomplete: false, items } }];
+    }
+    case "textDocument/codeAction": {
+      if (!isRequest(message)) return [];
+      const parsed = AtRange.safeParse(message.params);
+      if (!parsed.success) return [{ id: message.id, result: null }];
+      const held = state.documents.get(parsed.data.textDocument.uri);
+      if (held === undefined) return [{ id: message.id, result: null }];
+      const actions = await actionsFor(
+        parsed.data.textDocument.uri,
+        held,
+        parsed.data.range,
+        answersFor(state),
+      );
+      return [{ id: message.id, result: actions }];
     }
     case "shutdown": {
       if (!isRequest(message)) return [];
@@ -175,6 +210,14 @@ export async function handleMessage(
   }
 }
 
+/** What the style engine answers for the server's root, filled once. */
+function answersFor(state: LspState): EngineAnswers {
+  if (state.answers === undefined) {
+    state.answers = engineAnswers(Object.values(readProjectThemes(state.root)));
+  }
+  return state.answers;
+}
+
 /** The diagnostics for an open document, pushed to the editor. */
 async function diagnose(state: LspState, uri: string): Promise<LspOutgoing[]> {
   const held = state.documents.get(uri);
@@ -183,7 +226,7 @@ async function diagnose(state: LspState, uri: string): Promise<LspOutgoing[]> {
     return [{ method: "textDocument/publishDiagnostics", params: { uri, diagnostics: [] } }];
   }
   try {
-    const diagnostics = await diagnosticsFor(uri, held);
+    const diagnostics = await diagnosticsFor(uri, held, answersFor(state));
     return [{ method: "textDocument/publishDiagnostics", params: { uri, diagnostics } }];
   } catch {
     // A document the lint cannot read gets no diagnostics, not a broken

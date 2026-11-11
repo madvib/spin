@@ -1,4 +1,4 @@
-import { defaultTwin, isRecord } from "@spinjs/runtime";
+import { defaultTwin, isRecord } from "@spinjs/components/runtime";
 
 export type DatePickerState = "idle" | "focused" | "open";
 

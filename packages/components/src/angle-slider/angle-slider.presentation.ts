@@ -8,8 +8,8 @@ import {
   type ViewFor,
   sliderThumb,
   type SlotViewFor,
-} from "@spinjs/runtime";
-import type { DragDelta, DragPress } from "@spinjs/runtime/actions";
+} from "@spinjs/components/runtime";
+import type { DragDelta, DragPress } from "@spinjs/components/actions";
 import { angleSlider as angleSliderMachine } from "./angle-slider.machine.ts";
 import {
   type AngleSliderArgs,

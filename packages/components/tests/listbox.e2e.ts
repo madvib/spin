@@ -13,7 +13,6 @@ import { runComponentSuite, step } from "./harness.ts";
 const at = (id: string, part: string): string => `[id="listbox:${id}:${part}"]`;
 const FW_CONTENT = at("frameworks", "content");
 const FW_ITEM = (value: string): string => at("frameworks", `item:${value}`);
-const TOP_CONTENT = at("toppings", "content");
 const TOP_ITEM = (value: string): string => at("toppings", `item:${value}`);
 
 test("spin-listbox e2e", () =>

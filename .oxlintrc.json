@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
   "jsPlugins": [
-    "./packages/spin/src/diagnostics/index.ts"
+    "./packages/diagnostics/src/index.ts"
   ],
   "rules": {
     "spin/no-redundant-class": "error",
@@ -38,22 +38,34 @@
     },
     {
       "files": [
-        "packages/spin/src/theme/**/*.ts"
+        "packages/theme/src/**/*.ts"
       ],
       "rules": {
-        "no-restricted-imports": [
+        "eslint/no-restricted-imports": [
           "error",
           {
             "patterns": [
               {
                 "group": [
-                  "@spinjs/spin/preset",
-                  "@spinjs/spin/diagnostics",
-                  "@spinjs/spin/api",
-                  "@spinjs/spin/animation"
+                  "@spinjs/spin*",
+                  "@spinjs/components*"
                 ],
-                "message": "theme is the value layer: it knows nothing of components, utilities, or transport"
-              },
+                "message": "theme is the value layer: zero workspace dependencies"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "packages/theme/src/**/*.ts"
+      ],
+      "rules": {
+        "eslint/no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
               {
                 "group": [
                   "node:*",
@@ -68,26 +80,90 @@
     },
     {
       "files": [
-        "packages/spin/src/preset/rules/primitives/**/*.ts"
+        "packages/spin/src/compiler/**/*.ts"
       ],
       "rules": {
-        "no-restricted-imports": [
+        "eslint/no-restricted-imports": [
           "error",
           {
             "patterns": [
               {
                 "group": [
-                  "@spinjs/spin/preset"
+                  "**/plugin/**",
+                  "**/diagnostics/**",
+                  "**/api/**",
+                  "**/project/**",
+                  "**/lsp/**",
+                  "**/mcp/**"
                 ],
-                "message": "the element rules live in the preset: importing the package they are part of makes a cycle"
+                "message": "the preset renders downward only: theme in, CSS out, no sibling areas"
               },
               {
                 "group": [
-                  "@spinjs/spin/diagnostics",
-                  "@spinjs/spin/api",
-                  "@spinjs/spin/mcp"
+                  "@spinjs/components*"
                 ],
-                "message": "components spend tokens; they do not know what reads them"
+                "message": "the preset never touches the client: tokens and rules only"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "packages/diagnostics/src/**/*.ts"
+      ],
+      "rules": {
+        "eslint/no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "**/api/**"
+                ],
+                "message": "diagnostics never calls the API client: findings flow up, the client lives above"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "packages/spin/src/project/**/*.ts"
+      ],
+      "rules": {
+        "eslint/no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "**/plugin/**"
+                ],
+                "message": "project owns the filesystem: the bundler reads from it, never the reverse"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "packages/components/src/**/*.ts"
+      ],
+      "rules": {
+        "eslint/no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@spinjs/spin*",
+                  "@spinjs/theme*"
+                ],
+                "message": "the client is independent: no spin, no theme"
               }
             ]
           }
@@ -99,7 +175,7 @@
         "packages/spin/src/animation/**/*.ts"
       ],
       "rules": {
-        "no-restricted-imports": [
+        "eslint/no-restricted-imports": [
           "error",
           {
             "patterns": [
@@ -128,12 +204,12 @@
         "**/*.action.ts"
       ],
       "rules": {
-        "no-restricted-imports": [
+        "eslint/no-restricted-imports": [
           "error",
           {
             "paths": [
               {
-                "name": "@spinjs/runtime",
+                "name": "@spinjs/components/runtime",
                 "importNames": [
                   "signal",
                   "computed",
@@ -164,11 +240,20 @@
           }
         ]
       }
+    },
+    {
+      "files": [
+        "**/*.test.ts"
+      ],
+      "rules": {
+        "eslint/no-restricted-imports": "off"
+      }
     }
   ],
   "ignorePatterns": [
     "node_modules",
     "**/dist",
+    "**/public",
     ".omo",
     "**/schema.json"
   ]

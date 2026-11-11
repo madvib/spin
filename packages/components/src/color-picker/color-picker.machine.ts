@@ -4,7 +4,7 @@ import {
   createMachine,
   type Machine,
   type MachineSpec,
-} from "@spinjs/runtime/fsm";
+} from "@spinjs/components/fsm";
 import type {
   ColorFormat,
   ColorPickerArgs,

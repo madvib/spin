@@ -13,7 +13,7 @@
     "allowImportingTsExtensions": true,
     "types": ["bun-types"],
     "paths": {
-      "@spinjs/spin/theme": ["../../packages/spin/src/theme/index.ts"]
+      "@spinjs/theme": ["../../packages/theme/src/index.ts"]
     }
   },
   "include": ["."],

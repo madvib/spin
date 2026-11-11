@@ -94,6 +94,17 @@ export async function listProjectThemes(): Promise<StudioTheme[]> {
   }));
 }
 
+/** A facet the project holds: a name and the axis it files under. */
+export interface StudioFacet {
+  readonly name: string;
+  readonly kind: "palette" | "spacing";
+}
+
+/** Every facet in the project's themes directory, flat and brand-dir alike. */
+export async function listFacets(): Promise<StudioFacet[]> {
+  return await (await spinClient()).project.themes.facets({});
+}
+
 /** What `spin/config.json` holds, and the file that holds it. */
 export interface StudioConfig {
   /** The parsed config; empty when no file is written. */
@@ -154,6 +165,37 @@ export async function loadProjectTheme(
   return read.text ?? undefined;
 }
 
+/** The brand facts the overview header names: the brand, and its design language. */
+export interface BrandFacts {
+  readonly name: string;
+  readonly designLanguage: string | undefined;
+  /** The brand's layers by relative file, for per-leaf origin. */
+  readonly layers: Record<string, unknown>;
+}
+
+/**
+ * The active theme's brand, when the theme is backed by one.
+ *
+ * A brand is a `spin/<name>/` directory with a definition; a flat theme, a
+ * verbatim map, or an extended package has none, and answers `undefined`
+ * rather than an error — the overview renders nothing for projects without
+ * brands. The design language is the brand tokens layer's `$extends`: the
+ * parent the brand names.
+ */
+export async function brandFacts(root: string, theme: string): Promise<BrandFacts | undefined> {
+  const report = await (await spinClient()).project.brand.get({ root, brand: theme });
+  if (!report.valid) return undefined;
+  const tokens = report.layers["tokens.json"];
+  const extendsOf = typeof tokens === "object" && tokens !== null
+    ? (tokens as Record<string, unknown>)["$extends"]
+    : undefined;
+  return {
+    name: report.name,
+    designLanguage: typeof extendsOf === "string" ? extendsOf : undefined,
+    layers: report.layers as Record<string, unknown>,
+  };
+}
+
 /** Duplicates a theme — a project file, or an unforked starter. The copy's name is the new theme's name. */
 export async function copyTheme(
   from: string,
@@ -161,6 +203,27 @@ export async function copyTheme(
 ): Promise<{ error: string | null }> {
   const copied = await (await spinClient()).project.themes.copy({ from, to });
   return { error: copied.error ?? null };
+}
+
+/** Renames a brand: its directory, its seating, and the name inside. Only `spin/<brand>/` directories rename. */
+export async function renameBrand(
+  root: string,
+  brand: string,
+  to: string,
+): Promise<{ error: string | null }> {
+  const renamed = await (await spinClient()).project.brand.rename({ root, brand, to });
+  return { error: renamed.error ?? null };
+}
+
+/** Writes one facet file beside the theme it composes over, shape-checked before write. */
+export async function createFacet(
+  base: string,
+  name: string,
+  kind: "palette" | "spacing",
+  tokens: Record<string, unknown>,
+): Promise<{ error: string | null }> {
+  const created = await (await spinClient()).project.themes.createFacet({ base, name, kind, tokens });
+  return { error: created.error ?? null };
 }
 
 /** Deletes a theme from disk. The caller confirms; this does not ask. */

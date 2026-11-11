@@ -11,7 +11,7 @@ import {
   optionRow,
   type SlotViewFor,
   type ViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import { datePicker as datePickerMachine } from "./date-picker.machine.ts";
 import {
   type DatePickerArgs,
@@ -105,15 +105,6 @@ type SlotLike<R> = SlotViewFor<
   DatePickerState
 >;
 
-// Scope props arrive as strings; hooks write numbers.
-const numProp = (raw: unknown): number | null => {
-  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
-  if (typeof raw === "string" && raw.trim().length > 0) {
-    const n = Number(raw);
-    return Number.isFinite(n) ? n : null;
-  }
-  return null;
-};
 
 type IdFn = (part: string, slot?: unknown) => string;
 
@@ -192,8 +183,6 @@ const cellView = (
   };
 };
 
-const textOf = (raw: unknown, fallback: string): string =>
-  typeof raw === "string" && raw.length > 0 ? raw : fallback;
 
 type FormatFn = (value: DatePickerValue, at: string) => string;
 

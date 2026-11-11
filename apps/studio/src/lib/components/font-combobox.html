@@ -4,11 +4,12 @@ import { combobox } from "@spinjs/components/combobox";
 const machine = combobox({});
 </script>
 
-<div class="relative w-full" {...machine.getRootProps()}>
-  <div class="relative" {...machine.getControlProps()}>
+<div class="relative w-full min-w-0" {...machine.getRootProps()}>
+  <div class="relative min-w-0" {...machine.getControlProps()}>
     <input
-      class="w-full pr-16 placeholder:text-muted"
+      class="w-full min-w-0 placeholder:text-muted"
       data-testid="font-combobox-input"
+      style={'font-family: "' + machine.inputValue + '", ui-sans-serif, system-ui, sans-serif'}
       {...machine.getInputProps()}
     />
     <div class="absolute inset-y-0 right-0 flex items-center gap-1 pr-1">
@@ -32,7 +33,7 @@ const machine = combobox({});
         <div class="max-h-[15rem] overflow-y-auto p-1" {...machine.getListProps()}>
           <template for={machine.getBlocks()} as={block} key={block.id}>
             <div class="py-1" {...machine.getItemGroupProps(block)}>
-              <span class="block px-2 py-1 type-caption-strong text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
+              <span class="block px-2 py-1 type-caption-emphasized text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
               <template for={machine.getRows(block)} as={row} key={row.value}>
                 <div
                   class="relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 type-body"

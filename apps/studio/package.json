@@ -7,8 +7,11 @@
     "@solidjs/meta": "^0.28.0",
     "@solidjs/router": "^1.0.0",
     "@spin/check": "workspace:*",
+    "@spinjs/components": "workspace:*",
     "@spinjs/kit": "workspace:*",
+    "@spinjs/preset": "workspace:*",
     "@spinjs/spin": "workspace:*",
+    "@spinjs/theme": "workspace:*",
     "playwright-core": "^1.63.0",
     "solid-js": "^1.9.3"
   },

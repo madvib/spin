@@ -20,7 +20,7 @@
     <template for={machine.getAcceptedRows()} as={row} key={row.value}>
       <div class="flex items-center justify-between gap-2 rounded-md border bg-surface px-3 py-2" {...machine.getItemProps(row)}>
         <span class="i-lucide-file-archive shrink-0 text-muted" aria-hidden="true"></span>
-        <span class="min-w-0 flex-1 truncate type-body-strong" {...machine.getItemNameProps(row)}>{row.value}</span>
+        <span class="min-w-0 flex-1 truncate type-body-emphasized" {...machine.getItemNameProps(row)}>{row.value}</span>
         <span class="shrink-0 type-caption text-muted tabular-nums">{machine.getItemSizeText(row)}</span>
         <button class="ghost icon s-sm" {...machine.getItemDeleteTriggerProps(row)}>
           <span class="i-lucide-x type-caption" aria-hidden="true"></span>

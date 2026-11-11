@@ -1,0 +1,5 @@
+{
+  "button": {
+    "radius": { "$type": "dimension", "$value": "{radius.md}" }
+  }
+}

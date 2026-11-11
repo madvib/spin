@@ -33,7 +33,7 @@ const machine = tabs({
    <button
     class="bare flex flex-col items-center gap-1 rounded-md px-4 py-3 type-label transition-all aria-[selected=true]:bg-surface aria-[selected=true]:shadow-sm aria-[selected=false]:text-muted"
     {...machine.getTriggerProps(row)}
-   ><span class="bare grid h-6 w-6 place-items-center rounded-full type-caption-strong aria-[selected=true]:bg-selected aria-[selected=true]:text-on-selected aria-[selected=false]:bg-surface-sunken aria-[selected=false]:text-muted" aria-hidden="true">{row.badge}</span><span>{row.label}</span></button>
+   ><span class="bare grid h-6 w-6 place-items-center rounded-full type-caption-emphasized aria-[selected=true]:bg-selected aria-[selected=true]:text-on-selected aria-[selected=false]:bg-surface-sunken aria-[selected=false]:text-muted" aria-hidden="true">{row.badge}</span><span>{row.label}</span></button>
   </template>
  </div>
  <template for={machine.items} as={row} key={row.value}>

@@ -26,7 +26,7 @@ const machine = navigationMenu({
 </script>
 
 <nav class="relative inline-flex" {...machine.getRootProps()}>
-  <ul class="row-list gap-1 rounded-full border bg-surface p-1" {...machine.getListProps()}>
+  <ul class="row-list gap-1 rounded-full border bg-surface" {...machine.getListProps()}>
     <template for={machine.items} as={row} key={row.value}>
       <li class="relative" {...machine.getItemProps(row)}>
         <a
@@ -40,8 +40,10 @@ const machine = navigationMenu({
           class="absolute left-0 top-full z-dropdown mt-2 w-64 origin-top-left rounded-lg border bg-surface-raised p-3 shadow-md transition duration-fast ease-decelerate"
           {...machine.getItemContentProps(row)}
         >
-          <p>{row.label}</p>
-          <p class="mt-1 text-muted">{row.summary}</p>
+          <div class="grid gap-1">
+           <p>{row.label}</p>
+           <p class="text-muted">{row.summary}</p>
+          </div>
         </div>
       </li>
     </template>

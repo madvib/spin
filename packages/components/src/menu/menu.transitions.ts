@@ -1,4 +1,4 @@
-import type { AssignFor } from "@spinjs/runtime/fsm";
+import type { AssignFor } from "@spinjs/components/fsm";
 import type { MenuEvents } from "./menu.events.ts";
 import type { MenuContext, MenuEntry } from "./menu.state.ts";
 

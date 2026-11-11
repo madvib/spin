@@ -14,5 +14,4 @@ export const TOOLING_SNIPPETS = {
     }
   }
 }`,
-  checkRun: `npx spin check --config visual/check.config.ts`,
 } as const;

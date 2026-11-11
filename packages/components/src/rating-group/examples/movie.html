@@ -18,7 +18,7 @@ const machine = ratingGroup({ value: "0", allowHalf: true });
   </div>
   <div class="flex flex-col gap-4 p-4">
     <div>
-      <div class="mb-2 block type-caption-strong"
+      <div class="mb-2 block type-caption-emphasized"
         {...machine.getLabelProps()}>Rate this movie</div>
       <div class="inline-flex" {...machine.getControlProps()}>
         <template for={machine.getItems()} as={row} key={row}>

@@ -4,7 +4,7 @@ import {
   defineComponent,
   type ViewFor,
   type SlotViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import { motionStage as motionStageMachine } from "./motion-stage.machine.ts";
 import type { MotionStageEvents } from "./motion-stage.events.ts";
 import type {

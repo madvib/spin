@@ -32,7 +32,7 @@ import {
   relativeLuminance,
   resolveAliases,
   validateTheme,
-} from "@spinjs/spin/theme";
+} from "@spinjs/theme";
 import { tokenValue } from "./overview.ts";
 import { declaredModes } from "./theme.ts";
 

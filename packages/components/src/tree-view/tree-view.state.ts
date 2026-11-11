@@ -1,4 +1,4 @@
-import { coerceJsonArray, defaultTwin, isRecord } from "@spinjs/runtime";
+import { coerceJsonArray, defaultTwin, isRecord } from "@spinjs/components/runtime";
 
 export interface TreeExpandedChange {
   readonly expandedValue: readonly string[];

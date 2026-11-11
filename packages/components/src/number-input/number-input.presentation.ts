@@ -3,7 +3,7 @@ import {
   type ComponentDef,
   defineComponent,
   type ViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import { numberInput as numberInputMachine } from "./number-input.machine.ts";
 import type {
   NumberInputArgs,

@@ -1,9 +1,9 @@
 /** Slider machine: idle/focus/dragging over three states. */
 
-import { createMachine, type Machine } from "@spinjs/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/components/fsm";
 import type { SliderArgs, SliderContext, SliderState } from "./slider.state.ts";
 import { initial } from "./slider.state.ts";
-import { isInteractive } from "@spinjs/runtime";
+import { isInteractive } from "@spinjs/components/runtime";
 import type { SliderEvents } from "./slider.events.ts";
 import {
   clearFocusedIndex,

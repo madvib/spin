@@ -65,7 +65,7 @@ const LISTS_SNIPPET = `<!-- Long-form article or Markdown container -->
   </p>
   <ul>
     <li>Lower health-check interval to 5 seconds</li>
-    <li>Pin canary error budget in <code>spin/default.json</code></li>
+    <li>Pin canary error budget in <code>spin/default/tokens.json</code></li>
   </ul>
 </prose>
 
@@ -80,13 +80,16 @@ const LISTS_SNIPPET = `<!-- Long-form article or Markdown container -->
 
 const LIST_PATTERNS: readonly PropEntry[] = [
   {
-    name: "Bare <ul> / <ol>",
-    badge: "reset layer",
+    name: "<ul> / <ol> with flex or grid",
+    badge: "layout lists",
     description: (
       <>
-        Reset to <code>margin: 0; padding: 0; list-style: none</code> in the
-        base stylesheet so navigation rails, menus, comboboxes, and tab bars
-        never have to strip browser bullets or indentation.
+        Adding <code>flex</code>, <code>inline-flex</code>, <code>grid</code>,
+        or <code>inline-grid</code> to a <code>&lt;ul&gt;</code> or{" "}
+        <code>&lt;ol&gt;</code> automatically resets{" "}
+        <code>list-style-type: none; padding-inline-start: 0</code> and zeroes{" "}
+        <code>&gt; li + li</code> block margin so navigation bars, pill strips,
+        and card grids align cleanly without extra classes.
       </>
     ),
   },
@@ -358,8 +361,8 @@ export default function StylingElements(): JSX.Element {
   return (
     <main class="flex min-w-0 flex-col">
       <PageHeader
-        title="Classless Elements"
-        lede="What are primitives and how do I build with them? Write semantic HTML tags and Spin custom elements — <button>, <card>, <input> — and get finished controls that agree across your page. Ship only the rules your markup actually uses, adjust emphasis with variants or customize the component's own tokens in your theme, and adopt one element at a time."
+        title="Elements"
+        lede="Write semantic HTML tags and Spin custom elements — <button>, <card>, <input> — and get finished controls that agree across your page. Ship only the rules your markup uses, adjust emphasis with variants or customize element tokens in your brand, and adopt one element at a time."
       />
 
       <Section id="tags-arrive-finished" title="Tags arrive finished">
@@ -445,67 +448,37 @@ export default function StylingElements(): JSX.Element {
 
         <p class="max-w-prose">
           Compose <code>&lt;card&gt;</code> with{" "}
-          <code>&lt;card-header&gt;</code>, <code>&lt;card-title&gt;</code>,{" "}
-          <code>&lt;card-description&gt;</code>,{" "}
-          <code>&lt;card-action&gt;</code>, <code>&lt;card-content&gt;</code>,{" "}
-          <code>&lt;card-footer&gt;</code>, and{" "}
-          <code>&lt;card-figure&gt;</code> when a surface needs structured
+          <code>&lt;card-header&gt;</code>, <code>&lt;card-content&gt;</code>,
+          and <code>&lt;card-footer&gt;</code> when a surface needs structured
           regions, or wrap an <code>&lt;input&gt;</code> and an inline icon
           inside <code>&lt;field&gt;</code> so the outer box carries the single
-          border and focus ring instead of drawing a box inside a box. Every
-          primitive tag is registered in <code>src/spin-components.d.ts</code>{" "}
-          when your bundler runs <code>spin.vite()</code>, so TypeScript and
-          JSX autocomplete <code>&lt;card&gt;</code>,{" "}
-          <code>&lt;field&gt;</code>, <code>&lt;badge&gt;</code>, and{" "}
-          <code>&lt;alert&gt;</code> alongside native HTML elements (browse all
-          28 primitives in the{" "}
-          <A href="/components?kind=elements">Components catalog</A>).
+          border and focus ring. Every primitive tag is registered in{" "}
+          <code>src/spin-components.d.ts</code> when your bundler runs{" "}
+          <code>spin.vite()</code>, giving TypeScript and JSX autocomplete for
+          all 28 primitives in the{" "}
+          <A href="/components?kind=elements">Components catalog</A>.
         </p>
       </Section>
 
       <Section id="atomic-css" title="Atomic CSS: you ship what you use">
         <p class="max-w-prose">
-          Use <code>&lt;card&gt;</code> on a page without{" "}
-          <code>&lt;card-footer&gt;</code> or <code>&lt;card-figure&gt;</code>{" "}
-          and your stylesheet emits <code>326 B</code> minified (
-          <code>200 B</code> gzipped) for <code>&lt;card&gt;</code> alone —
-          unused child tags and variants emit zero bytes because each primitive
-          tag, child part, and variant class is an independent atomic rule
-          generated on demand by UnoCSS. Across the 3-control slice above (
-          <code>&lt;button class=&quot;primary&quot;&gt;</code>,{" "}
-          <code>&lt;card&gt;</code> with <code>&lt;card-header&gt;</code>,{" "}
-          <code>&lt;card-title&gt;</code>, and{" "}
-          <code>&lt;card-content&gt;</code>, and <code>&lt;input&gt;</code>)
-          and across the 22 components shared by both libraries (
-          <code>alert</code>, <code>badge</code>, <code>breadcrumbs</code>,{" "}
-          <code>button</code>, <code>card</code>, <code>checkbox</code>,{" "}
-          <code>details</code>/<code>collapse</code>, <code>dialog</code>/
-          <code>modal</code>, <code>field</code>/<code>input</code>+
-          <code>textarea</code>+<code>select</code>, <code>fieldset</code>,{" "}
-          <code>hr</code>/<code>divider</code>, <code>join</code>,{" "}
-          <code>kbd</code>, <code>label</code>, <code>progress</code>,{" "}
-          <code>radio</code>, <code>range</code>, <code>skeleton</code>,{" "}
-          <code>stat</code>, <code>switch</code>/<code>toggle</code>,{" "}
-          <code>table</code>, and <code>tooltip</code>), compiling equivalent
-          markup against <code>@spinjs/spin</code> (
-          <code>starterThemes.spin</code>) versus daisyUI <code>5.7.50</code>{" "}
-          on <code>@tailwindcss/node</code> <code>4.3.2</code> measures as
-          follows (on an empty page with zero components, Spin&apos;s reset,
-          light/dark token variables, and base document typography start at{" "}
-          <code>14.47 kB</code> minified / <code>2.55 kB</code> gzipped versus
-          daisyUI&apos;s <code>10.56 kB</code> minified / <code>2.76 kB</code>{" "}
-          gzipped):
+          Each primitive tag, child slot, and variant class is an independent
+          atomic rule generated on demand by UnoCSS. Using{" "}
+          <code>&lt;card&gt;</code> on a page without{" "}
+          <code>&lt;card-footer&gt;</code> emits only the <code>326 B</code>{" "}
+          rule for <code>&lt;card&gt;</code> — unused parts and variants emit
+          zero bytes:
         </p>
 
         <div class="my-2 overflow-x-auto rounded-lg border bg-surface">
-          <table>
+          <table class="wrap">
             <thead>
               <tr>
                 <th>Workload</th>
-                <th>Spin (rules only)</th>
-                <th>daisyUI 5.7.50 (rules only)</th>
-                <th>Spin (full sheet)</th>
-                <th>daisyUI 5.7.50 (full sheet)</th>
+                <th>Spin (rules)</th>
+                <th>daisyUI (rules)</th>
+                <th>Spin (total)</th>
+                <th>daisyUI (total)</th>
               </tr>
             </thead>
             <tbody>
@@ -620,33 +593,23 @@ export default function StylingElements(): JSX.Element {
         </div>
 
         <p class="max-w-prose">
-          Reach for a variant when one button on a screen plays a different
-          role; reach for component tokens in{" "}
-          <code>spin/&lt;brand&gt;/tokens.json</code> (<code>button.radius</code>,{" "}
-          <code>button.shadow</code>, <code>card.radius</code>,{" "}
-          <code>card.padding</code>, <code>field.radius</code>) when you want
-          to change what <em>your</em> button, card, or field looks like
-          everywhere (see{" "}
-          <A href="/docs/themes/customization#elements">Theme Customization</A>{" "}
-          and{" "}
-          <A href="/docs/themes/reference#elements">
-            Per-Element Token Overrides
-          </A>
-          ). Every UI surface in Spin climbs one three-step staircase so no
-          layer pretends the others don&apos;t exist: your{" "}
-          <strong>theme</strong> (<code>spin/&lt;brand&gt;/</code>) sets the palette,
-          scales, and per-element tokens; <strong>primitives</strong> (
-          <code>&lt;button&gt;</code>, <code>&lt;card&gt;</code>,{" "}
-          <code>&lt;input&gt;</code>, <code>&lt;field&gt;</code>) turn single
-          HTML and custom tags into finished controls for static and native
-          interactions; and when a widget needs multi-part state orchestration,
-          keyboard navigation, and roving focus — a combobox, select, tabs,
-          dialog, or menu — you <strong>vendor a state-machine component</strong>{" "}
-          into <code>src/lib/components/</code> with{" "}
+          Reach for a variant class (<code>.primary</code>,{" "}
+          <code>.secondary</code>, <code>.ghost</code>) when one button on a
+          screen plays a different role. Edit component tokens in{" "}
+          <code>spin/&lt;brand&gt;/primitives/*.json</code> (such as{" "}
+          <code>button.radius</code> or <code>card.padding</code>) when you
+          want to change how that element looks everywhere in your app (see{" "}
+          <A href="/docs/themes/customization#layers">Layers</A> and{" "}
+          <A href="/docs/themes/reference#elements">Reference</A>).
+        </p>
+        <p class="max-w-prose">
+          When a widget needs multi-part state orchestration, keyboard
+          navigation, and roving focus — a combobox, select, tabs, dialog, or
+          menu — vendor a statechart machine into{" "}
+          <code>src/lib/components/</code> with{" "}
           <code>npx spin component copy &lt;name&gt; &lt;example&gt;</code> so
-          you own its markup the same way shadcn/ui vendors templates while the
-          theme and primitives still style every part inside it (see the{" "}
-          <A href="/components">Components catalog</A>).
+          you own its markup while your brand and primitives style every part
+          inside it (see the <A href="/components">Components catalog</A>).
         </p>
       </Section>
 
@@ -682,13 +645,12 @@ export default function StylingElements(): JSX.Element {
 
       <Section id="lists" title="Lists">
         <p class="max-w-prose">
-          Most <code>&lt;ul&gt;</code> and <code>&lt;ol&gt;</code> elements in
-          an application are UI chrome (menus, nav rails, steppers, combobox
-          options), not bulleted prose. Spin resets bare lists to{" "}
-          <code>list-style: none; margin: 0; padding: 0</code> by default,
-          restores markers inside <code>&lt;prose&gt;</code>, and ships{" "}
-          <code>row-list</code> and <code>flow-list</code> for structured UI
-          lists:
+          Bare <code>&lt;ul&gt;</code> and <code>&lt;ol&gt;</code> elements
+          render as document lists with theme-governed markers and{" "}
+          <code>li + li</code> rhythm, while placing <code>flex</code>,{" "}
+          <code>grid</code>, <code>row-list</code>, or <code>flow-list</code>{" "}
+          on a list turns it into a clean UI container with markers and{" "}
+          <code>li + li</code> offsets cleared automatically:
         </p>
         <PropList items={LIST_PATTERNS} />
         <Code

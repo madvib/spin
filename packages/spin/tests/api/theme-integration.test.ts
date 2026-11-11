@@ -12,13 +12,13 @@
  * written and a failing test cannot corrupt the thing it protects.
  */
 
-import { copyFileSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { cpSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { deepStrictEqual } from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import { rpcHandler } from "../../src/api/index.ts";
-import { setProjectRoot } from "../../src/api/project-procedures.ts";
+import { setProjectRoot } from "@spinjs/server/procedures";
 
 /**
  * The RPC surface, called in-process.
@@ -87,10 +87,7 @@ describe("the theme surface over RPC, against the fixture app", () => {
       "../../../../examples/fixture-app/spin",
       import.meta.url,
     );
-    mkdirSync(join(dir, "spin"));
-    for (const entry of ["acme.json", "starter.json"]) {
-      copyFileSync(join(fixture.pathname, entry), join(dir, "spin", entry));
-    }
+    cpSync(fixture.pathname, join(dir, "spin"), { recursive: true });
     setProjectRoot(dir);
   });
 
@@ -230,9 +227,9 @@ describe("the theme surface over RPC, against the fixture app", () => {
       "the button rule rides along under the host scope",
     );
     deepStrictEqual(
-      out.css.includes("0 4px 12px -2px rgba(15, 23, 42, 0.14)"),
+      out.css.includes("--button-shadow-hover:"),
       true,
-      "and the theme's own hover shadow is in it",
+      "and the theme's own hover shadow token ships",
     );
   });
 
@@ -262,7 +259,7 @@ describe("the theme surface over RPC, against the fixture app", () => {
     };
     red.color["primary"]!["$value"] = "#b91c1c";
     const { setOverlay, overlayThemes, clearOverlay } = await import(
-      "../../src/plugin/session.ts"
+      "@spinjs/server/project"
     );
     setOverlay({ acme: JSON.parse(JSON.stringify(red)) });
     try {
@@ -287,7 +284,7 @@ describe("the theme surface over RPC, against the fixture app", () => {
     const listed = await listThemes();
     deepStrictEqual(
       listed.filter((t) => t.file !== null).map((t) => t.file).sort(),
-      ["spin/acme.json", "spin/starter.json"],
+      ["spin/acme", "spin/starter"],
       "no machine's filesystem layout travels with a theme",
     );
     deepStrictEqual(

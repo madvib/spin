@@ -1,6 +1,6 @@
 {
   "name": "@spinjs/components",
-  "version": "0.1.0-preview.5",
+  "version": "0.1.0-preview.6",
   "description": "The machine components: headless statecharts with typed bridges, framework adapters, and vendored examples.",
   "type": "module",
   "license": "MIT",
@@ -16,6 +16,10 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./compiler": {
+      "types": "./src/compiler/transform.ts",
+      "default": "./src/compiler/transform.ts"
     },
     "./angle-slider": {
       "types": "./src/angle-slider/angle-slider.presentation.ts",
@@ -184,6 +188,34 @@
     "./theme-picker": {
       "types": "./src/theme-picker/theme-picker.presentation.ts",
       "default": "./src/theme-picker/theme-picker.presentation.ts"
+    },
+    "./runtime": {
+      "types": "./src/runtime/index.ts",
+      "default": "./src/runtime/index.ts"
+    },
+    "./testing": {
+      "types": "./src/runtime/testing.ts",
+      "default": "./src/runtime/testing.ts"
+    },
+    "./fsm": {
+      "types": "./src/runtime/machine/fsm/machine.ts",
+      "default": "./src/runtime/machine/fsm/machine.ts"
+    },
+    "./load": {
+      "types": "./src/runtime/directives/load.ts",
+      "default": "./src/runtime/directives/load.ts"
+    },
+    "./props": {
+      "types": "./src/runtime/props.ts",
+      "default": "./src/runtime/props.ts"
+    },
+    "./actions": {
+      "types": "./src/runtime/actions/index.ts",
+      "default": "./src/runtime/actions/index.ts"
+    },
+    "./examples": {
+      "types": "./src/examples.ts",
+      "default": "./src/examples.ts"
     }
   },
   "files": [
@@ -192,7 +224,8 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@spinjs/runtime": "workspace:*",
+    "alien-signals": "^3.2.1",
+    "linkedom": "^0.18.0",
     "perfect-freehand": "^1.2.3"
   },
   "peerDependencies": {
@@ -210,6 +243,10 @@
       ".": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
+      },
+      "./compiler": {
+        "types": "./dist/compiler/transform.d.ts",
+        "default": "./dist/compiler/transform.js"
       },
       "./angle-slider": {
         "types": "./dist/angle-slider/angle-slider.presentation.d.ts",
@@ -378,6 +415,34 @@
       "./theme-picker": {
         "types": "./dist/theme-picker/theme-picker.presentation.d.ts",
         "default": "./dist/theme-picker/theme-picker.presentation.js"
+      },
+      "./runtime": {
+        "types": "./dist/runtime/index.d.ts",
+        "default": "./dist/runtime/index.js"
+      },
+      "./testing": {
+        "types": "./dist/runtime/testing.d.ts",
+        "default": "./dist/runtime/testing.js"
+      },
+      "./fsm": {
+        "types": "./dist/runtime/machine/fsm/machine.d.ts",
+        "default": "./dist/runtime/machine/fsm/machine.js"
+      },
+      "./load": {
+        "types": "./dist/runtime/directives/load.d.ts",
+        "default": "./dist/runtime/directives/load.js"
+      },
+      "./props": {
+        "types": "./dist/runtime/props.d.ts",
+        "default": "./dist/runtime/props.js"
+      },
+      "./actions": {
+        "types": "./dist/runtime/actions/index.d.ts",
+        "default": "./dist/runtime/actions/index.js"
+      },
+      "./examples": {
+        "types": "./dist/examples.d.ts",
+        "default": "./dist/examples.js"
       }
     }
   },

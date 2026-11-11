@@ -8,7 +8,7 @@ import {
   liveRegion,
   type ViewFor,
   type SlotViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import {
   type TagsArgs,
   type TagsContext,

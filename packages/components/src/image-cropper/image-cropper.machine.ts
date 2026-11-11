@@ -1,4 +1,4 @@
-import { createMachine, type Machine } from "@spinjs/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/components/fsm";
 import type {
   CropHandle,
   ImageCropperArgs,
@@ -9,7 +9,6 @@ import { initial } from "./image-cropper.state.ts";
 import { limitsOf, ratioOf } from "./image-cropper.state.ts";
 import { defaultCropPatch } from "./image-cropper.state.ts";
 import type { ImageCropperEvents } from "./image-cropper.events.ts";
-import { isRecord } from "@spinjs/runtime";
 import { flipOf, rotationOf, zoomOf } from "./image-cropper.state.ts";
 import {
   clearOffsetStart,
@@ -19,14 +18,12 @@ import {
 } from "./image-cropper.transitions.ts";
 import {
   centerRect,
-  clampPoint,
   computeDefaultCropDimensions,
   computeMoveCrop,
   computeResizeCrop,
   isVisibleRect,
 } from "./crop-geometry.ts";
 
-const ZERO = { x: 0, y: 0, width: 0, height: 0 };
 
 export function imageCropper(
   args: ImageCropperArgs = {},

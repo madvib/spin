@@ -1,15 +1,23 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { BASE_ROLES, parseTokens, scaffoldTheme, setToken, treeToJson } from "../../src/theme/index.ts";
-import { scaffold } from "../../src/compiler/index.ts";
+import {
+  parseTokens,
+  setToken,
+  treeToJson,
+} from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 import {
   createSpinClient,
   componentsContract,
   componentsRouter,
   findingsContract,
   findingsRouter,
+  fontsContract,
+  fontsRouter,
   iconsContract,
   iconsRouter,
+  overlayContract,
+  overlayRouter,
   presetContract,
   presetRouter,
   previewContract,
@@ -38,137 +46,83 @@ function serve() {
   };
 }
 /**
- * Every procedure a module declares, listed out.
+ * The module routers, beside their contracts.
  *
- * An earlier version of this walked the contract and router objects looking
- * for procedures. That reached into oRPC's internals — its builders are
- * self-referential and carry enumerable internals under `~orpc` — so it broke
- * on ordinary structure questions and would break again on an oRPC upgrade.
- * Listing the paths says the same thing and cannot drift into the library.
+ * Modules, not procedures: a new procedure inside a module is picked up
+ * by the walk, so growing the API changes implementation only. A new
+ * MODULE is registered here — that is the one list this file keeps.
  */
-const DECLARED: Array<[string, readonly string[], unknown, unknown]> = [
-  [
-    "theme",
-    [
-      "theme.analyze",
-      "theme.css",
-      "theme.scaffold",
-      "theme.tokens.remove",
-      "theme.tokens.rename",
-      "theme.tokens.set",
-      "theme.types",
-      "themes.css",
-    ],
-    themeContract,
-    themeRouter,
-  ],
-  [
-    "preview",
-    ["preview.css"],
-    previewContract,
-    previewRouter,
-  ],
-  [
-    "project",
-    [
-      "project.detect",
-      "project.current",
-      "project.init",
-      "project.themes.list",
-      "project.themes.read",
-      "project.themes.write",
-      "project.themes.remove",
-      "project.themes.copy",
-    ],
-    projectContract,
-    projectRouter,
-  ],
-  [
-    "components",
-    [
-      "components.contract",
-      "components.copy",
-      "components.examples",
-      "components.list",
-      "components.reads",
-      "components.tokens",
-    ],
-    componentsContract,
-    componentsRouter,
-  ],
-  [
-    "preset",
-    ["preset.catalog", "preset.organization"],
-    presetContract,
-    presetRouter,
-  ],
-  [
-    "icons",
-    [
-      "icons.catalog",
-      "icons.body",
-      "icons.collections",
-      "icons.saved.list",
-      "icons.saved.read",
-      "icons.saved.save",
-      "icons.saved.remove",
-    ],
-    iconsContract,
-    iconsRouter,
-  ],
-  [
-    "findings",
-    [
-      "findings.list",
-      "findings.fix",
-      "findings.corpus",
-      "findings.order",
-      "findings.shortcut",
-    ],
-    findingsContract,
-    findingsRouter,
-  ],
-];
+const MODULES: Readonly<Record<string, { contract: unknown; router: unknown }>> = {
+  theme: { contract: themeContract, router: themeRouter },
+  preview: { contract: previewContract, router: previewRouter },
+  project: { contract: projectContract, router: projectRouter },
+  components: { contract: componentsContract, router: componentsRouter },
+  preset: { contract: presetContract, router: presetRouter },
+  icons: { contract: iconsContract, router: iconsRouter },
+  findings: { contract: findingsContract, router: findingsRouter },
+  fonts: { contract: fontsContract, router: fontsRouter },
+  overlay: { contract: overlayContract, router: overlayRouter },
+};
 
-/** Follow a dotted path into a nested structure. */
-function at(root: unknown, path: string): unknown {
-  return path.split(".").reduce<unknown>(
-    (node, key) => (node as Record<string, unknown>)?.[key],
-    root,
-  );
+/**
+ * The procedure paths a router or contract object carries.
+ *
+ * Groups are plain nested objects; procedures are the leaves oRPC built,
+ * marked `~orpc`. Enumerable internals under `~` are skipped, and the
+ * visited set guards the builders' self-references.
+ */
+function proceduresOf(root: unknown): string[] {
+  const out: string[] = [];
+  const seen = new Set<object>();
+  const walk = (node: unknown, prefix: string): void => {
+    if (typeof node !== "object" || node === null || seen.has(node)) return;
+    seen.add(node);
+    for (const [key, value] of Object.entries(node)) {
+      if (key.startsWith("~")) continue;
+      const path = prefix === "" ? key : `${prefix}.${key}`;
+      if (
+        typeof value === "object" && value !== null && !("~orpc" in value)
+      ) {
+        walk(value, path);
+      } else if (typeof value === "object" && value !== null) {
+        out.push(path);
+      }
+    }
+  };
+  walk(root, "");
+  return out.toSorted();
 }
 
-test("every declared procedure has a contract and a handler", () => {
-  // Three packages ship procedures. Only one of them was covered by an
-  // agreement check, which is how a contract could grow a procedure nothing
-  // implements without the suite noticing.
-  for (const [name, paths, contract, router] of DECLARED) {
-    assert(paths.length > 0, `${name} declares no procedures`);
-    for (const path of paths) {
-      assert(
-        at(contract, path) !== undefined,
-        `${name}: contract missing ${path}`,
-      );
-      assert(at(router, path) !== undefined, `${name}: router missing ${path}`);
-    }
+/** Every procedure the daemon serves, derived from the live router. */
+function declaredProcedures(): Set<string> {
+  return new Set(proceduresOf(router));
+}
+
+test("every module's contract and router agree on its procedures", () => {
+  // The agreement, not a mirror of it: both sides are walked live, so a
+  // contract that grows a procedure nothing implements fails here — and
+  // growing both together passes without touching this file.
+  for (const [name, { contract, router: moduleRouter }] of Object.entries(MODULES)) {
+    const contracted = proceduresOf(contract);
+    const routed = proceduresOf(moduleRouter);
+    assert(contracted.length > 0, `${name} declares no procedures`);
+    deepStrictEqual(routed, contracted, `${name}: router and contract differ`);
   }
 });
 
-test("the router carries nothing the contract does not declare", () => {
-  for (const [name, paths, , router] of DECLARED) {
-    for (const group of Object.keys(router as Record<string, unknown>)) {
-      assert(
-        paths.some((path) => path.split(".")[0] === group),
-        `${name}: router exposes "${group}", which no contract declares`,
-      );
+test("the composed router carries every module's procedures", () => {
+  const composed = declaredProcedures();
+  for (const [name, { router: moduleRouter }] of Object.entries(MODULES)) {
+    for (const path of proceduresOf(moduleRouter)) {
+      assert(composed.has(path), `${name}: composed router drops ${path}`);
     }
   }
-});
+ });
 
 test("typed client talks to the router over serve", async () => {
   const { server, client } = serve();
   try {
-    const text = treeToJson(scaffold());
+    const text = JSON.stringify(starterThemes.minimal, null, 2);
 
     const analysis = await client.theme.analyze({ text });
     deepStrictEqual(analysis.error, null);
@@ -203,11 +157,8 @@ test("typed client talks to the router over serve", async () => {
     });
     assert(refused.error !== null, "expected a group refusal");
 
-    const scaffolded = await client.theme.scaffold({});
-    assert(
-      parseTokens(scaffolded.text).ok,
-      "scaffold text must parse",
-    );
+    const copied = parseTokens(JSON.stringify(starterThemes.minimal, null, 2));
+    assert(copied.ok, "starter text must parse");
   } finally {
     await server.stop();
   }
@@ -229,8 +180,9 @@ test("the catalog reflects the theme it is given", async () => {
     // Roles without scales, so a scale-driven family has nothing to
     // resolve and reports empty. That is the contract: the catalog
     // describes the theme in hand, not the vocabulary in general.
-    const bareTree = scaffoldTheme(BASE_ROLES.map((role) => role.path));
-    const bare = await client.preset.catalog({ text: treeToJson(bareTree) });
+    const rolesOnly = structuredClone(starterThemes.minimal) as Record<string, unknown>;
+    delete rolesOnly["spacing"];
+    const bare = await client.preset.catalog({ text: JSON.stringify(rolesOnly) });
     deepStrictEqual(bare.error, null);
     const bareIds = bare.sections.map((section) => section.id);
     assert(
@@ -246,7 +198,7 @@ test("the catalog reflects the theme it is given", async () => {
 
     // One spacing step is all it takes for the family to populate. The
     // catalog reads the document it is handed, so the step has to be in it.
-    const base = JSON.parse(treeToJson(bareTree)) as Record<string, unknown>;
+    const base = structuredClone(rolesOnly) as Record<string, unknown>;
     const withScale = await client.preset.catalog({
       text: JSON.stringify({
         ...base,
@@ -277,7 +229,7 @@ test("preset catalog reports unparseable input", async () => {
 test("a mode override lands in $modes and leaves the base value", async () => {
   const { server, client } = serve();
   try {
-    const text = treeToJson(scaffold());
+    const text = JSON.stringify(starterThemes.minimal, null, 2);
     const before = JSON.parse(text) as {
       color: { primary: { $value: unknown } };
     };
@@ -302,7 +254,7 @@ test("a mutation refusal carries its code over the wire", async () => {
   const { server, client } = serve();
   try {
     const refused = await client.theme.tokens.remove({
-      text: treeToJson(scaffold()),
+      text: JSON.stringify(starterThemes.minimal, null, 2),
       path: ["color", "primary"],
     });
     assert(refused.error !== null, "expected a required-token refusal");
@@ -320,8 +272,10 @@ test("analyze reports a value written for a mode the theme does not serve", asyn
     // shown, and the analyzer says so. The other direction is fine — a theme
     // that serves a mode it does not override simply renders its base values
     // there.
+    const silkParsed = parseTokens(JSON.stringify(starterThemes.minimal));
+    if (!silkParsed.ok) throw new Error(silkParsed.error);
     const moded = setToken(
-      scaffold(),
+      silkParsed.tree,
       ["color", "primary"],
       "#8db9fa",
       undefined,
@@ -348,7 +302,7 @@ test("analyze reports a value written for a mode the theme does not serve", asyn
 test("the organization lists the catalog under reader intent", async () => {
   const { server, client } = serve();
   try {
-    const text = treeToJson(scaffold());
+    const text = JSON.stringify(starterThemes.minimal, null, 2);
     const catalog = await client.preset.catalog({ text });
     const organization = await client.preset.organization({ text });
     deepStrictEqual(organization.error, null);
@@ -371,3 +325,66 @@ test("the organization lists the catalog under reader intent", async () => {
     await server.stop();
   }
 });
+
+/**
+ * Procedures no CLI or MCP surface calls, and why.
+ *
+ * Studio-called (`apps/studio/src`): `project.themes.facets`,
+ * `project.config.read`, `project.config.write`, `components.tokens`,
+ * `icons.collections`, `overlay.set`, `overlay.get` (via the injected
+ * badge script). Daemon machinery: `overlay.clear`, `project.detect`.
+ * Served API with no product caller yet: `theme.css`, `theme.types`,
+ * `themes.css`, `preset.catalog`, `components.reads` — exercised by the
+ * router tests, awaiting a surface. A new procedure lands here only with
+ * its reason — the default is exposure, not silence.
+ */
+const INTERNAL: ReadonlySet<string> = new Set([
+  "overlay.set",
+  "overlay.clear",
+  "overlay.get",
+  "project.detect",
+  "project.themes.facets",
+  "project.config.read",
+  "project.config.write",
+  "theme.css",
+  "theme.types",
+  "themes.css",
+  "preset.catalog",
+  "components.tokens",
+  "components.reads",
+  "icons.collections",
+]);
+
+/** The procedures a surface's source calls through the typed client. */
+async function calledBy(surface: URL): Promise<Set<string>> {
+  const { readFile } = await import("node:fs/promises");
+  const text = await readFile(surface, "utf8");
+  const out = new Set<string>();
+  for (const match of text.matchAll(/client\.([A-Za-z][A-Za-z0-9]*(?:\.[A-Za-z][A-Za-z0-9]*)+)\s*\(/g)) {
+    out.add(match[1] as string);
+  }
+  return out;
+}
+
+test("every procedure is claimed by a surface or disclaimed as internal", async () => {
+  // The router is the upstream; the CLI and MCP are its surfaces. A
+  // procedure neither surface calls is a migration that missed: the walk
+  // above derives the live set, and this fails when a live procedure
+  // reaches no surface. Claim it in a surface, or disclaim it in
+  // INTERNAL with the reason it stays inside.
+  const declared = declaredProcedures();
+  const cli = await calledBy(new URL("../../src/cli/main.ts", import.meta.url));
+  const mcp = await calledBy(new URL("../../src/mcp/server.ts", import.meta.url));
+  for (const path of [...declared].sort()) {
+    assert(
+      cli.has(path) || mcp.has(path) || INTERNAL.has(path),
+      `${path} is implemented but no surface calls it — claim it or disclaim it in INTERNAL`,
+    );
+  }
+  for (const path of [...INTERNAL].sort()) {
+    assert(
+      declared.has(path),
+      `${path} is disclaimed but the router no longer declares it — drop the disclaimer`,
+    );
+  }
+ });

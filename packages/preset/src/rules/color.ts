@@ -1,0 +1,115 @@
+import type { SpinRule } from "../utils/lookup.ts";
+import { named, type ThemeContext } from "../utils/lookup.ts";
+import { COLOR_KEYWORDS } from "../utils/vocabulary.ts";
+import { hasRawColor } from "../utils/color.ts";
+
+/**
+ * Colour, resolved through the theme.
+ *
+ * A keyword is colour vocabulary rather than a token: `transparent` and
+ * `currentColor` are values a stylesheet may legitimately name, and a component
+ * that must be see-through cannot express that any other way. They resolve to
+ * themselves so `bg-transparent` means exactly what it says and never becomes
+ * whatever is behind it.
+ */
+function colorOf(
+  ctx: ThemeContext | undefined,
+  name: string,
+  property: "background-color" | "border-color" | "color" | "accent-color",
+): Record<string, string> | undefined {
+  // A raw colour is a design decision, and a design decision in this system
+  // is a TOKEN: the theme's palette is where colours live, and a colour
+  // written into a class is the theme refusing to have an opinion about
+  // one. So the class is DEAD ON ARRIVAL — `bg-[#fff]` produces no CSS at
+  // all, and the ordinary vocabulary rule catches it the way it catches a
+  // typo. The refusal is on the COLOUR rather than on the bracket: a size
+  // in a colour position is not a colour either, and it resolves to
+  // nothing for the reason it always did — the theme carries no such
+  // token.
+  if (hasRawColor(name)) return undefined;
+  // An alpha suffix thins a theme color without minting one: `bg-surface/80`
+  // is the surface at 80%, mixed toward transparency. The color stays the
+  // theme's — only the strength is the caller's.
+  const slash = name.lastIndexOf("/");
+  if (slash !== -1) {
+    const base = name.slice(0, slash);
+    const pct = Number(name.slice(slash + 1));
+    if (base !== "" && Number.isFinite(pct) && pct >= 0 && pct <= 100) {
+      const path = base === "current"
+        ? "currentColor"
+        // Dynamic: base color comes from the class name.
+        : named(ctx, "color", base);
+      if (path) return { [property]: `color-mix(in srgb, ${path} ${pct}%, transparent)` };
+    }
+    return undefined;
+  }
+  // Dynamic: color name comes from the class name.
+  const path = named(ctx, "color", name);
+  if (path) return { [property]: path };
+  if ((COLOR_KEYWORDS as readonly string[]).includes(name)) {
+    return { [property]: name };
+  }
+  // The kebab spelling Tailwind authors reach for: `border-current`
+  // is `currentColor`, and `border-current/20` thins it the way any
+  // alpha suffix thins a color.
+  if (name === "current") {
+    return { [property]: "currentColor" };
+  }
+  return undefined;
+}
+
+export function colorRules(): SpinRule[] {
+  return [
+    [
+      /^bg-(.+)$/,
+      ([, name]: string[], ctx?: ThemeContext) =>
+        colorOf(ctx, name, "background-color"),
+      { autocomplete: "bg-$colors" },
+    ],
+    [
+      /^border-(.+)$/,
+      ([, name]: string[], ctx?: ThemeContext) => {
+        if (
+          name === "border" || name.startsWith("border/") ||
+          name === "border-strong" || name.startsWith("border-strong/")
+        ) return undefined;
+        const mapped = name === "strong"
+          ? "border-strong"
+          : name.startsWith("strong/") ? `border-${name}` : name;
+        return colorOf(ctx, mapped, "border-color");
+      },
+      { autocomplete: "border-$colors" },
+    ],
+    [
+      /^text-(.+)$/,
+      ([, name]: string[], ctx?: ThemeContext) => {
+        // The default ink needs no naming; a `bare` box names an explicit
+        // paired ink. The stuttered spellings (`text-text`,
+        // `text-text-muted`) are dead — the utilities are `text-muted`
+        // (`color.text-muted`) and the bare `border`/`border-strong`
+        // roles, which live under their own prefixes.
+        if (
+          name === "text" || name.startsWith("text/") ||
+          name === "text-muted" || name.startsWith("text-muted/")
+        ) return undefined;
+        const mapped = name === "muted"
+          ? "text-muted"
+          : name.startsWith("muted/") ? `text-${name}` : name;
+        // `text-lg` is a size; only a colour name reaches this branch. A theme
+        // may name a colour after the utility itself — the baseline theme's
+        // `text-muted` is `color.text-muted` — so the prefixed name is tried
+        // alongside the bare one.
+        const resolved = colorOf(ctx, mapped, "color") ??
+          colorOf(ctx, `text-${mapped}`, "color");
+        return resolved;
+      },
+      { autocomplete: "text-$colors" },
+    ],
+    [
+      /^accent-(.+)$/,
+      ([, name]: string[], ctx?: ThemeContext) =>
+        colorOf(ctx, name, "accent-color"),
+      { autocomplete: "accent-$colors" },
+    ],
+  ];
+}

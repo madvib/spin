@@ -28,7 +28,7 @@
       <div class="flex items-center justify-between gap-2 rounded-lg border bg-surface-raised p-2" {...machine.getItemProps(row)}>
         <span class="i-lucide-image shrink-0 text-primary" aria-hidden="true"></span>
         <div class="min-w-0 flex-1">
-          <span class="block truncate type-body-strong" {...machine.getItemNameProps(row)}>{row.value}</span>
+          <span class="block truncate type-body-emphasized" {...machine.getItemNameProps(row)}>{row.value}</span>
           <span class="block type-caption text-muted tabular-nums">{machine.getItemSizeText(row)}</span>
         </div>
         <button class="ghost icon s-sm" {...machine.getItemDeleteTriggerProps(row)}>

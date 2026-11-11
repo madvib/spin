@@ -68,7 +68,7 @@ export interface IconCollection {
 }
 
 /** How many results a query offers. A grid past this is a wall. */
-export const RESULT_LIMIT = 120;
+export const RESULT_LIMIT = 48;
 
 /**
  * Every glyph name the installed collections ship, fetched once.

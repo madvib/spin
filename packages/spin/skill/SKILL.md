@@ -18,7 +18,7 @@ triggers:
 A spin theme is one JSON document of design tokens. The build reads it and
 writes CSS custom properties; every utility and every element in the library
 resolves against those properties. A theme is written, not generated: the
-scaffold can give you the roles, and no tool can decide what the product should
+starter can give you the look, and no tool can decide what the product should
 look like.
 
 This file is the method. It is written to be followed.
@@ -409,6 +409,10 @@ beside a drawn checkbox is a bug the theme can prevent.
 **Lazy.** The default depth, so the switch floats above the surface while the
 checkbox beside it is drawn onto it.
 
+### tooltip
+
+**For.** The contract knows this group; nothing here says what it is for yet.
+
 ### shadow
 
 **For.** The elevation ladder. Either a ladder, or nothing.
@@ -454,26 +458,24 @@ The shape of a token:
   and then there is nothing to restate. A theme that serves dark and restates
   half of it is half a theme.
 
-Scaffold a new document with `scaffoldTheme()` from `@spinjs/spin/theme`, or fork a
-starter. A scaffold's values are valid, legible, and obviously unfinished:
-`#111111` on `#ffffff`, `system-ui`, and no shadow anywhere. Every one of them
-is a decision you still owe.
+Start a new document from a starter with `{ "$extends": "minimal" }` plus the
+tokens the project owns, or vendor a starter whole. The starter's values are
+valid, legible, and a finished look — every token they state is a decision
+the starter made, and every token the document adds is one the project owns.
 
 ## The gates
 
 Run them in this order. The first three are mechanical and they live in one
 call; the fourth is a browser; the fifth is a person.
 
-### Gate one: completeness
-
-`validateTheme(text, { required, modes })` from `@spinjs/spin/theme`. The same judge
+`validateTheme(text, { required, modes })` from `@spinjs/theme`. The same judge
 the studio's issues panel uses, so the same answer.
 
 `required` is the list of paths the document must declare. Absent, it is the
 contract's base roles — the palette, the floors that make it usable, and the
-focus ring. An app that enables more elements owes more roles, and
-`requiredRolesFor()` from `@spinjs/spin/preset` names them. `modes` is the claim about
-which modes the theme serves; absent, the document's own root `modes` says it.
+focus ring plus `elementPaths()` from `@spinjs/theme` for every element the app
+enables. `modes` is the claim about which modes the theme serves; absent, the
+document's own root `modes` says it.
 
 What the failures mean:
 
@@ -492,10 +494,10 @@ What the failures mean:
   ever see. A promise nothing keeps.
 - **group has no tokens**: a branch of the document that says nothing.
 
-And the one the validator cannot see: **a scaffold value left in place.** The
-validator says the document is valid, because a scaffold's values are valid.
-Read the document and ask of every token: did a person decide this, or did the
-scaffold decide it?
+And the one the validator cannot see: **a starter value left in place.** The
+validator says the document is valid, because a starter's values are valid.
+Read the document and ask of every token: did the project decide this, or did
+the starter decide it?
 
 ### Gate two: legibility
 
@@ -533,7 +535,7 @@ options are the ones above: `required` is the roles the app owes, `modes` is the
 claim the theme makes.
 
 ```ts
-import { themeGates } from "@spinjs/spin/theme";
+import { themeGates } from "@spinjs/theme";
 
 const report = themeGates(text);
 for (const gate of report.gates) {
@@ -563,7 +565,7 @@ Run it against the document you just wrote — a project theme, not a starter:
 ```sh
 bun -e "
 import { readFile } from 'node:fs/promises';
-import { themeGates } from '@spinjs/spin/theme';
+import { themeGates } from '@spinjs/theme';
 const text = await readFile('spin/<name>.json', 'utf8');
 const report = themeGates(text);
 console.log(JSON.stringify(report, null, 2));
@@ -628,7 +630,7 @@ What to look for, in this order.
 
 1. **Distinctness.** Could this be any other theme with different hexes? If so
    it is a default, not a theme. Cover the product's name and look again.
-2. **Completeness.** Every token decided, no scaffold value left, every declared
+2. **Completeness.** Every token decided, no starter value left unowned, every declared
    mode restated.
 3. **Legibility in every state.** Rest, hover, focus, active, disabled, in every
    mode. A fill always has an ink.

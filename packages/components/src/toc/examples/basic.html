@@ -17,11 +17,11 @@ const machine = toc({
     <h2 class="uppercase text-muted" {...machine.getTitleProps()}>
       On this page
     </h2>
-    <ul class="m-0 list-none border-s border p-0" {...machine.getListProps()}>
+    <ul class="list-none border-s border" {...machine.getListProps()}>
       <template for={machine.items} as={row} key={row.value}>
-        <li class="m-0 p-0" {...machine.getItemProps(row)}>
+        <li {...machine.getItemProps(row)}>
           <a
-            class="block border-s-2 border-transparent py-1 ps-3 text-muted no-underline transition-colors duration-fast data-[deep]:ps-6 aria-[current=location]:border-primary aria-[current=location]:text-primary"
+            class="bare block border-s-2 py-1 ps-3 transition-colors duration-fast data-[deep]:ps-6 aria-[current=location]:border-primary aria-[current=location]:text-primary"
             {...machine.getLinkProps(row)}
           >{row.label}</a>
         </li>

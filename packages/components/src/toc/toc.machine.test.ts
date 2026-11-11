@@ -1,8 +1,8 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { parseHTML } from "@spinjs/runtime/testing";
-import { signal } from "@spinjs/runtime";
-import { interpret, type Service } from "@spinjs/runtime/fsm";
+import { parseHTML } from "@spinjs/components/testing";
+import { signal } from "@spinjs/components/runtime";
+import { interpret, type Service } from "@spinjs/components/fsm";
 import { toc as tocMachine } from "./toc.machine.ts";
 import { toc as tocComponent, type TocApi } from "./toc.presentation.ts";
 import type { TocArgs, TocContext, TocItem } from "./toc.state.ts";

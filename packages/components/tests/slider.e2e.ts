@@ -7,7 +7,6 @@ import { test } from "bun:test";
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "playwright-core";
 
 /** Part ids are the machine's scheme: `slider:<element id>:<part>`. */
 const at = (id: string, part: string): string => `[id="slider:${id}:${part}"]`;
@@ -18,7 +17,6 @@ test("spin-slider e2e", () =>
   runComponentSuite(
     { port: 5252, route: "/slider", ready: CONTROL },
     async ({ page }) => {
-      const readout = page.locator("text=/volume: [\\d, ]+/").first();
 
       await step("the declared default seeds the machine", async () => {
         // The blind spot this suite had: a scope's DECLARED default never

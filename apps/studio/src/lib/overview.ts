@@ -7,8 +7,8 @@
  * that is itself a reference would read as reference text.
  */
 
-import { aliasTarget, contrastRatio, themeModes, valuesInMode } from "@spinjs/spin/theme";
-import type { TokenTree } from "@spinjs/spin/theme";
+import { aliasTarget, contrastRatio, themeModes, valuesInMode } from "@spinjs/theme";
+import type { TokenTree } from "@spinjs/theme";
 import { analyzeTheme, declaredModes } from "./theme.ts";
 import { groupTokens, toPx } from "./tokens.ts";
 import type { TokenRow } from "./tokens.ts";

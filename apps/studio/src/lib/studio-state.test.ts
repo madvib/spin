@@ -12,7 +12,7 @@ import { test } from "bun:test";
  */
 
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { scaffoldTheme, treeToJson } from "@spinjs/spin/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 import {
   addMode,
   analyzeTheme,
@@ -26,7 +26,7 @@ import {
 
 /** A document that declares every role a theme owes. */
 function complete(): string {
-  return treeToJson(scaffoldTheme());
+  return JSON.stringify(starterThemes.minimal, null, 2);
 }
 
 /** A document with one role taken out of it. */
@@ -79,9 +79,8 @@ test("the modes a document declares are the modes it serves", () => {
     ),
     ["light", "dark"],
   );
-  // A scaffold-shaped document (no modes key, no overrides) serves one.
+  // A document with no modes key and no overrides serves one.
   deepStrictEqual(declaredModes("{}"), ["light"]);
-  deepStrictEqual(declaredModes(treeToJson(scaffoldTheme())), ["light"]);
   // An explicit dark-only declaration stays dark-only.
   deepStrictEqual(declaredModes(JSON.stringify({ modes: ["dark"] })), ["dark"]);
   deepStrictEqual(declaredModes("{ not json"), ["light", "dark"]);

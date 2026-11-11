@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
 import { spin } from "@spinjs/spin/vite";
-import { starterThemes } from "@spinjs/spin/theme/themes";
+import { starterThemes } from "@spinjs/theme/themes";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 const here = import.meta.dirname!;
 

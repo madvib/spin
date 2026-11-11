@@ -4,8 +4,8 @@ import { existsSync, readFileSync, rmSync } from "node:fs";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { type Daemon, startDaemon } from "../../src/api/daemon.ts";
-import { createSpinClient, type SpinClient } from "../../src/api/index.ts";
+import { type Daemon, startDaemon } from "@spinjs/server/daemon";
+import { createSpinClient, type SpinClient, createSpinApp } from "../../src/api/index.ts";
 
 /**
  * The mini-shadcn path, end to end: list machines, read one's variants,
@@ -19,7 +19,7 @@ describe("daemon components over HTTP", () => {
 
   before(async () => {
     dir = mkdtempSync(join(tmpdir(), "spin-components-"));
-    daemon = await startDaemon({ root: dir, port: 0 });
+    daemon = await startDaemon({ root: dir, app: createSpinApp({ root: dir, base: "/rpc" }), port: 0 });
     client = createSpinClient(daemon.url);
   });
 

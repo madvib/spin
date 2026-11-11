@@ -1,10 +1,10 @@
 import { test } from "bun:test";
 import assert from "node:assert/strict";
-import { resolveTheme } from "../../src/theme/resolve-theme.ts";
-import { silkTheme } from "../../src/theme/themes/index.ts";
+import { resolveTheme } from "@spinjs/theme";
+import { minimalTheme } from "@spinjs/theme/themes";
 
 test("an alias resolves to the value it names", () => {
-  const light = resolveTheme(silkTheme, "light");
+  const light = resolveTheme(minimalTheme, "light");
   // `color.selected` is `{color.text}` in the starter; the map hands over the
   // resolved value, not the reference string.
   assert.deepStrictEqual(
@@ -15,8 +15,8 @@ test("an alias resolves to the value it names", () => {
 });
 
 test("a mode applies the overrides the document declares", () => {
-  const light = resolveTheme(silkTheme, "light");
-  const dark = resolveTheme(silkTheme, "dark");
+  const light = resolveTheme(minimalTheme, "light");
+  const dark = resolveTheme(minimalTheme, "dark");
   assert.notDeepStrictEqual(
     light.values["color.primary"],
     dark.values["color.primary"],

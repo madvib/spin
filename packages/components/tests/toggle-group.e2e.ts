@@ -7,7 +7,6 @@ import { test } from "bun:test";
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "playwright-core";
 
 /** Part ids are the machine's scheme: `toggle-group:<element id>:<part>`. */
 const ROOT_ID = '[id="toggle-group:format"]';

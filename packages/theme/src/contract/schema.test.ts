@@ -1,0 +1,228 @@
+import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
+import { test } from "bun:test";
+import assert, { deepStrictEqual } from "node:assert/strict";
+import { contrastRatio } from "../pipeline/color.ts";
+import { parseTokens } from "../pipeline/parse.ts";
+import { generateCss } from "../pipeline/generate.ts";
+import { validateTokens } from "../pipeline/validate.ts";
+import { themeModes } from "../modes.ts";
+import { starterThemes } from "../themes/index.ts";
+import { BASE_ROLES, requiredPaths } from "./roles.ts";
+import { spinThemeJsonSchema, validateLegibility, validateStateLegibility } from "./schema.ts";
+
+function example(name: string): unknown {
+  return JSON.parse(
+    readFileSync(
+      new URL(`../themes/${name}`, import.meta.url),
+      "utf8",
+    ),
+  );
+}
+
+test("the derived schema requires exactly the declared roles", () => {
+  // The contract is one declaration; the schema is a derivation. This is the
+  // check that makes that true rather than aspirational: every declared role is
+  // required, and nothing else is.
+  const schema = spinThemeJsonSchema() as Record<string, unknown>;
+  const required = new Set(requiredLeaves(schema));
+  deepStrictEqual(
+    [...required].sort(),
+    [...requiredPaths()].sort(),
+    "the schema requires the declaration and nothing else",
+  );
+});
+
+/** Every role the schema marks required, walking its nesting. */
+function requiredLeaves(
+  node: Record<string, unknown>,
+  prefix: string[] = [],
+): string[] {
+  const out: string[] = [];
+  const properties = (node["properties"] ?? {}) as Record<
+    string,
+    Record<string, unknown>
+  >;
+  for (const key of (node["required"] as string[] | undefined) ?? []) {
+    // A leaf requires `$value`, `$type` and `$description`. Those are token
+    // fields, not nested groups, so a `$`-prefixed key ends the walk.
+    if (key.startsWith("$")) continue;
+    const path = [...prefix, key];
+    const child = properties[key];
+    // A composite typography tuple is required as one voice but owed as five
+    // fields: descend the group branch of its `anyOf` so the walk reports
+    // the same leaf paths the required-paths declaration states.
+    const branches = child?.["anyOf"] as
+      | Record<string, unknown>[]
+      | undefined;
+    const groupBranch = branches?.find((branch) => isGroup(branch));
+    if (groupBranch !== undefined) {
+      out.push(...requiredLeaves(groupBranch, path));
+    } else if (isGroup(child)) {
+      out.push(...requiredLeaves(child, path));
+    } else {
+      out.push(path.join("."));
+    }
+  }
+  return out;
+}
+
+/**
+ * A group declares role-named children; a leaf declares only token fields.
+ * Both have a `properties` object, so the discriminator is whether any
+ * property is a role rather than a `$`-prefixed field.
+ */
+function isGroup(node: Record<string, unknown> | undefined): boolean {
+  const properties = (node?.["properties"] ?? {}) as Record<string, unknown>;
+  return Object.keys(properties).some((key) => !key.startsWith("$"));
+}
+
+test("schema.json matches the derived builder output", async () => {
+  const artifact = JSON.parse(
+    await readFile(new URL("../../schema.json", import.meta.url), "utf8"),
+  );
+  const derived = spinThemeJsonSchema();
+  deepStrictEqual(artifact, derived);
+});
+for (
+  const name of ["minimal.json", "editorial.json", "material.json", "neobrutalist.json", "neumorphic.json", "glassmorphic.json"]
+) {
+  test(`${name} meets every legibility floor`, () => {
+    const parsed = parseTokens(example(name));
+    if (!parsed.ok) throw new Error(parsed.error);
+    deepStrictEqual(validateLegibility(parsed.tree), []);
+    deepStrictEqual(validateStateLegibility(parsed.tree), []);
+  });
+}
+
+test("a theme missing a required role fails the contract", () => {
+  const parsed = parseTokens({
+    color: {
+      $type: "color",
+      primary: { $value: "#fff" },
+    },
+  });
+  if (!parsed.ok) throw new Error(parsed.error);
+  const report = validateTokens(parsed.tree, { required: requiredPaths() });
+  assert(report.issues.some((issue) => issue.path === "color.text"));
+});
+
+test("an illegible pair fails legibility", () => {
+  const parsed = parseTokens({
+    color: {
+      $type: "color",
+      text: { $value: "#777777" },
+      "text-muted": { $value: "#777777" },
+      surface: { $value: "#888888" },
+      "surface-raised": { $value: "#888888" },
+      border: { $value: "#888888" },
+      primary: { $value: "#777777" },
+      secondary: { $value: "#777777" },
+      accent: { $value: "#777777" },
+      semantic: {
+        success: { $value: "#777777" },
+        warning: { $value: "#777777" },
+        error: { $value: "#777777" },
+        info: { $value: "#777777" },
+      },
+    },
+    font: {
+      family: { $type: "fontFamily", sans: { $value: "sans" } },
+    },
+  });
+  if (!parsed.ok) throw new Error(parsed.error);
+  const issues = validateLegibility(parsed.tree);
+  assert(issues.some((issue) => issue.path === "color.text"));
+});
+
+test("every role documents itself with a starter value", () => {
+  assert(
+    BASE_ROLES.every((role) => role.doc.length > 0 && role.value.length > 0),
+    "every role documents itself with a starter value",
+  );
+});
+
+/**
+ * The custom properties one mode's stylesheet declares.
+ *
+ * The stylesheet is the consumer's view: the base block, with the dark block
+ * layered on top for the dark mode. References are left as they are — a
+ * browser resolves them, and so does the reader below.
+ */
+function varsInMode(
+  css: string,
+  mode: "light" | "dark",
+): Record<string, string> {
+  const blocks = new Map<string, Record<string, string>>();
+  for (const [, selector, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const declarations: Record<string, string> = {};
+    for (
+      const [, property, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+)/g)
+    ) {
+      declarations[property.trim()] = value.trim();
+    }
+    blocks.set(selector.trim(), declarations);
+  }
+  const base = blocks.get(":root") ?? {};
+  if (mode === "light") return { ...base };
+  return { ...base, ...blocks.get(':root[data-mode="dark"]') };
+}
+
+/** Follows a `var(--x)` chain to a literal, the way a browser resolves it. */
+function resolve(vars: Record<string, string>, name: string): string {
+  let value = vars[name];
+  if (value === undefined) throw new Error(`no value for ${name}`);
+  for (let hop = 0; hop < 10; hop++) {
+    const reference = /^var\((--[\w-]+)\)$/.exec(value);
+    if (reference === null) return value;
+    const next = vars[reference[1] as string];
+    if (next === undefined) {
+      throw new Error(`${name} points at undeclared ${reference[1]}`);
+    }
+    value = next;
+  }
+  throw new Error(`${name} did not resolve to a literal value`);
+}
+
+test("every starter declares the dead pair, and it reads in every mode", () => {
+  // A disabled control is not a dimmer control: dimming spends opacity on the
+  // whole element, so the ink dims with the fill, and a white label on a
+  // blue button lands at 1.56:1. The pair is what keeps a dead control
+  // legible — so every starter states both halves, and the ink clears the
+  // text floor on the fill in every mode the theme serves.
+  for (const [name, doc] of Object.entries(starterThemes)) {
+    const parsed = parseTokens(doc);
+    if (!parsed.ok) throw new Error(`${name}: ${parsed.error}`);
+    const modes = themeModes(doc).includes("dark")
+      ? (["light", "dark"] as const)
+      : (["light"] as const);
+    const css = generateCss(parsed.tree);
+    for (const mode of modes) {
+      const vars = varsInMode(css, mode);
+      const fill = resolve(vars, "--color-disabled");
+      const ink = resolve(vars, "--color-on-disabled");
+      const ratio = contrastRatio(ink, fill);
+      assert(
+        ratio >= 4.5,
+        `${name} (${mode}): the dead ink measures ${ratio.toFixed(2)}:1 on ` +
+          `the dead fill, text needs 4.5:1`,
+      );
+    }
+  }
+});
+
+test("the dead pair is a role the contract asks every theme for", () => {
+  // Both halves, and the floor that holds them together: the ink on the
+  // dead fill is a text pairing, so it owes the text floor.
+  const paths = requiredPaths();
+  assert(paths.includes("color.disabled"), "the dead fill is a role");
+  assert(paths.includes("color.on-disabled"), "the ink on it is a role");
+  const floor = BASE_ROLES.find((role) => role.path === "color.disabled")
+    ?.floor;
+  deepStrictEqual(floor, {
+    fg: "color.on-disabled",
+    bg: "color.disabled",
+    min: 4.5,
+  });
+});
+

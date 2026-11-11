@@ -13,7 +13,7 @@ import {
   resolveTwins,
   type SlotViewFor,
   type ViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import { carousel as carouselMachine } from "./carousel.machine.ts";
 import {
   type CarouselArgs,

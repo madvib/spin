@@ -1,6 +1,6 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { starterThemes } from "@spinjs/spin/theme/themes";
+import { starterThemes } from "@spinjs/theme/themes";
 import { createThemeState } from "./theme-state.ts";
 
 /**
@@ -19,49 +19,49 @@ function storage(name: string) {
 
 test("a stored theme the app does not hold falls back to one it does", () => {
   const state = createThemeState({
-    documents: { industrial: starterThemes.industrial, silk: starterThemes.silk },
-    initialTheme: "silk",
+    documents: { neumorphic: starterThemes.neumorphic, minimal: starterThemes.minimal },
+    initialTheme: "minimal",
     storage: storage("unknown"),
     followSystem: false,
   });
-  deepStrictEqual(state.theme(), "silk");
+  deepStrictEqual(state.theme(), "minimal");
   state.setTheme("no-such-theme");
-  deepStrictEqual(state.theme(), "silk", "an unknown name is ignored");
+  deepStrictEqual(state.theme(), "minimal", "an unknown name is ignored");
 });
 
 test("a mode the theme does not serve is clamped to one it does", () => {
   // Console's own face is dark and it serves no light rendering; a reader
   // arriving from a light theme must not be shown a mode it does not have.
-  const darkOnly = { ...starterThemes.industrial, modes: ["dark"] };
+  const darkOnly = { ...starterThemes.neumorphic, modes: ["dark"] };
   const state = createThemeState({
-    documents: { industrial: darkOnly },
-    initialTheme: "industrial",
+    documents: { neumorphic: darkOnly },
+    initialTheme: "neumorphic",
     initialMode: "light",
     storage: storage("clamp"),
     followSystem: false,
   });
-  deepStrictEqual(state.theme(), "industrial");
+  deepStrictEqual(state.theme(), "neumorphic");
   deepStrictEqual(state.modes(), ["dark"]);
   deepStrictEqual(state.mode(), "dark");
 });
 
 test("the system request resolves to the platform's mode when served", () => {
   const state = createThemeState({
-    documents: { silk: starterThemes.silk },
-    initialTheme: "silk",
+    documents: { minimal: starterThemes.minimal },
+    initialTheme: "minimal",
     initialMode: "system",
     storage: storage("system"),
     followSystem: false,
   });
   // `followSystem` off still resolves the request against the platform's
-  // current preference; silk serves both, so the answer is one of them.
+  // current preference; minimal serves both, so the answer is one of them.
   deepStrictEqual(["light", "dark"].includes(state.mode()), true);
 });
 
 test("a two-mode theme keeps the mode the reader asked for", () => {
   const state = createThemeState({
-    documents: { silk: starterThemes.silk },
-    initialTheme: "silk",
+    documents: { minimal: starterThemes.minimal },
+    initialTheme: "minimal",
     initialMode: "dark",
     storage: storage("two-mode"),
     followSystem: false,

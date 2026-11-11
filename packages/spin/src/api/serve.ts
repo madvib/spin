@@ -7,7 +7,8 @@
  * consumer on another machine. Run it, point a client at it, stop it.
  */
 
-import { startDaemon } from "./daemon.ts";
+import { createSpinApp } from "./index.ts";
+import { startDaemon } from "@spinjs/server/daemon";
 
 /**
  * `--port 0` asks the OS for a free port and prints what it got: the one
@@ -25,6 +26,7 @@ const port = portFlag === -1 ? 7463 : Number(process.argv[portFlag + 1]);
 const hostFlag = process.argv.indexOf("--host");
 const daemon = await startDaemon({
   root,
+  app: createSpinApp({ root, base: "/rpc" }),
   port,
   ...(hostFlag === -1 ? {} : { hostname: process.argv[hostFlag + 1] as string }),
 });

@@ -42,10 +42,10 @@ const METHODS: readonly Method[] = [
 
 export default function Brew() {
   return (
-    <div class="flex flex-col gap-8 max-w-4xl mx-auto p-8">
+    <div class="flex flex-col gap-8 max-w-xl mx-auto p-8">
       <header class="flex flex-col gap-4">
         <h1>Brewing</h1>
-        <p class="text-text-muted">
+        <p class="text-muted">
           Two methods, the settings we use, and what to watch for.
         </p>
       </header>
@@ -56,7 +56,7 @@ export default function Brew() {
               <h2>{method.name}</h2>
               <badge variant="accent">{method.ratio}</badge>
             </div>
-            <ol class="flex flex-col gap-2 text-text-muted">
+            <ol class="flex flex-col gap-2 text-muted">
               <For each={method.steps}>
                 {(step) => <li>{step}</li>}
               </For>
@@ -68,7 +68,7 @@ export default function Brew() {
                   under a label that says the other thing entirely is how this
                   flex flex-row items-center gap-4 came to read "Strength 1:16". */
               }
-              <p class="text-text-muted">
+              <p class="text-muted">
                 Strength {Math.round(method.strength * 100)}%
               </p>
             </div>

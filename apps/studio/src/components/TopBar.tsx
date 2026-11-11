@@ -41,14 +41,11 @@
 
 import { createEffect, createSignal, Show } from "solid-js";
 import {
-  activeMode,
   activeName,
-  activeTokenCount,
   canRedo,
   canUndo,
   closeSaveCopy,
   divergedFromDisk,
-  hasProjectFile,
   isDirty,
   note,
   noteDiscarded,
@@ -63,12 +60,11 @@ import {
   undo,
 } from "../lib/store.ts";
 import { problemText } from "../lib/themes.ts";
-import { stateLabel } from "../lib/theme.ts";
 import { inDrawer } from "../lib/host.ts";
-import { ModePicker, refetchProjectThemes, ThemePicker } from "./Settings.tsx";
+import { refetchProjectThemes } from "./Settings.tsx";
+import SeatPill from "./SeatPill.tsx";
 import StudioNav from "./StudioNav.tsx";
 import StudioOverflow from "./StudioOverflow.tsx";
-import Checks from "./Checks.tsx";
 import CommandPalette from "./CommandPalette.tsx";
 /**
  * The bar's own look.
@@ -92,36 +88,12 @@ const BAR =
  * one smudge.
  */
 const ICON_BUTTON =
-  "bare flex h-7 w-7 shrink-0 items-center justify-center rounded-md border-0 text-muted hover:bg-surface disabled:opacity-50";
+  "bare flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-0 text-muted hover:bg-surface-raised disabled:bg-transparent disabled:opacity-50";
 
-/**
- * The three verbs, and the air between them.
- *
- * The gap is wider than the box: the pickers say WHAT is being edited, and
- * the verbs CHANGE it, and the space between the two says so before anything
- * is read.
- */
-const VERBS = "flex items-center gap-4";
+const VERBS = "flex items-center gap-2";
 
-/**
- * What is true about the file, in the studio's words.
- *
- * Two facts can hold at once: the editor holds edits the file does not
- * ("unsaved changes"), and the file holds something the studio did not
- * write ("changed on disk"). The second is the one that bites — the save
- * that would overwrite it is refused — so it is said even when the first is
- * true as well.
- */
-function fileStateText(
-  dirty: boolean,
-  diverged: boolean,
-): string {
-  const parts: string[] = [];
-  if (dirty) parts.push(stateLabel("unsaved"));
-  if (diverged) parts.push(stateLabel("changed"));
-  if (parts.length === 0) parts.push(stateLabel("saved"));
-  return parts.join(" · ");
-}
+const EDIT_PILL =
+  "inline-flex items-center rounded-full border bg-surface";
 
 export default function TopBar() {
   /** The theme being edited. */
@@ -130,20 +102,6 @@ export default function TopBar() {
   const dirty = () => isDirty(theme());
   /** Whether the file moved under the studio. */
   const diverged = () => divergedFromDisk(theme());
-  /**
-   * Where the theme is served from, when it is not the project's own file.
-   *
-   * A trailing run on the editing line: the author is editing a theme they
-   * cannot write to, and the run says where it comes from instead. Absent
-   * origin (an old daemon) omits the run rather than guessing.
-   */
-  const scopeLine = (): string | undefined => {
-    if (hasProjectFile(theme())) return undefined;
-    const origin = registry()?.find((entry) => entry.name === theme())?.origin;
-    if (origin === "brand") return "Read-only — served from the brand";
-    if (origin === "verbatim") return "Read-only — served from verbatim themes";
-    return undefined;
-  };
   const [copyName, setCopyName] = createSignal("");
   const [copyProblem, setCopyProblem] = createSignal<string | null>(null);
 
@@ -210,193 +168,124 @@ export default function TopBar() {
     >
       {
         /*
-          What the studio is showing: the theme under edit and the mode it
-          is shown in. Both are a glyph-sized control that opens a panel
-          floating over the content, so neither takes the bar's room.
-
-          The left quarter: the bar is in quarters, and this is the first
-          one.
+          What the studio is showing: the seat pill — mode, theme, and the
+          badge naming the seat. The facts the sentence narrated live on the
+          badge's hover card now.
         */
       }
-      <div class="flex flex-1 items-center gap-2">
+      <div class="flex min-w-0 flex-1 items-center justify-start">
         <StudioNav />
-        <ThemePicker />
-        <ModePicker />
       </div>
 
-      {
-        /*
-          The state of the document, in the middle of the bar: what is being
-          edited, in which mode, how big it is, and whether the file agrees.
-
-          Each fact is its own nowrap run, so the line can break BETWEEN
-          them and never inside one — "Editing" and the theme's name are one
-          run, because a line that broke between them would leave the
-          studio saying it was editing nothing. The line is TRUNCATED rather
-          than wrapped: a bar is one line at every width, and a state that
-          wrapped would push the controls off the end of the row. The theme's
-          name comes first, so a narrow bar gives way at the end of the
-          sentence and keeps saying what is being edited.
-
-          It takes HALF the bar, and the controls a quarter each — and that
-          is what keeps it centred: the state is the bar's subject, and a
-          subject squeezed into a third of the row is a caption. The two
-          quarters are equal, so the middle half is centred in the BAR and
-          not in whatever room the controls happen to leave.
-        */
-      }
-      <div
-        aria-label="Editing"
-        class="flex min-w-0 flex-[2_2_0%] items-center justify-center"
-      >
-        <p class="min-w-0 truncate text-center text-muted">
-          <span class="whitespace-nowrap">
-            Editing <strong>{theme()}</strong>
-          </span>
-          {" · "}
-          <span class="whitespace-nowrap">{activeMode()}</span>
-          {" · "}
-          <span class="whitespace-nowrap">{activeTokenCount()} tokens</span>
-          {" · "}
-          <span class="whitespace-nowrap">
-            {fileStateText(dirty(), diverged())}
-          </span>
-          <Show when={scopeLine()}>
-            {(line) => (
-              // The scope run hides where the bar is narrow: the editing
-              // line truncates rather than wraps, and a long run would push
-              // the bar past the viewport in the drawer.
-              <span class="hidden sm:inline">
-                {" · "}
-                <span class="whitespace-nowrap">{line()}</span>
-              </span>
-            )}
-          </Show>
-        </p>
+      <div class="flex shrink-0 items-center justify-center">
+        <CommandPalette />
       </div>
 
-      {
-        /*
-          The verbs, at the far end of the bar: what the reader can DO with
-          the document, held apart from what the document IS. The last
-          quarter, and the one that ends the row.
-        */
-      }
-      <div class="flex flex-1 items-center justify-end gap-3">
-        {
-          /*
-            The action that answers the state, and only that one: re-reading
-            the file is the answer when the file moved under the studio, and
-            dropping the edits is the answer when the editor holds edits the
-            file does not. The other one is not offered, because it would not
-            answer anything: re-reading the file when the file has not moved
-            gives back what dropping the edits gives back, and dropping the
-            edits when the file HAS moved leaves the save just as refused.
-
-            A control that is always there and never does anything is a
-            control the reader learns to skip.
-
-            These are the state's own answers, so they sit BESIDE the verbs
-            rather than among them: they are a different kind of action, and
-            they only exist while the state is asking for them.
-          */
-        }
-        <Show when={diverged()}>
-          <span class="inline-flex items-center">
-            <button
-              type="button"
-              class={ICON_BUTTON}
-              aria-label="Reload from disk"
-              onClick={() => {
-                void reload();
-              }}
-            >
-              <span
-                class="inline-block shrink-0 icon-md i-lucide-refresh-cw"
-                aria-hidden="true"
-              />
-            </button>
-            <tooltip class="end-0 start-auto translate-none">
-              Re-read this theme from disk
-            </tooltip>
-          </span>
-        </Show>
-        <Show when={dirty() && !diverged()}>
-          <span class="inline-flex items-center">
-            <button
-              type="button"
-              class={ICON_BUTTON}
-              aria-label="Discard changes"
-              onClick={discard}
-            >
-              <span
-                class="inline-block shrink-0 icon-md i-lucide-eraser"
-                aria-hidden="true"
-              />
-            </button>
-            <tooltip class="end-0 start-auto translate-none">
-              Drop the edits that have not been saved
-            </tooltip>
-          </span>
-        </Show>
-
+      <div class="flex min-w-0 flex-1 items-center justify-end gap-2">
         <div class={VERBS}>
-          <CommandPalette />
-          <Checks />
-          <span class="relative inline-flex items-center">
-            <button
-              type="button"
-              class={ICON_BUTTON}
-              aria-label="Undo"
-              disabled={!canUndo()}
-              onClick={() => undo()}
-            >
-              <span
-                class="inline-block shrink-0 icon-md i-lucide-undo-2"
-                aria-hidden="true"
-              />
-            </button>
-            <tooltip class="end-0 top-full whitespace-nowrap peer-hover:visible peer-focus-visible:visible">Undo</tooltip>
-          </span>
-          <span class="relative inline-flex items-center">
-            <button
-              type="button"
-              class={ICON_BUTTON}
-              aria-label="Redo"
-              disabled={!canRedo()}
-              onClick={() => redo()}
-            >
-              <span
-                class="inline-block shrink-0 icon-md i-lucide-redo-2"
-                aria-hidden="true"
-              />
-            </button>
-            <tooltip class="end-0 top-full whitespace-nowrap peer-hover:visible peer-focus-visible:visible">Redo</tooltip>
-          </span>
-          <span class="relative inline-flex items-center">
-            <button
-              type="button"
-              data-testid="save"
-              class={ICON_BUTTON}
-              aria-label={dirty() || diverged() ? "Save to disk" : "Saved"}
-              disabled={!dirty()}
-              onClick={() => {
-                void saveThemeToDisk(theme());
-              }}
-            >
-              <span
-                class="inline-block shrink-0 icon-md i-lucide-save"
-                aria-hidden="true"
-              />
-            </button>
-            <tooltip class="end-0 top-full whitespace-nowrap peer-hover:visible peer-focus-visible:visible">
-              {diverged()
-                ? "The file changed on disk — reload from disk first"
-                : dirty()
-                ? "Save to disk"
-                : "Saved"}
-            </tooltip>
-          </span>
+          <div data-testid="edit-pill" class={EDIT_PILL}>
+            <Show when={diverged()}>
+              <span class="relative inline-flex items-center">
+                <button
+                  type="button"
+                  class={ICON_BUTTON}
+                  aria-label="Reload from disk"
+                  onClick={() => {
+                    void reload();
+                  }}
+                >
+                  <span
+                    class="inline-block shrink-0 icon-md i-lucide-refresh-cw"
+                    aria-hidden="true"
+                  />
+                </button>
+                <tooltip class="end-0 top-full whitespace-nowrap peer-hover:visible peer-focus-visible:visible">
+                  Re-read this theme from disk
+                </tooltip>
+              </span>
+              <span class="h-5 border-s" aria-hidden="true" />
+            </Show>
+            <Show when={dirty() && !diverged()}>
+              <span class="relative inline-flex items-center">
+                <button
+                  type="button"
+                  class={ICON_BUTTON}
+                  aria-label="Discard changes"
+                  onClick={discard}
+                >
+                  <span
+                    class="inline-block shrink-0 icon-md i-lucide-eraser"
+                    aria-hidden="true"
+                  />
+                </button>
+                <tooltip class="end-0 top-full whitespace-nowrap peer-hover:visible peer-focus-visible:visible">
+                  Drop the edits that have not been saved
+                </tooltip>
+              </span>
+              <span class="h-5 border-s" aria-hidden="true" />
+            </Show>
+            <span class="relative hidden items-center sm:inline-flex">
+              <button
+                type="button"
+                class={ICON_BUTTON}
+                aria-label="Undo"
+                disabled={!canUndo()}
+                onClick={() => undo()}
+              >
+                <span
+                  class="inline-block shrink-0 icon-md i-lucide-undo-2"
+                  aria-hidden="true"
+                />
+              </button>
+              <tooltip class="end-0 top-full whitespace-nowrap peer-hover:visible peer-focus-visible:visible">
+                Undo
+              </tooltip>
+            </span>
+            <span class="hidden h-5 border-s sm:inline-block" aria-hidden="true" />
+            <span class="relative hidden items-center sm:inline-flex">
+              <button
+                type="button"
+                class={ICON_BUTTON}
+                aria-label="Redo"
+                disabled={!canRedo()}
+                onClick={() => redo()}
+              >
+                <span
+                  class="inline-block shrink-0 icon-md i-lucide-redo-2"
+                  aria-hidden="true"
+                />
+              </button>
+              <tooltip class="end-0 top-full whitespace-nowrap peer-hover:visible peer-focus-visible:visible">
+                Redo
+              </tooltip>
+            </span>
+            <span class="hidden h-5 border-s sm:inline-block" aria-hidden="true" />
+            <span class="relative inline-flex items-center">
+              <button
+                type="button"
+                data-testid="save"
+                class={ICON_BUTTON}
+                aria-label={dirty() || diverged() ? "Save to disk" : "Saved"}
+                disabled={!dirty()}
+                onClick={() => {
+                  void saveThemeToDisk(theme());
+                }}
+              >
+                <span
+                  class="inline-block shrink-0 icon-md i-lucide-save"
+                  aria-hidden="true"
+                />
+              </button>
+              <tooltip class="end-0 top-full whitespace-nowrap peer-hover:visible peer-focus-visible:visible">
+                {diverged()
+                  ? "The file changed on disk — reload from disk first"
+                  : dirty()
+                  ? "Save to disk"
+                  : "Saved"}
+              </tooltip>
+            </span>
+          </div>
+          <SeatPill />
           <StudioOverflow />
         </div>
       </div>

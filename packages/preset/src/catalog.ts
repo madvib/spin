@@ -1,0 +1,301 @@
+import type { TokenTree } from "@spinjs/theme";
+import { themeRef } from "./utils/theme-ref.ts";
+import { namesIn, styleNames } from "./utils/lookup.ts";
+import { SHADOW_NAMES } from "./rules/shadow.ts";
+import { borderNames } from "./rules/border.ts";
+import { STACKING_NAMES } from "./rules/stacking.ts";
+import { BACKDROP_BLUR_NAMES, DISPLAY_NAMES, VISIBILITY_NAMES } from "./rules/display.ts";
+import { divideNames } from "./rules/divide.ts";
+import { GRID_NAMES } from "./rules/grid.ts";
+import { INTERACTIVITY_NAMES } from "./rules/interactivity.ts";
+import { LAYOUT_NAMES } from "./rules/layout.ts";
+import { OVERFLOW_NAMES } from "./rules/overflow.ts";
+import { POSITION_NAMES } from "./rules/position.ts";
+import { SIZING_NAMES } from "./rules/sizing.ts";
+import { GUTTER_NAMES, MARGIN_AUTO_NAMES } from "./rules/spacing.ts";
+import {
+  TEXT_DECORATION_NAMES,
+  TEXT_NAMES,
+} from "./rules/text.ts";
+
+import { TRANSITION_NAMES, transitionDurations } from "./rules/transitions.ts";
+import { TYPOGRAPHY_NAMES } from "./rules/typography.ts";
+import { FRACTIONS, INSET_KEYWORDS } from "./utils/vocabulary.ts";
+import { variantPrefixes } from "./variants/index.ts";
+
+export interface CatalogSection {
+  id: string;
+  title: string;
+  utilities: string[];
+}
+
+function prefixed(prefixes: string[], keys: Iterable<string>): string[] {
+  const names = [...keys];
+  const out: string[] = [];
+  for (const prefix of prefixes) {
+    for (const key of names) out.push(`${prefix}${key}`);
+  }
+  return out;
+}
+/**
+ * The named styles the theme declares, as the utilities that spend them.
+ *
+ * A style is five leaves under one name — `font.style.body.family` through
+ * `font.style.body.leading` — and the utility is the name alone, so the
+ * shared helper folds the leaves back to the name before the prefix lands.
+ */
+function catalogStyleNames(theme: Record<string, string>): string[] {
+  return styleNames(theme).map((name) => `type-${name}`);
+}
+
+/**
+ * Every utility the preset can produce, grouped for display.
+ *
+ * The static names come from the RULES that own them — each rule exports the
+ * names it matches, so a utility added to a rule appears here without a second
+ * edit. The theme-driven names (`bg-primary`, `p-4`, `max-w-lg` …) are read
+ * from the theme, because they are the theme's scale rather than the rule's
+ * vocabulary. Neither list is hand-typed: the catalog cannot name a utility
+ * the preset does not produce, and a rule cannot produce one the catalog
+ * misses.
+ */
+export function describeCatalog(tree: TokenTree): CatalogSection[] {
+  const theme = themeRef(tree);
+  const colorNames = namesIn(theme, "color");
+  return [
+    {
+      id: "background",
+      title: "Background",
+      utilities: [
+        ...prefixed(["bg-"], colorNames),
+        "bg-transparent",
+        "bg-current",
+        "bg-currentColor",
+      ],
+    },
+    {
+      id: "text-color",
+      title: "Text color",
+      utilities: [
+        // The default ink needs no naming, so the catalog never names
+        // `text-text` — while `color.text` stays a token and `text-muted`
+        // (`color.text-muted`) stays a utility.
+        ...prefixed(
+          ["text-"],
+          colorNames
+            .filter((name) => name !== "text")
+            .map((name) => name === "text-muted" ? "muted" : name),
+        ),
+        "text-transparent",
+        "text-current",
+        "text-currentColor",
+      ],
+    },
+    {
+      id: "border",
+      title: "Border",
+      utilities: [
+        ...prefixed(
+          ["border-"],
+          colorNames
+            .filter((name) => name !== "border")
+            .map((name) => name === "border-strong" ? "strong" : name),
+        ),
+        "border-transparent",
+        "border-current",
+        "border-currentColor",
+        ...borderNames(theme),
+      ],
+    },
+    {
+      id: "padding",
+      title: "Padding",
+      utilities: prefixed(
+        ["p-", "px-", "py-", "pt-", "pr-", "pb-", "pl-", "ps-", "pe-"],
+        namesIn(theme, "spacing"),
+      ),
+    },
+    {
+      id: "margin",
+      title: "Margin",
+      utilities: [
+        ...prefixed(
+          ["m-", "mx-", "my-", "mt-", "mr-", "mb-", "ml-", "ms-", "me-"],
+          namesIn(theme, "spacing"),
+        ),
+        ...MARGIN_AUTO_NAMES,
+      ],
+    },
+    {
+      id: "gap",
+      title: "Gap",
+      utilities: [
+        ...prefixed(
+          ["gap-", "gap-x-", "gap-y-"],
+          namesIn(theme, "spacing"),
+        ),
+        ...GUTTER_NAMES,
+      ],
+    },
+    {
+      // TYPE-b (remove raw type utilities): the `text-*` sizes and `font-*`
+      // families/weights are no longer produced, so the catalog names only
+      // the named styles. `text-*` colours still list under "Text color"
+      // above — the palette is vocabulary, the scale is not.
+      id: "font-style",
+      title: "Named type styles",
+      utilities: catalogStyleNames(theme),
+    },
+    {
+      id: "radius",
+      title: "Radius",
+      utilities: prefixed(["rounded-"], namesIn(theme, "radius")),
+    },
+    {
+      id: "shadow",
+      title: "Shadow",
+      utilities: [...SHADOW_NAMES, ...prefixed(["shadow-"], namesIn(theme, "shadow"))],
+    },
+    {
+      id: "layout",
+      title: "Layout",
+      utilities: [...LAYOUT_NAMES],
+    },
+    {
+      id: "sizing",
+      title: "Sizing",
+      utilities: [
+        ...prefixed(
+          ["w-", "h-", "min-w-", "max-w-", "min-h-", "max-h-"],
+          namesIn(theme, "spacing"),
+        ),
+        ...prefixed(["icon-"], namesIn(theme, "icon")),
+        ...SIZING_NAMES,
+        // `max-w-<bp>` is a measure; `max-w-screen-<bp>` is the viewport width
+        // AT that breakpoint. Both are real and the catalog names both.
+        ...prefixed(["max-w-"], namesIn(theme, "breakpoint")),
+        ...prefixed(["max-w-screen-"], namesIn(theme, "breakpoint")),
+      ],
+    },
+    {
+      id: "grid",
+      title: "Grid",
+      utilities: [...GRID_NAMES],
+    },
+    {
+      id: "display",
+      title: "Display",
+      utilities: [...DISPLAY_NAMES, ...VISIBILITY_NAMES, ...BACKDROP_BLUR_NAMES],
+    },
+    {
+      id: "text",
+      title: "Text",
+      // TEXT_NAMES minus the decoration family, which has its own section:
+      // the groups are tiers and decisions, not display labels, and
+      // `underline` in two groups would paint the wrong decision.
+      utilities: TEXT_NAMES.filter((name) => !TEXT_DECORATION_NAMES.includes(name)),
+    },
+    {
+      id: "typography",
+      title: "Typography",
+      utilities: [...TYPOGRAPHY_NAMES],
+    },
+    {
+      id: "transitions",
+      title: "Transitions",
+      utilities: [
+        ...TRANSITION_NAMES,
+        ...prefixed(["duration-"], transitionDurations(theme)),
+        ...prefixed(["ease-"], namesIn(theme, "motion-easing")),
+      ],
+    },
+    {
+      id: "opacity",
+      title: "Opacity",
+      utilities: prefixed(["opacity-"], namesIn(theme, "opacity")),
+    },
+    { id: "overflow", title: "Overflow", utilities: [...OVERFLOW_NAMES] },
+    {
+      id: "position",
+      title: "Position",
+      utilities: [
+        ...POSITION_NAMES,
+        ...STACKING_NAMES,
+        ...prefixed(["inset-"], namesIn(theme, "spacing")),
+        ...prefixed(["inset-"], Object.keys(FRACTIONS)),
+        ...prefixed(["inset-"], Object.keys(INSET_KEYWORDS)),
+        ...prefixed(["inset-x-"], namesIn(theme, "spacing")),
+        ...prefixed(["inset-x-"], Object.keys(INSET_KEYWORDS)),
+        ...prefixed(["inset-y-"], namesIn(theme, "spacing")),
+        ...prefixed(["inset-y-"], Object.keys(INSET_KEYWORDS)),
+        ...prefixed(["top-"], namesIn(theme, "spacing")),
+        ...prefixed(["top-"], Object.keys(FRACTIONS)),
+        ...prefixed(["top-"], Object.keys(INSET_KEYWORDS)),
+        ...prefixed(["right-"], namesIn(theme, "spacing")),
+        ...prefixed(["right-"], Object.keys(INSET_KEYWORDS)),
+        ...prefixed(["bottom-"], namesIn(theme, "spacing")),
+        ...prefixed(["bottom-"], Object.keys(INSET_KEYWORDS)),
+        ...prefixed(["left-"], namesIn(theme, "spacing")),
+        ...prefixed(["left-"], Object.keys(FRACTIONS)),
+        ...prefixed(["left-"], Object.keys(INSET_KEYWORDS)),
+        ...prefixed(["start-"], namesIn(theme, "spacing")),
+        ...prefixed(["start-"], Object.keys(FRACTIONS)),
+        ...prefixed(["start-"], Object.keys(INSET_KEYWORDS)),
+        ...prefixed(["end-"], namesIn(theme, "spacing")),
+        ...prefixed(["end-"], Object.keys(FRACTIONS)),
+        ...prefixed(["end-"], Object.keys(INSET_KEYWORDS)),
+        ...prefixed(["z-"], namesIn(theme, "z-index")),
+      ],
+    },
+    {
+      id: "text-decoration",
+      title: "Text decoration",
+      utilities: [...TEXT_DECORATION_NAMES],
+    },
+    {
+      id: "interactivity",
+      title: "Interactivity",
+      utilities: [...INTERACTIVITY_NAMES],
+    },
+    {
+      id: "divide",
+      title: "Divide",
+      utilities: [...divideNames(namesIn(theme, "color"), theme)],
+    },
+    {
+      id: "variants",
+      title: "Variants",
+      utilities: variantPrefixes(),
+    },
+  ];
+}
+
+/**
+ * Every static name the catalog consumes, as one set.
+ *
+ * Built from the `*_NAMES` constants the sections above already spread — no
+ * new imports, so this set cannot name what the catalog does not. The
+ * completeness test pins it from both sides: every name spread above must be
+ * a member, and every member must be exported by some rule module.
+ */
+export function catalogRuleNames(): ReadonlySet<string> {
+  return new Set([
+    ...BACKDROP_BLUR_NAMES,
+    ...DISPLAY_NAMES,
+    ...VISIBILITY_NAMES,
+    ...GRID_NAMES,
+    ...INTERACTIVITY_NAMES,
+    ...LAYOUT_NAMES,
+    ...OVERFLOW_NAMES,
+    ...POSITION_NAMES,
+    ...STACKING_NAMES,
+    ...SHADOW_NAMES,
+    ...SIZING_NAMES,
+    ...GUTTER_NAMES,
+    ...MARGIN_AUTO_NAMES,
+    ...TEXT_NAMES,
+    ...TEXT_DECORATION_NAMES,
+    ...TRANSITION_NAMES,
+    ...TYPOGRAPHY_NAMES,
+  ]);
+}

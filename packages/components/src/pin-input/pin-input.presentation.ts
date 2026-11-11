@@ -6,7 +6,7 @@ import {
   defineComponent,
   type ViewFor,
   type SlotViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import { pinInput as pinInputMachine } from "./pin-input.machine.ts";
 import {
   type PinInputArgs,

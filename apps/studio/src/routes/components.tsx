@@ -1,4 +1,4 @@
-import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
+import { createEffect, createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
 import { A, useLocation } from "@solidjs/router";
 import type { JSX } from "solid-js";
 import { COMPONENT_ICONS } from "@spinjs/components";
@@ -9,6 +9,8 @@ import {
 } from "../lib/primitives.ts";
 import { library } from "../lib/store.ts";
 import { inDrawer } from "../lib/host.ts";
+import { studioBase } from "../lib/mount.ts";
+import StudioSelect from "../components/StudioSelect.tsx";
 const ICONS: Readonly<Record<string, string>> = Object.fromEntries([
   ...primitiveElements.map((element) => [element.name, element.icon] as const),
   ...Object.entries(COMPONENT_ICONS).map(
@@ -84,7 +86,7 @@ const RAIL_LINK =
  * than a column and the groups are read across rather than down.
  */
 const RAIL_BAND =
-  "mt-4 mb-2 flex items-center gap-2 px-2 py-1 type-body-strong normal-case first:mt-0";
+  "mt-4 mb-2 flex items-center gap-2 px-2 py-1 type-body-emphasized normal-case first:mt-0";
 
 /**
  * The row, as the drawer wears it.
@@ -107,7 +109,7 @@ const DRAWER_LINK =
  * the reader loses the one thing the group was there to say.
  */
 const DRAWER_BAND =
-  "type-body-strong normal-case";
+  "type-body-emphasized normal-case";
 
 /** One row of the list: the component it names, and the glyph it wears. */
 interface Row {
@@ -134,41 +136,35 @@ function NavBody(props: {
 }) {
   return (
     <>
-      <h2 classList={{ "text-muted": props.drawer() }}>
-        Components
-      </h2>
-      <div role="group" aria-label="Component kind" class="flex w-fit min-w-0 shrink-0 gap-1 rounded-md border p-1">
-        <For each={(["all", "primitive", "machine"] as const)}>
-          {(kind) => (
-            <button
-              type="button"
-              aria-pressed={props.kindFilter() === kind}
-              onClick={() => props.setKindFilter(kind)}
-              class="bare rounded-md border border-solid border-transparent px-2 py-1 type-caption text-muted aria-[pressed=true]:border aria-[pressed=true]:bg-surface-raised"
-            >
-              {kind === "all" ? "All" : kind === "primitive" ? "CSS" : "Interactive"}
-            </button>
-          )}
-        </For>
+      <div class="flex flex-col gap-2">
+        <label class="flex min-w-0 items-center gap-2">
+          <span class="i-lucide-search icon-sm shrink-0 text-muted" aria-hidden="true" />
+          <input
+            type="search"
+            value={props.query()}
+            onInput={(event) => props.setQuery(event.currentTarget.value)}
+            aria-label="Filter the components"
+            placeholder="filter…"
+            class="min-w-0 w-full flex-1 s-sm"
+          />
+        </label>
+        <span class="flex items-center gap-2 type-caption text-muted">
+          <span class="sr-only">Kind</span>
+          <StudioSelect
+            label="Component kind"
+            value={props.kindFilter()}
+            items={[
+              { value: "all", label: "All" },
+              { value: "primitive", label: "Primitives" },
+              { value: "machine", label: "Machines" },
+            ]}
+            onPick={(value) => props.setKindFilter(value as "all" | "primitive" | "machine")}
+          />
+        </span>
       </div>
-      <label class="relative flex min-w-0 items-center">
-        <span
-          class="i-lucide-search icon-sm pointer-events-none absolute start-2 shrink-0 text-muted"
-          aria-hidden="true"
-        />
-        <input
-          type="search"
-          value={props.query()}
-          onInput={(event) => props.setQuery(event.currentTarget.value)}
-          aria-label="Filter the components"
-          placeholder="filter…"
-          class="min-w-0 flex-1 ps-7"
-        />
-      </label>
       <div class="flex items-center justify-between gap-2 type-caption text-muted">
-        <span>components</span>
-        <span class="type-code">
-          {props.needle() === "" ? `${props.total()}` : `${props.shown().length} of ${props.total()}`}
+        <span>
+          {props.needle() === "" ? `${props.total()} components` : `${props.shown().length} of ${props.total()}`}
         </span>
       </div>
       <Switch
@@ -236,11 +232,36 @@ function NavBody(props: {
   );
 }
 
+/** The router path without the studio's mount base: `/studio/components` reads `/components`. */
+function routePath(pathname: string): string {
+  const base = studioBase(pathname);
+  if (base === "" || !pathname.startsWith(base)) return pathname;
+  return pathname.slice(base.length) || "/";
+}
+
 export default function ComponentsLayout(props: { children?: JSX.Element }) {
   const location = useLocation();
   const drawer = () => inDrawer();
   const [query, setQuery] = createSignal("");
-  const [kindFilter, setKindFilter] = createSignal<"all" | "primitive" | "machine">("all");
+  const [kindFilter, setKindFilter] = createSignal<"all" | "primitive" | "machine">(
+    location.search.includes("kind=primitive")
+      ? "primitive"
+      : location.search.includes("kind=machine")
+        ? "machine"
+        : "all",
+  );
+  createEffect(() => {
+    const kind = new URLSearchParams(location.search).get("kind");
+    setKindFilter(kind === "primitive" ? "primitive" : kind === "machine" ? "machine" : "all");
+  });
+  /** Seats the filter and says so in the URL, so a kind card's link lands seated. */
+  const pickKind = (kind: "all" | "primitive" | "machine"): void => {
+    setKindFilter(kind);
+    const url = new URL(window.location.href);
+    if (kind === "all") url.searchParams.delete("kind");
+    else url.searchParams.set("kind", kind);
+    window.history.replaceState(null, "", url);
+  };
   const needle = () => query().trim().toLowerCase();
   const total = () => library()?.length ?? 0;
   const shown = () => {
@@ -276,8 +297,8 @@ export default function ComponentsLayout(props: { children?: JSX.Element }) {
       : "flex w-full shrink-0 flex-col gap-3 border-b bg-surface-raised p-4 lg:w-[13rem] lg:border-b-0 lg:border-r lg:overflow-y-auto";
   const listClass = () =>
     drawer()
-      ? "flex flex-wrap gap-x-2 gap-y-1"
-      : "flex flex-wrap gap-x-2 gap-y-1 lg:flex-col lg:flex-nowrap lg:gap-1";
+      ? "flex flex-wrap gap-x-2 gap-y-1 flow-list"
+      : "flex flex-wrap gap-x-2 gap-y-1 flow-list lg:flex-col lg:flex-nowrap lg:gap-1";
 
   return (
     <Show
@@ -292,12 +313,12 @@ export default function ComponentsLayout(props: { children?: JSX.Element }) {
               query={query}
               setQuery={setQuery}
               kindFilter={kindFilter}
-              setKindFilter={setKindFilter}
+              setKindFilter={pickKind}
               needle={needle}
               total={total}
               shown={shown}
               groups={groups}
-              path={() => location.pathname}
+              path={() => routePath(location.pathname)}
             />
           </nav>
           {props.children}
@@ -313,12 +334,12 @@ export default function ComponentsLayout(props: { children?: JSX.Element }) {
             query={query}
             setQuery={setQuery}
             kindFilter={kindFilter}
-            setKindFilter={setKindFilter}
+            setKindFilter={pickKind}
             needle={needle}
             total={total}
             shown={shown}
             groups={groups}
-            path={() => location.pathname}
+            path={() => routePath(location.pathname)}
           />
         </nav>
         <div class="drawer-scroll flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">

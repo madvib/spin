@@ -4,7 +4,7 @@ import {
   type ComponentDef,
   defineComponent,
   type ViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import { modePicker as modePickerMachine } from "./mode-picker.machine.ts";
 import type {
   ModePickerEvents,
@@ -14,7 +14,6 @@ import type {
   ModeChoice,
   ModePickerArgs,
   ModePickerContext,
-  ModePickerState,
   ResolvedMode,
 } from "./mode-picker.state.ts";
 import {

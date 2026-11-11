@@ -19,7 +19,7 @@
  * The three surface shapes stay identical across adapters on purpose: the
  * day a framework needs something new, the change is one file.
  */
-import { writeProp as writePropOf } from "@spinjs/runtime";
+import { writeProp as writePropOf } from "@spinjs/components/runtime";
 
 
 /** A spin element as hosts see it: props down, events up, commands in. */

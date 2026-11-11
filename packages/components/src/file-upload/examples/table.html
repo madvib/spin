@@ -28,7 +28,7 @@
   <div class="overflow-hidden rounded-lg border bg-surface-raised" {...machine.getItemGroupProps()}>
     <template for={machine.getAcceptedRows()} as={row} key={row.value}>
       <div class="flex items-center justify-between gap-3 border-b px-3 py-2 last:border-b-0" {...machine.getItemProps(row)}>
-        <span class="min-w-0 flex-1 truncate type-body-strong" {...machine.getItemNameProps(row)}>{row.value}</span>
+        <span class="min-w-0 flex-1 truncate type-body-emphasized" {...machine.getItemNameProps(row)}>{row.value}</span>
         <span class="shrink-0 type-code text-muted tabular-nums">{machine.getItemSizeText(row)}</span>
         <button class="ghost icon s-sm" {...machine.getItemDeleteTriggerProps(row)}>
           <span class="i-lucide-x type-caption" aria-hidden="true"></span>

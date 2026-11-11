@@ -26,7 +26,7 @@ const machine = carousel({
         <div
           class="flex h-full flex-col items-center justify-center rounded-md border bg-surface p-4 text-center">
           <span class="type-code text-primary">{row.tag}</span>
-          <div class="mt-1 type-body-strong">{row.label}</div>
+          <div class="mt-1 type-body-emphasized">{row.label}</div>
           <div class="mt-1 type-caption text-muted">{row.content}</div>
         </div>
       </div>
@@ -34,7 +34,7 @@ const machine = carousel({
   </div>
 
   <div
-    class={["mt-2 h-1 overflow-hidden rounded-full bg-border opacity-0 transition-opacity duration-fast ease-standard pointer-events-none", { "opacity-100": machine.isPlaying }]}
+    class={["mt-2 h-1 overflow-hidden rounded-full bg-surface-raised opacity-0 transition-opacity duration-fast ease-standard pointer-events-none", { "opacity-100": machine.isPlaying }]}
     {...machine.getAutoplayProgressProps()}>
     <div
       class={["h-full w-full rounded-full bg-primary origin-left scale-x-0 transition-transform duration-fast ease-standard", { "scale-x-100": machine.isPlaying }]}
@@ -49,7 +49,7 @@ const machine = carousel({
       {...machine.getIndicatorGroupProps()}>
       <template for={machine.getItemIndexes()} as={row} key={row.value}>
         <button
-          class={["bare h-2 w-2 rounded-full p-0 border bg-surface transition-all duration-base ease-standard", { "h-4 w-2 border-transparent": machine.isInView(row.index), "ring-2 ring-border-strong": machine.focused }]}
+          class={["bare h-2 w-2 rounded-full border bg-surface-raised transition-all duration-base ease-standard", { "h-4 w-2 border-transparent": machine.isInView(row.index), "ring-2 ring-border-strong": machine.focused }]}
           {...machine.getIndicatorProps(row)}></button>
       </template>
     </div>

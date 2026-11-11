@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { parseHTML } from "@spinjs/runtime/testing";
-import { signal } from "@spinjs/runtime";
+import { parseHTML } from "@spinjs/components/testing";
+import { signal } from "@spinjs/components/runtime";
 import { modePicker } from "./mode-picker.presentation.ts";
 const createModePickerBridge = modePicker.createBridge;
 import type { ModePickerApi } from "./mode-picker.presentation.ts";

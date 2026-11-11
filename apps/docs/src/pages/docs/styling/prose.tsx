@@ -39,8 +39,8 @@ export default function StylingProse(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Typography"
-        lede="Write semantic HTML and get finished type: every element arrives carrying a named style, and one type-<name> class changes the style — the whole tuple at once, never letter by letter."
+        title="Prose"
+        lede="Write semantic HTML and get finished document typography: every element arrives carrying a named style, and one type-<name> class switches the whole tuple at once."
       />
 
       <Section id="scales" title="Scales are the building blocks">
@@ -59,26 +59,17 @@ export default function StylingProse(): JSX.Element {
         </p>
       </Section>
 
-      <Section id="styles" title="Sixteen styles, spent whole">
+      <Section id="styles" title="Thirteen styles, spent whole">
         <p class="max-w-prose">
           Each entry under <code>font.style.*</code> is a complete tuple —
           family, size, weight, tracking, and leading in one{" "}
           <code>$type: &quot;typography&quot;</code> token — and one{" "}
-          <code>type-&lt;name&gt;</code> class spends the whole tuple at
-          once. The theme owns the set; these are the 16 styles every starter
-          theme declares: <code>display</code>, <code>title</code>,{" "}
-          <code>heading</code>, <code>subtitle</code>, <code>lead</code>,{" "}
-          <code>body</code>, <code>quote</code>, <code>code</code>,{" "}
-          <code>label</code>, <code>caption</code>, <code>overline</code>,{" "}
-          <code>stat</code>, <code>badge</code>,{" "}
-          <code>body-strong</code>, <code>caption-strong</code>, and{" "}
-          <code>card-title</code>. A style is a name, not a seat: put a
-          theme-declared style on any element —{" "}
-          <code>&lt;span class=&quot;type-caption&quot;&gt;</code> captions a
-          figure from inside a paragraph — and the only constraint is the
-          vocabulary. Four representative styles render live below from your
-          active starter theme; the full 16-style reference table lives in the{" "}
-          <A href="/docs/themes/reference#styles">token reference</A>.
+          <code>type-&lt;name&gt;</code> class spends the whole tuple at once.
+          Put any declared style on any element (for example,{" "}
+          <code>&lt;span class=&quot;type-caption&quot;&gt;</code> inside a
+          paragraph). Four representative styles render live below from your
+          active theme; the full 13-style table lives in the{" "}
+          <A href="/docs/themes/reference#styles">Reference</A>.
         </p>
         <div class="my-2 flex flex-col gap-4">
           <Specimen
@@ -119,7 +110,7 @@ export default function StylingProse(): JSX.Element {
           <code>.type</code> token aliases one: <code>element.h1.type</code>{" "}
           reads <code>display</code>, <code>element.p.type</code> reads{" "}
           <code>body</code>, <code>card.title.type</code> reads{" "}
-          <code>card-title</code>, and so on. Re-point one target by
+          <code>title</code>, and so on. Re-point one target by
           aliasing another style in your theme —{" "}
           <code>&quot;{`{font.style.title}`}&quot;</code> on{" "}
           <code>element.h1.type</code> moves first-level headings to the
@@ -149,19 +140,17 @@ export default function StylingProse(): JSX.Element {
         />
       </Section>
 
-      <Section id="escape" title="The escape, honestly">
+      <Section id="lists" title="Document lists vs. UI lists">
         <p class="max-w-prose">
-          One style on this site is genuinely one-off: the Spin wordmark in
-          the corner, set in the brand face at one deliberate size no theme
-          scale has reason to name. That element carries{" "}
-          <code>data-spin-escape</code>, the author&apos;s explicit word that its
-          classes are deliberate — so no warning fires about placement
-          there — while the vocabulary rule still fires, because deliberate
-          code still names nothing dead. Reach for
-          it for a brand lockup or a hero moment, never for copy the theme
-          could say; if you reach for it twice, the theme is missing a style
-          worth naming. The full contract lives in the{" "}
-          <A href="/docs/tooling/lints">lints guide</A>.
+          Bare <code>&lt;ul&gt;</code> and <code>&lt;ol&gt;</code> tags carry
+          document list markers, inline indentation, and{" "}
+          <code>li + li</code> block spacing so prose lists read naturally. When
+          a list serves as UI chrome — a navigation bar, tab strip, breadcrumb
+          trail, or card grid — adding <code>flex</code>,{" "}
+          <code>inline-flex</code>, <code>grid</code>, <code>inline-grid</code>,
+          or <code>row-list</code> automatically clears{" "}
+          <code>list-style-type</code>, inline padding, and the{" "}
+          <code>li + li</code> top margin so every item aligns on the same row.
         </p>
       </Section>
     </main>

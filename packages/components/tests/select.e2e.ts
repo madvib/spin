@@ -9,7 +9,7 @@ import { test } from "bun:test";
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Browser, chromium, type Page } from "playwright-core";
+import type { Page } from "playwright-core";
 
 /** Part ids are the machine's scheme: `select:<element id>:<part>`. */
 const at = (id: string, part: string): string => `[id="select:${id}:${part}"]`;

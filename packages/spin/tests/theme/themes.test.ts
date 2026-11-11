@@ -1,5 +1,4 @@
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import {
@@ -12,22 +11,21 @@ import {
   legibilityFloors,
   parseTokens,
   requiredPaths,
-  scaffoldTheme,
   themeGates,
   validateTokens,
-} from "../../src/theme/index.ts";
+} from "@spinjs/theme";
 import type {
   ParseResult,
   ThemeDocument,
   TokenLeaf,
   TokenNode,
   TokenTree,
-} from "../../src/theme/index.ts";
+} from "@spinjs/theme";
 import {
   type StarterThemeName,
   starterThemes,
   themeModes,
-} from "../../src/theme/themes/index.ts";
+} from "@spinjs/theme/themes";
 
 /**
  * The battery, run over the themes this package ships — and over a theme a
@@ -48,7 +46,7 @@ import {
 // The SHIPPED starter themes, not fixtures: these are the product, and
 // a consumer picks one and customises it rather than writing a theme
 // from scratch.
-const THEMES_DIR = new URL("../../src/theme/themes/", import.meta.url);
+const THEMES_DIR = new URL("../../../theme/src/themes/", import.meta.url);
 
 /** Unwraps a successful parse, failing loudly when the file was rejected. */
 function treeOf(result: ParseResult, source: string): TokenTree {
@@ -221,8 +219,8 @@ test("the ink a theme declares is read from the theme itself", () => {
 });
 
 test("the example theme's light document parses into a token tree", async () => {
-  const source = await readFile(new URL("silk.json", THEMES_DIR), "utf8");
-  const tree = treeOf(parseTokens(source), "silk.json");
+  const source = await readFile(new URL("minimal.json", THEMES_DIR), "utf8");
+  const tree = treeOf(parseTokens(source), "minimal.json");
 
   // The groups the theme MUST have, not every group it happens to have. An
   // exact list makes adding a legitimate group an edit to this file, and the
@@ -282,8 +280,8 @@ test("the baseline theme carries a dark MODE rather than being a second theme", 
   // themselves as `$modes.dark`, which `generateCss` scopes to
   // `[data-theme="<name>"][data-mode="dark"]`.
   const tree = treeOf(
-    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
-    "silk.json",
+    parseTokens(await readFile(new URL("minimal.json", THEMES_DIR), "utf8")),
+    "minimal.json",
   );
 
   // The dark side restates colours and the focus ring; metrics are inherited,
@@ -300,8 +298,8 @@ test("the baseline theme carries a dark MODE rather than being a second theme", 
 
 test("the example theme defines every token path it advertises", async () => {
   const theme = treeOf(
-    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
-    "silk.json",
+    parseTokens(await readFile(new URL("minimal.json", THEMES_DIR), "utf8")),
+    "minimal.json",
   );
   const report = validateTokens(theme, { required: REQUIRED });
 
@@ -310,8 +308,8 @@ test("the example theme defines every token path it advertises", async () => {
 });
 
 test("the example theme's light document validates on its own", async () => {
-  const source = await readFile(new URL("silk.json", THEMES_DIR), "utf8");
-  const light = treeOf(parseTokens(source), "silk.json");
+  const source = await readFile(new URL("minimal.json", THEMES_DIR), "utf8");
+  const light = treeOf(parseTokens(source), "minimal.json");
 
   deepStrictEqual(validateTokens(light).issues, []);
 });
@@ -324,11 +322,12 @@ test("the example theme's light document validates on its own", async () => {
  * written down here, so this list can never quietly skip a theme.
  */
 const DECLARED_MODES = {
-  silk: ["light", "dark"],
-  spin: ["light", "dark"],
+  minimal: ["light", "dark"],
+  editorial: ["light", "dark"],
   material: ["light", "dark"],
-  neobrut: ["light", "dark"],
-  industrial: ["light", "dark"],
+  neobrutalist: ["light", "dark"],
+  neumorphic: ["light", "dark"],
+  glassmorphic: ["light", "dark"],
 } satisfies Record<StarterThemeName, readonly ("light" | "dark")[]>;
 
 test("a theme states its modes at the root", async () => {
@@ -358,13 +357,13 @@ test("a theme that serves a mode it does not override is valid", async () => {
   // written for a mode the theme does not serve is never shown, and the
   // validator reports it.
   const tree = treeOf(
-    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
-    "silk.json",
+    parseTokens(await readFile(new URL("minimal.json", THEMES_DIR), "utf8")),
+    "minimal.json",
   );
   deepStrictEqual(validateTokens(tree, { modes: ["light", "dark"] }).issues, []);
 
   const darkOnlyDoc = structuredClone(
-    JSON.parse(await readFile(new URL("industrial.json", THEMES_DIR), "utf8")),
+    JSON.parse(await readFile(new URL("neumorphic.json", THEMES_DIR), "utf8")),
   ) as Record<string, unknown>;
   for (const group of Object.values(darkOnlyDoc)) {
     if (group && typeof group === "object") {
@@ -374,7 +373,7 @@ test("a theme that serves a mode it does not override is valid", async () => {
     }
   }
   darkOnlyDoc["modes"] = ["dark"];
-  const darkless = treeOf(parseTokens(darkOnlyDoc), "industrial.json");
+  const darkless = treeOf(parseTokens(darkOnlyDoc), "neumorphic.json");
   deepStrictEqual(validateTokens(darkless, { modes: ["dark"] }).issues, []);
 });
 
@@ -400,24 +399,24 @@ test("a theme declares the modes it actually has", async () => {
 
 test("the example theme's stylesheet is a light block and a dark block", async () => {
   const tree = treeOf(
-    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
-    "silk.json",
+    parseTokens(await readFile(new URL("minimal.json", THEMES_DIR), "utf8")),
+    "minimal.json",
   );
   // The NAMED path, which is what a consumer calls. It scopes a theme's dark
   // mode to `[data-theme=<name>][data-mode="dark"]` — so the mode belongs to
   // its theme, and two themes can each carry a dark mode without fighting.
-  const css = generateThemeCss({ silk: tree });
+  const css = generateThemeCss({ minimal: tree });
 
   deepStrictEqual(
     blocks(css).map((block) => block.selector),
-    ['[data-theme="silk"]', '[data-theme="silk"][data-mode="dark"]'],
+    ['[data-theme="minimal"]', '[data-theme="minimal"][data-mode="dark"]'],
   );
 });
 
 test("the light block of the example theme carries the light document's values", async () => {
   const tree = treeOf(
-    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
-    "silk.json",
+    parseTokens(await readFile(new URL("minimal.json", THEMES_DIR), "utf8")),
+    "minimal.json",
   );
   const root = blockWithSelector(generateCss(tree), ":root");
 
@@ -444,8 +443,8 @@ test("the light block of the example theme carries the light document's values",
 
 test("every dark declaration lands on a property the light theme declares", async () => {
   const tree = treeOf(
-    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
-    "silk.json",
+    parseTokens(await readFile(new URL("minimal.json", THEMES_DIR), "utf8")),
+    "minimal.json",
   );
   const css = generateCss(tree);
   const lightVars = varsInMode(css, "light");
@@ -463,8 +462,8 @@ test("every dark declaration lands on a property the light theme declares", asyn
 
 test("the dark block emits every token the dark document declares", async () => {
   const tree = treeOf(
-    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
-    "silk.json",
+    parseTokens(await readFile(new URL("minimal.json", THEMES_DIR), "utf8")),
+    "minimal.json",
   );
   const css = generateCss(tree);
   const darkBlock = blockWithSelector(css, ':root[data-mode="dark"]');
@@ -490,8 +489,8 @@ test("the dark block emits every token the dark document declares", async () => 
 
 test("a dark-mode consumer reads the dark document's colors", async () => {
   const tree = treeOf(
-    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
-    "silk.json",
+    parseTokens(await readFile(new URL("minimal.json", THEMES_DIR), "utf8")),
+    "minimal.json",
   );
   const vars = varsInMode(generateCss(tree), "dark");
 
@@ -505,8 +504,8 @@ test("a dark-mode consumer reads the dark document's colors", async () => {
 
 test("roles that reference the neutral ramp follow it into dark mode", async () => {
   const tree = treeOf(
-    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
-    "silk.json",
+    parseTokens(await readFile(new URL("minimal.json", THEMES_DIR), "utf8")),
+    "minimal.json",
   );
   const css = generateCss(tree);
   const lightVars = varsInMode(css, "light");
@@ -528,8 +527,8 @@ test("roles that reference the neutral ramp follow it into dark mode", async () 
 
 test("spacing, typography and layering are the same scale in both modes", async () => {
   const tree = treeOf(
-    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
-    "silk.json",
+    parseTokens(await readFile(new URL("minimal.json", THEMES_DIR), "utf8")),
+    "minimal.json",
   );
   const css = generateCss(tree);
   const lightVars = varsInMode(css, "light");
@@ -561,8 +560,8 @@ test("spacing, typography and layering are the same scale in both modes", async 
 
 test("the example theme's spacing scale grows with its step number", async () => {
   const tree = treeOf(
-    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
-    "silk.json",
+    parseTokens(await readFile(new URL("minimal.json", THEMES_DIR), "utf8")),
+    "minimal.json",
   );
   const vars = varsInMode(generateCss(tree), "light");
 
@@ -576,8 +575,8 @@ test("the example theme's spacing scale grows with its step number", async () =>
 
 test("the example theme's radii round off from square to fully round", async () => {
   const tree = treeOf(
-    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
-    "silk.json",
+    parseTokens(await readFile(new URL("minimal.json", THEMES_DIR), "utf8")),
+    "minimal.json",
   );
   const vars = varsInMode(generateCss(tree), "light");
 
@@ -591,8 +590,8 @@ test("the example theme's radii round off from square to fully round", async () 
 
 test("the example theme's breakpoints and z-index layers are ordered", async () => {
   const tree = treeOf(
-    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
-    "silk.json",
+    parseTokens(await readFile(new URL("minimal.json", THEMES_DIR), "utf8")),
+    "minimal.json",
   );
   const vars = varsInMode(generateCss(tree), "light");
 
@@ -613,8 +612,8 @@ test("the example theme's breakpoints and z-index layers are ordered", async () 
 
 test("the example theme's text is legible on its own surfaces in both modes", async () => {
   const tree = treeOf(
-    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
-    "silk.json",
+    parseTokens(await readFile(new URL("minimal.json", THEMES_DIR), "utf8")),
+    "minimal.json",
   );
   const css = generateCss(tree);
 
@@ -639,8 +638,8 @@ test("the example theme's text is legible on its own surfaces in both modes", as
 
 test("the example theme's status colors are legible in both modes", async () => {
   const tree = treeOf(
-    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
-    "silk.json",
+    parseTokens(await readFile(new URL("minimal.json", THEMES_DIR), "utf8")),
+    "minimal.json",
   );
   const css = generateCss(tree);
 
@@ -710,28 +709,28 @@ test("every tone fill+on pair meets 4.5:1 in every shipped theme and mode", asyn
   }
 });
 
-test("the example theme is addressable as the named 'silk' theme", async () => {
+test("the example theme is addressable as the named 'minimal' theme", async () => {
   const tree = treeOf(
-    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
-    "silk.json",
+    parseTokens(await readFile(new URL("minimal.json", THEMES_DIR), "utf8")),
+    "minimal.json",
   );
-  const css = generateThemeCss({ silk: tree });
+  const css = generateThemeCss({ minimal: tree });
 
   deepStrictEqual(
     blocks(css).map((block) => block.selector),
-    ['[data-theme="silk"]', '[data-theme="silk"][data-mode="dark"]'],
+    ['[data-theme="minimal"]', '[data-theme="minimal"][data-mode="dark"]'],
   );
   deepStrictEqual(
     blockWithSelector(
       css,
-      '[data-theme="silk"]',
+      '[data-theme="minimal"]',
     ).declarations["--color-primary"],
     "#1c62c2",
   );
   deepStrictEqual(
     blockWithSelector(
       css,
-      '[data-theme="silk"][data-mode="dark"]',
+      '[data-theme="minimal"][data-mode="dark"]',
     ).declarations["--color-primary"],
     "#8db9fa",
   );
@@ -744,11 +743,11 @@ test("the checked-in token types are what the baseline generates", async () => {
   // someone else's checkout, so the freshness check lives here with the theme
   // that generates it.
   const tree = treeOf(
-    parseTokens(await readFile(new URL("silk.json", THEMES_DIR), "utf8")),
-    "silk.json",
+    parseTokens(await readFile(new URL("minimal.json", THEMES_DIR), "utf8")),
+    "minimal.json",
   );
   const checkedIn = await readFile(
-    new URL("../../src/theme/theme-types.d.ts", import.meta.url),
+    new URL("../../../theme/src/theme-types.d.ts", import.meta.url),
     "utf8",
   );
   deepStrictEqual(
@@ -806,7 +805,7 @@ function projectTheme(
     | "none",
 ): string {
   const doc = JSON.parse(
-    JSON.stringify(starterThemes.silk),
+    JSON.stringify(starterThemes.minimal),
   ) as Record<string, unknown>;
   const color = doc["color"] as Record<string, unknown>;
   const spacing = doc["spacing"] as Record<string, unknown>;
@@ -1017,7 +1016,7 @@ test("a status colour owes the text floor on the page", () => {
 test("the ink on the secondary and the accent fill is a role the contract asks for", () => {
   // The badge spends the secondary and the accent tones as filled pills with
   // a word on them, so the ink on them is a role with a floor — like the ink
-  // on the primary — and a scaffold writes it.
+  // on the primary — and minimal states it.
   const paths = requiredPaths();
   assert(paths.includes("color.on-secondary"), "the secondary fill has an ink");
   assert(paths.includes("color.on-accent"), "the accent fill has an ink");
@@ -1030,29 +1029,31 @@ test("the ink on the secondary and the accent fill is a role the contract asks f
     floors.find((floor) => floor.fg === "color.on-accent"),
     { fg: "color.on-accent", bg: "color.accent", min: 4.5 },
   );
-  const scaffolded = new Set(
-    scaffoldTheme()
+  const parsed = parseTokens(starterThemes.minimal);
+  if (!parsed.ok) throw new Error(parsed.error);
+  const stated = new Set(
+    parsed.tree
       .flatMap((node) => leavesOf(node))
       .map((leaf) => leaf.path.join(".")),
   );
   assert(
-    scaffolded.has("color.on-secondary"),
-    "the scaffold writes the ink on the secondary fill",
+    stated.has("color.on-secondary"),
+    "minimal states the ink on the secondary fill",
   );
   assert(
-    scaffolded.has("color.on-accent"),
-    "the scaffold writes the ink on the accent fill",
+    stated.has("color.on-accent"),
+    "minimal states the ink on the accent fill",
   );
 });
 
 test("@spinjs/spin/theme re-exports starterThemes and individual starters", async () => {
-  const rootExports = await import("../../src/theme/index.ts");
-  const subpathExports = await import("../../src/theme/themes/index.ts");
+  const rootExports = await import("@spinjs/theme");
+  const subpathExports = await import("@spinjs/theme/themes");
   assert.strictEqual(rootExports.starterThemes, subpathExports.starterThemes);
   assert.strictEqual(rootExports.starterGroups, subpathExports.starterGroups);
-  assert.strictEqual(rootExports.spinTheme, subpathExports.spinTheme);
-  assert.strictEqual(rootExports.silkTheme, subpathExports.silkTheme);
+  assert.strictEqual(rootExports.editorialTheme, subpathExports.editorialTheme);
+  assert.strictEqual(rootExports.minimalTheme, subpathExports.minimalTheme);
   assert.strictEqual(rootExports.materialTheme, subpathExports.materialTheme);
-  assert.strictEqual(rootExports.neobrutTheme, subpathExports.neobrutTheme);
-  assert.strictEqual(rootExports.industrialTheme, subpathExports.industrialTheme);
+  assert.strictEqual(rootExports.neobrutalistTheme, subpathExports.neobrutalistTheme);
+  assert.strictEqual(rootExports.neumorphicTheme, subpathExports.neumorphicTheme);
 });

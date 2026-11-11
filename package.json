@@ -9,13 +9,18 @@
     "internal/kit"
   ],
   "type": "module",
+  "catalog": {
+    "@orpc/client": "^1.0.0",
+    "@orpc/contract": "^1.0.0",
+    "@orpc/server": "^1.0.0",
+    "valibot": "^1.0.0"
+  },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.0",
     "@orpc/client": "^1.0.0",
     "@orpc/contract": "^1.0.0",
     "@orpc/server": "^1.0.0",
     "@spinjs/components": "workspace:*",
-    "@spinjs/runtime": "workspace:*",
     "@spinjs/spin": "workspace:*",
     "@unocss/core": "66.10.5",
     "@unocss/preset-icons": "66.10.5",
@@ -30,16 +35,16 @@
     "vite-plugin-solid": "^2.11.14"
   },
   "scripts": {
-    "test": "bun test packages/ apps/studio/src/ apps/docs/src/",
+    "test": "bun test --path-ignore-patterns=\"**/e2e/**\" --path-ignore-patterns=\"**/e2e.test.ts\" packages/ apps/ internal/ examples/",
     "test:launch": "bun test ./.agents/launch/launch.test.ts",
-    "lint": "oxlint --config .oxlintrc.json packages/ apps/ && bun run packages/spin/src/diagnostics/cli.ts lint packages/components/src apps/",
-    "check": "tsc --noEmit && tsc --noEmit -p apps/docs && tsc --noEmit -p apps/studio && tsc --noEmit -p apps/reference && tsc --noEmit -p internal/check && bun run lint:docs",
-    "lint:docs": "bun packages/spin/src/diagnostics/cli.ts lint apps/docs/src",
-    "test:docs:e2e": "bun test --timeout 120000 apps/docs/src/e2e.test.ts",
+    "lint": "bun packages/spin/src/cli/main.ts lint",
+    "lint:ox": "oxlint --config .oxlintrc.json packages/ apps/ internal/ examples/",
+    "check": "tsc --noEmit && tsc --noEmit -p apps/docs && tsc --noEmit -p apps/studio && tsc --noEmit -p apps/reference && tsc --noEmit -p internal/check && bun run lint",
+    "test:docs:e2e": "bun test --timeout 120000 apps/docs/src/tests/e2e.test.ts",
     "build:dist": "bun run scripts/build-dist.ts",
     "check:dist": "bun run scripts/check-exports.ts",
     "pack": "bun run scripts/pack.ts",
-    "lint:ox": "oxlint --config .oxlintrc.json packages/ apps/",
+    "hooks": "bun run scripts/hooks.ts",
     "visual": "cd apps/reference && bun run visual",
     "visual:studio": "cd apps/studio && bun run visual",
     "serve": "cd apps/reference && bun run dev",

@@ -12,7 +12,7 @@ import {
   getPercentValue,
   getValuePercent,
   snapValueToStep,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 
 /** A channel the picker reads, writes, or steps. */
 export type ColorChannel =

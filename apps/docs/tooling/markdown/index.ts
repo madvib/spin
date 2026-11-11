@@ -18,7 +18,6 @@ const CONTENT_MD_FOR_ROUTE: Readonly<Record<string, string>> = {
   "/docs/authoring/machines": "machines.md",
   "/docs/tooling/lints": "lints.md",
   "/docs/tooling/mcp": "mcp.md",
-  "/docs/tooling/check": "check.md",
 };
 
 export function buildMarkdownForRoute(routePath: string): string | undefined {

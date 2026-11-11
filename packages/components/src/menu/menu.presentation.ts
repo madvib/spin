@@ -10,7 +10,7 @@ import {
   optionRow,
   type ViewFor,
   type SlotViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import { ROVING_KEYS } from "../shared/keyboard.ts";
 import { menu as menuMachine } from "./menu.machine.ts";
 import {
@@ -22,12 +22,7 @@ import {
   type MenuRow,
   type MenuState,
 } from "./menu.state.ts";
-import type {
-  MenuEvents,
-  MenuHighlightChange,
-  MenuOpenChange,
-  MenuSelect,
-} from "./menu.events.ts";
+import type { MenuEvents } from "./menu.events.ts";
 
 /**
  * Menu bindings: the DOM contract as data. The machine owns open/closed,
@@ -237,7 +232,7 @@ const rowHandlers = (scope: ScopeLike, row: MenuRow): RowHandlerSet => {
 
       scope.send({ type: "HIGHLIGHT", value: row.value });
     },
-    onClick: (event: MouseEvent): void => {
+    onClick: (): void => {
       activate(scope, row);
     },
   };
@@ -261,7 +256,7 @@ const submenuRowHandlers = (scope: ScopeLike, row: MenuRow): RowHandlerSet => {
       if (event.pointerType !== "mouse" || row.disabled) return;
       scope.send({ type: "SUBMENU_HIGHLIGHT", value: row.value });
     },
-    onClick: (event: MouseEvent): void => {
+    onClick: (): void => {
       if (row.disabled) return;
       scope.send({ type: "ITEM_CLICK", value: row.value });
       if (scope.context.closeOnSelect) closeSelf(scope);

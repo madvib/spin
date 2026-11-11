@@ -1,11 +1,13 @@
 # @spinjs/components
 
-Thirty-seven headless statechart machines and the platform controllers —
+Thirty-six headless statechart machines and the platform controllers —
 comboboxes, date pickers, carousels, menus, dialogs, and the rest — each with
-copyable `.html` templates you own and restyle through the theme.
+copyable `.html` templates you own and restyle through the theme. The client
+runtime (signals, elements, directives, machines) ships in this package too,
+under `@spinjs/components/runtime`.
 
 ```sh
-npm install @spinjs/components @spinjs/runtime
+npm install @spinjs/components
 ```
 
 ```sh
@@ -54,9 +56,17 @@ import { spinComponentCtl } from "@spinjs/components/controller";
 
 One subpath per component (`@spinjs/components/select`,
 `@spinjs/components/combobox`, `@spinjs/components/date-picker`, and the other
-thirty-four), plus:
+thirty-three), plus:
 
 - `@spinjs/components/react` — `useSpinComponent`.
 - `@spinjs/components/solid` — `createSpinComponent`.
 - `@spinjs/components/controller` — `spinComponentCtl`.
 - `@spinjs/components/spin-element` — the custom-element base.
+- `@spinjs/components/runtime` — signals, elements, directives, machines.
+- `@spinjs/components/fsm` — the statechart core.
+- `@spinjs/components/props` — prop parsing.
+- `@spinjs/components/load` — the load directive.
+- `@spinjs/components/actions` — gesture and overlay actions.
+- `@spinjs/components/testing` — `parseHTML` and test helpers.
+- `@spinjs/components/compiler` — the `.html` transform.
+- `@spinjs/components/examples` — example sources and machines.

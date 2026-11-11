@@ -48,12 +48,18 @@ import {
   registerMarkup,
   themeText,
 } from "../../lib/store.ts";
-import { createToken, editToken } from "../../lib/editing.ts";
+import { createToken, editToken, upsertToken } from "../../lib/editing.ts";
 import { analyzeTheme } from "../../lib/theme.ts";
-import { tokenRowAt } from "../../lib/tokens.ts";
+import {
+  referenceTargets,
+  styleGroups,
+  tokenRowAt,
+  typeTarget,
+} from "../../lib/tokens.ts";
 import { measure } from "../../lib/scale.ts";
 import { Specimen } from "@spinjs/kit";
 import TokenRow from "../../components/demos/TokenRow.tsx";
+import StudioSelect from "../../components/StudioSelect.tsx";
 import { Badge } from "../../components/Concern.tsx";
 
 const NARROW_COMPONENTS = new Set([
@@ -158,7 +164,6 @@ export default function ComponentPage() {
     )
   );
   const rows = () => found()?.examples?.rows ?? [];
-  const [showTokens, setShowTokens] = createSignal(false);
   const [showApi, setShowApi] = createSignal(false);
   const [showClasses, setShowClasses] = createSignal(false);
 
@@ -183,6 +188,23 @@ export default function ComponentPage() {
   const declaredTokens = createMemo(() => contract()?.component ?? []);
   const parsedTree = createMemo(() => analyzeTheme(themeText()).tree);
 
+  const typeAliasPaths = createMemo(() => {
+    const tree = parsedTree();
+    const comp = found();
+    if (tree === undefined || comp === undefined) return [];
+    const prefix = `${comp.name}.`;
+    return referenceTargets(tree).filter((path) => path.startsWith(prefix));
+  });
+  const rootTypePaths = createMemo(() =>
+    typeAliasPaths().filter((path) => path.split(".").length <= 2)
+  );
+  const variantTypePaths = createMemo(() =>
+    typeAliasPaths().filter((path) => path.split(".").length > 2)
+  );
+  const styleNames = createMemo(() => {
+    const tree = parsedTree();
+    return tree === undefined ? [] : styleGroups(tree).map((group) => group.name);
+  });
   // A component token's slider ceiling is its FAMILY's — icon.sm beside
   // icon.md and icon.lg — so siblings share one track the way a scale's
   // steps do. Alone, the control takes headroom of its own. A family is
@@ -265,7 +287,7 @@ export default function ComponentPage() {
         {(component) => (
           <div>
             <header class="mb-4 flex flex-wrap items-start justify-between gap-4">
-              <div class="min-w-0">
+              <div class="min-w-0 stack-xs">
                 <h1 class="capitalize">
                   {displayComponentName(component.name)}
                 </h1>
@@ -275,7 +297,7 @@ export default function ComponentPage() {
                     Boolean(component.examples?.note)
                   }
                 >
-                  <p class="mt-1 max-w-screen-md text-muted">
+                  <p class="max-w-screen-md text-muted">
                     {component.examples?.note}
                   </p>
                 </Show>
@@ -287,7 +309,7 @@ export default function ComponentPage() {
                 >
                   <button
                     type="button"
-                    class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 normal-case shadow-none hover:border-primary ${
+                    class={`bare min-h-0 cursor-pointer px-2 py-1 normal-case shadow-none hover:border-primary ${
                       showApi()
                         ? "border-transparent bg-primary text-on-primary"
                         : "border bg-surface-raised"
@@ -297,30 +319,10 @@ export default function ComponentPage() {
                     {showApi() ? "hide api" : "api"}
                   </button>
                 </Show>
-                <Show when={declaredTokens().length > 0}>
-                  <button
-                    type="button"
-                    // The chip that opens the panel wears the acting colour
-                    // while the panel is open: it is the control that is on,
-                    // and a control that is on says so in colour. The two
-                    // states are spelled out rather than layered, because a
-                    // second colour class on the same element is a coin toss
-                    // for which one the sheet writes last.
-                    class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 normal-case shadow-none hover:border-primary ${
-                      showTokens()
-                        ? "border-transparent bg-primary text-on-primary"
-                        : "border bg-surface-raised"
-                    }`}
-                    onClick={() => setShowTokens((v) => !v)}
-                  >
-                    {showTokens() ? "hide" : "component tokens"}{" "}
-                    ({declaredTokens().length})
-                  </button>
-                </Show>
                 <Show when={classRowsFor(component).length > 0}>
                   <button
                     type="button"
-                    class={`min-h-0 cursor-pointer rounded-md border px-2 py-1 normal-case shadow-none hover:border-primary ${
+                    class={`bare min-h-0 cursor-pointer px-2 py-1 normal-case shadow-none hover:border-primary ${
                       showClasses()
                         ? "border-transparent bg-primary text-on-primary"
                         : "border bg-surface-raised"
@@ -360,15 +362,15 @@ export default function ComponentPage() {
                     <For each={classRowsFor(component)}>
                       {(item) => (
                         <tr class="border-b last:border-b-0">
-                          <td class="whitespace-nowrap px-3 py-1 type-code text-primary">
+                          <td class="whitespace-nowrap type-code text-primary">
                             <code>{item.name}</code>
                           </td>
-                          <td class="whitespace-nowrap px-3 py-1 type-caption text-muted">
+                          <td class="whitespace-nowrap type-caption text-muted">
                             <span class="inline-flex items-center rounded-sm border bg-surface-raised px-2 py-0 type-caption">
                               {item.kind}
                             </span>
                           </td>
-                          <td class="px-3 py-1 text-muted">
+                          <td class="text-muted">
                             {item.description}
                           </td>
                         </tr>
@@ -413,11 +415,7 @@ export default function ComponentPage() {
                           </span>
                           <div class="flex flex-wrap gap-1">
                             <For each={names}>
-                              {(name) => (
-                                <code class="rounded-sm border bg-surface px-1 py-0">
-                                  {name}
-                                </code>
-                              )}
+                              {(name) => <code>{name}</code>}
                             </For>
                           </div>
                         </div>
@@ -427,29 +425,73 @@ export default function ComponentPage() {
                 </div>
               </div>
             </Show>
-            <Show when={showTokens() && declaredTokens().length > 0}>
-              <div data-studio-chrome="" class="my-4 stack-sm rounded-md border bg-surface-raised p-4">
-                <div class="flex items-center justify-between">
-                  <h2>Component tokens</h2>
-                  <button
-                    type="button"
-                    // `bare` takes the theme's button tokens back: the
-                    // panel's close is a way out of the panel, not the
-                    // loudest action in it. Without it the theme's own
-                    // primary fill and hard shadow reach a control that
-                    // meant to read as a link.
-                    class="bare p-0 text-muted"
-                    onClick={() => setShowTokens(false)}
-                  >
-                    close
-                  </button>
-                </div>
+            <Show when={declaredTokens().length > 0 || typeAliasPaths().length > 0}>
+              <section data-studio-chrome="" class="my-4 stack-sm rounded-md border bg-surface-raised p-4" aria-label="Tokens">
+                <h2>Tokens</h2>
                 <p class="text-muted">
                   The tokens this component declares as its own — edited inline
                   while you interact with the specimens below, or created here
                   when the theme currently relies on the shared scale.
                 </p>
                 <div class="stack-sm">
+                  <For each={rootTypePaths()}>
+                    {(path) => {
+                      const target = () => {
+                        const tree = parsedTree();
+                        return tree === undefined ? undefined : typeTarget(tree, path);
+                      };
+                      return (
+                        <card class="min-h-12 flex-row flex-wrap items-center justify-between gap-4 px-3 py-2">
+                          <div class="row-sm min-w-0">
+                            <code class="truncate">{path}</code>
+                          </div>
+                          <div class="row-sm shrink-0 items-center gap-2">
+                            <StudioSelect
+                              label={`Style ${path} names`}
+                              value={target() ?? ""}
+                              items={styleNames().map((style) => ({ value: style, label: style }))}
+                              onPick={(value) => {
+                                if (value.trim() === "") return;
+                                upsertToken(path.split("."), "typography", `{font.style.${value.trim()}}`, "base");
+                              }}
+                            />
+                            <code>type-{target() ?? "—"}</code>
+                          </div>
+                        </card>
+                      );
+                    }}
+                  </For>
+                  <Show when={variantTypePaths().length > 0}>
+                    <details class="p-3">
+                      <summary class="cursor-pointer type-label">
+                        Variant typography ({variantTypePaths().length})
+                      </summary>
+                      <div class="mt-3 grid gap-2 sm:grid-cols-2">
+                        <For each={variantTypePaths()}>
+                          {(path) => {
+                            const target = () => {
+                              const tree = parsedTree();
+                              return tree === undefined ? undefined : typeTarget(tree, path);
+                            };
+                            return (
+                              <div class="split rounded-md border bg-surface-raised px-3 py-2">
+                                <code class="truncate">{path}</code>
+                                <StudioSelect
+                                  label={`Style ${path} names`}
+                                  value={target() ?? ""}
+                                  items={styleNames().map((style) => ({ value: style, label: style }))}
+                                  onPick={(value) => {
+                                    if (value.trim() === "") return;
+                                    upsertToken(path.split("."), "typography", `{font.style.${value.trim()}}`, "base");
+                                  }}
+                                />
+                              </div>
+                            );
+                          }}
+                        </For>
+                      </div>
+                    </details>
+                  </Show>
                   <For each={declaredTokens()}>
                     {(entry) => {
                       const row = createMemo(() => {
@@ -502,7 +544,7 @@ export default function ComponentPage() {
                     }}
                   </For>
                 </div>
-              </div>
+              </section>
             </Show>
 
             <For each={rows()}>

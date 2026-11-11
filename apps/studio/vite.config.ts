@@ -65,10 +65,10 @@ export default defineConfig(({ command }) => ({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes("@unocss") || id.includes("packages/spin/src/preset")) {
+          if (id.includes("@unocss") || id.includes("packages/preset/src")) {
             return "preset";
           }
-          if (id.includes("packages/spin/src/theme")) {
+          if (id.includes("packages/theme/src")) {
             return "theme";
           }
           if (id.includes("node_modules")) {
@@ -135,7 +135,7 @@ export default defineConfig(({ command }) => ({
           "vite.config.ts",
           "src/**/*.{tsx,ts}",
           "src/lib/components/**/*.{html,ts}",
-          "../../packages/spin/src/kit/**/*.{tsx,ts}",
+          "../../internal/kit/src/**/*.{tsx,ts}",
         ],
         pipeline: {
           include: [

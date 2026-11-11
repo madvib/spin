@@ -13,14 +13,15 @@ import { listPrimitives, type RpcComponent } from "./primitives.ts";
 import { summarySwatches, type SwatchGroup } from "./overview.ts";
 import {
   analyzeTheme,
+  authoredLeafCount,
   declaredModes,
   fileMoved,
   fileState,
   resolveMode,
 } from "./theme.ts";
 import type { FileState } from "./theme.ts";
-import { indexTree } from "@spinjs/spin/theme";
-import type { Mode, TokenTree } from "@spinjs/spin/theme";
+import { indexTree } from "@spinjs/theme";
+import type { Mode, TokenTree } from "@spinjs/theme";
 import { compositeLadders, type CompositeLadders } from "./tokens.ts";
 
 /** The tree before any document parses: no tokens, no modes, no crash. */
@@ -29,10 +30,12 @@ import { documentFailure, editRefusal } from "./live-edit.ts";
 import { keepFocus } from "./keep-focus.ts";
 import { clearPreviewPaint } from "./preview.ts";
 import {
+  brandFacts,
   currentProject,
   listProjectThemes,
   loadProjectTheme,
   problemText,
+  type BrandFacts,
   type ProjectReport,
   readProjectConfig,
   saveTheme,
@@ -154,6 +157,8 @@ createEffect(() => {
   const listed = registry();
   if (listed === undefined || listed.length === 0) return;
   const served = new Set(listed.map((theme) => theme.name));
+  const local = listed.filter((theme) => theme.file !== null);
+  const fallback = (local[0] ?? listed[0])!.name;
   if (!seated) {
     seated = true;
     const configured = config()?.config.activeTheme;
@@ -161,10 +166,14 @@ createEffect(() => {
       setActiveName(configured);
       return;
     }
-    if (!served.has(activeName())) setActiveName(listed[0]!.name);
+    if (local.length > 0 && !local.some((theme) => theme.name === activeName())) {
+      setActiveName(local[0]!.name);
+      return;
+    }
+    if (!served.has(activeName())) setActiveName(fallback);
     return;
   }
-  if (!served.has(activeName())) setActiveName(listed[0]!.name);
+  if (!served.has(activeName())) setActiveName(fallback);
 });
 
 /**
@@ -266,6 +275,26 @@ const [dockSide, setDockSideSignal] = createSignal<"left" | "right">(
 );
 
 export { activeName, dockSide };
+
+const [brandData, { refetch: refetchBrandResource }] = createResource(
+  () => {
+    const root = project()?.root;
+    const name = activeName();
+    return root === undefined || name === "" ? undefined : { root, name };
+  },
+  async (key) => await brandFacts(key.root, key.name),
+);
+
+/** The active theme's brand layers, or `undefined` before they answer. */
+export function activeBrand(): BrandFacts | undefined {
+  return brandData.state === "refreshing" ? brandData.latest : brandData();
+}
+
+/** Re-reads the active brand's layers from disk. */
+export function refetchBrand(): void {
+  void refetchBrandResource();
+}
+
 
 /**
  * The mode the author chose, kept across themes.
@@ -879,6 +908,7 @@ export function markSaved(name: string): void {
   // picture of the disk is the daemon's, and a theme created or deleted
   // anywhere else arrives with it.
   refetchThemes();
+  refetchBrand();
 }
 
 /**
@@ -992,6 +1022,7 @@ export async function saveStarterAsProjectTheme(
   setOnDisk((prev) => ({ ...prev, [trimmed]: document }));
   forgetHistory(trimmed, document);
   refetchThemes();
+  refetchBrand();
   setSaveCopyRequest(null);
   setActiveName(trimmed);
   note(`${sourceName} saved as ${trimmed}.`);
@@ -1004,17 +1035,21 @@ export function hasProjectFile(name: string): boolean {
 }
 
 /**
- * How many tokens the active theme's document declares.
+ * How many tokens the active theme's document authors, and how many the
+ * parse emits from them.
  *
- * The count the studio shows about a theme is the count of its leaves, read
- * from the same analysis the overview reads: two answers to one question
- * have to be one answer.
+ * The authored count is the document's `$value` nodes; the composed count
+ * is the indexed leaves after composites fan out. The bar shows both, so
+ * the expansion is explained rather than hidden.
  */
-export function activeTokenCount(): number {
+export function activeTokenCount(): { authored: number; composed: number } {
   try {
-    return Object.values(indexTree(activeTree()).leaves).length;
+    return {
+      authored: authoredLeafCount(themeText()),
+      composed: Object.values(indexTree(activeTree()).leaves).length,
+    };
   } catch {
-    return 0;
+    return { authored: 0, composed: 0 };
   }
 }
 
@@ -1064,7 +1099,9 @@ export function activeComponents(): string[] | undefined {
 export interface ThemeSummary {
   name: string;
   file: string | null;
+  origin?: "local" | "brand" | "verbatim";
   tokens: number;
+  composed: number;
   dirty: boolean;
   /**
    * What the file holds, as far as the studio knows.
@@ -1101,14 +1138,16 @@ export interface ThemeSummary {
 export function themeOrder(): StudioTheme[] {
   const listed = registry() ?? [];
   const order = config()?.config.themeOrder;
-  if (order === undefined || order.length === 0) return [...listed].sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
-  const rank = new Map(order.map((name, index) => [name, index]));
+  const rank = new Map((order ?? []).map((name, index) => [name, index]));
   return [...listed].sort((a, b) => {
     const ra = rank.get(a.name);
     const rb = rank.get(b.name);
     if (ra !== undefined && rb !== undefined) return ra - rb;
     if (ra !== undefined) return -1;
     if (rb !== undefined) return 1;
+    const aLocal = a.file !== null ? 0 : 1;
+    const bLocal = b.file !== null ? 0 : 1;
+    if (aLocal !== bLocal) return aLocal - bLocal;
     return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
   });
 }
@@ -1124,7 +1163,9 @@ export function themeSummaries(): ThemeSummary[] {
     return {
       name: theme.name,
       file: theme.file,
-      tokens: leaves.length,
+      origin: theme.origin,
+      tokens: authoredLeafCount(text),
+      composed: leaves.length,
       dirty: docs()[theme.name] !== saved()[theme.name],
       state: fileStateOf(theme.name),
       valid: state.error === undefined && state.issues.length === 0,

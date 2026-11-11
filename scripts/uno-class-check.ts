@@ -18,9 +18,9 @@ import { createGenerator } from "@unocss/core";
 import presetIcons from "@unocss/preset-icons";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import { readdir, readFile } from "node:fs/promises";
-import { classTokens, expandVariantGroups, parse } from "../packages/runtime/src/syntax/index.ts";
-import { spinPreset } from "../packages/spin/src/compiler/index.ts";
-import { starterThemes } from "../packages/spin/src/theme/themes/index.ts";
+import { classTokens, expandVariantGroups, parse } from "../packages/components/src/runtime/syntax/index.ts";
+import { spinPreset } from "@spinjs/preset";
+import { starterThemes } from "../packages/theme/src/themes/index.ts";
 import { spinCompositions } from "../packages/spin/src/compositions.ts";
 
 /** Where the classes live: the recipes (markup) and the specimens (Solid). */
@@ -83,7 +83,7 @@ for (const root of SOURCES) {
 // The `animate-*` utilities are not Uno rules — they ship as plain CSS from
 // `@spinjs/animation`'s preflight — so they are allowlisted rather than
 // generated: the generator would never match them either way.
-import { animationVariants } from "../packages/spin/src/animation/index.ts";
+import { animationVariants } from "@spinjs/preset";
 const ANIMATED = animationVariants();
 /** Scope markers: not utilities, but load-bearing hooks the sheet reads. */
 const SCOPED = new Set(["spin-preview"]);

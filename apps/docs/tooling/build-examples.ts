@@ -17,15 +17,15 @@ import { spawnSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { build } from "vite";
-import { SUBJECT_HTML } from "./examples/shared.ts";
+import { SUBJECT_HTML } from "../examples/shared.ts";
 
 const docs = resolve(import.meta.dirname, "..");
 const repo = resolve(docs, "../..");
 const out = resolve(docs, "public/examples");
 
 const runtimeAlias = {
-  find: /^@spinjs\/runtime$/,
-  replacement: resolve(repo, "packages/runtime/src/index.ts"),
+  find: /^@spinjs\/components\/runtime$/,
+  replacement: resolve(repo, "packages/components/src/runtime/index.ts"),
 };
 
 const shared = {
@@ -119,8 +119,8 @@ async function writeCss(): Promise<void> {
   const [{ createGenerator }, { spinPreset }, { starterThemes }, list] =
     await Promise.all([
       import("@unocss/core"),
-      import("../../packages/spin/src/compiler/index.ts"),
-      import("../../packages/spin/src/theme/themes/index.ts"),
+      import("@spinjs/preset"),
+      import("../../packages/theme/src/themes/index.ts"),
       candidates(),
     ]);
   const generator = await createGenerator({

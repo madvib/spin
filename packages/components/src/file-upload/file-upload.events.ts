@@ -1,4 +1,4 @@
-import type { EventUnion } from "@spinjs/runtime/fsm";
+import type { EventUnion } from "@spinjs/components/fsm";
 import type { FileRecord, FileRejection } from "./file-upload.state.ts";
 
 export interface FileUploadEvents {

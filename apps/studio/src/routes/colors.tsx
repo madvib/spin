@@ -1,9 +1,8 @@
 import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
-import { createSpinComponent } from "@spinjs/components/solid";
-import { modePicker } from "@spinjs/components/mode-picker";
+
 import { ColorField } from "../components/ColorField.tsx";
 import { ReferencePicker } from "../components/ReferencePicker.tsx";
-import { contrastRatio, generateScale, toHex } from "@spinjs/spin/theme";
+import { contrastRatio, generateScale, toHex } from "@spinjs/theme";
 import { inDrawer } from "../lib/host.ts";
 import {
   activeMode,
@@ -93,7 +92,6 @@ export default function ColorsPage() {
   return (
     <ConcernPage
       title="Colors"
-      action={<ModeToggle />}
     >
       <div
         class={inDrawer() ? "stack-lg" : "grid items-start gap-6 lg:grid-cols-2"}
@@ -148,33 +146,6 @@ export default function ColorsPage() {
   );
 }
 
-function ModeToggle() {
-  const [element, setElement] = createSignal<HTMLElement>();
-  const ctl = createSpinComponent(element, modePicker);
-  createEffect(() =>
-    ctl.bind(
-      {
-        value: activeMode(),
-        modes: [...activeModes()],
-        hideWhenSingle: activeModes().length <= 1,
-      },
-      {
-        "value-change": (event: CustomEvent<{ value: string }>) => {
-          const next = event.detail.value;
-          if (next === "light" || next === "dark") setActiveMode(next);
-        },
-      },
-    )
-  );
-  return (
-    <studio-mode-picker
-      ref={(el: HTMLElement) => setElement(el)}
-      prop:value={activeMode()}
-      prop:modes={[...activeModes()]}
-      prop:hideWhenSingle={activeModes().length <= 1}
-    />
-  );
-}
 
 /**
  * The right-hand inspector: edits the selected role, lets paired Fill/Ink
@@ -278,7 +249,7 @@ function RolePicker(props: {
                   >
                     <button
                       type="button"
-                      class="bare flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-left type-caption-strong"
+                      class="bare flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-left type-caption-emphasized"
                       classList={{
                         "bg-surface-raised shadow-sm": onFill(),
                         "text-muted": !onFill(),
@@ -290,7 +261,7 @@ function RolePicker(props: {
                     </button>
                     <button
                       type="button"
-                      class="bare flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-left type-caption-strong"
+                      class="bare flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-left type-caption-emphasized"
                       classList={{
                         "bg-surface-raised shadow-sm": !onFill(),
                         "text-muted": onFill(),
@@ -332,7 +303,7 @@ function RolePicker(props: {
 
           <Show when={pairs().length > 0}>
             <div class="stack-sm border-t pt-3">
-              <span class="type-caption-strong text-muted">Legibility checks</span>
+              <span class="type-caption-emphasized text-muted">Legibility checks</span>
               <div class="row-sm flex-wrap">
                 <For each={pairs()}>
                   {(floor) => (
@@ -419,8 +390,8 @@ function InspectorSpecimen(props: {
       }}
     >
       <div class="row-sm min-w-0">
-        <span class="type-body-strong">Aa</span>
-        <span class="truncate type-caption-strong">
+        <span class="type-body-emphasized">Aa</span>
+        <span class="truncate type-caption-emphasized">
           {humanName(props.role.path)}
         </span>
       </div>
@@ -487,7 +458,7 @@ function SlotEditor(props: {
   return (
     <div class="stack rounded-md border bg-surface p-3">
       <div class="stack-sm">
-        <span class="type-caption-strong text-muted">Color</span>
+        <span class="type-caption-emphasized text-muted">Color</span>
         <div class="split">
           <ColorField
             bare
@@ -504,7 +475,7 @@ function SlotEditor(props: {
       </div>
 
       <div class="stack-sm border-t pt-3">
-        <span class="type-caption-strong text-muted">Theme swatch</span>
+        <span class="type-caption-emphasized text-muted">Theme swatch</span>
         <ReferencePicker
           targets={props.targets.filter((t) => t.path !== props.role.path)}
           current={props.value.reference}
@@ -696,7 +667,7 @@ function RoleCardView(props: {
               aria-hidden="true"
             />
           </Show>
-          <span class="truncate type-body-strong" title={role().path}>
+          <span class="truncate type-body-emphasized" title={role().path}>
             {name()}
           </span>
         </div>
@@ -732,7 +703,7 @@ function RoleCardView(props: {
 
         <Show when={kind() === "surface"}>
           <div class="stack-xs min-w-0">
-            <span class="truncate type-body-strong" style={{ color: safeInk(textVal(), cardBg()) }}>
+            <span class="truncate type-body-emphasized" style={{ color: safeInk(textVal(), cardBg()) }}>
               Aa — Text on {name()}
             </span>
             <span class="truncate type-caption" style={{ color: safeInk(textMutedVal(), cardBg()) }}>
@@ -763,7 +734,7 @@ function RoleCardView(props: {
 
         <Show when={kind() === "stroke"}>
           <div
-            class="w-full rounded-md border-2 border-solid px-3 py-1 type-caption-strong"
+            class="w-full rounded-md border-2 border-solid px-3 py-1 type-caption-emphasized"
             style={{
               "border-color": current()?.hex ?? undefined,
               background: surfaceRaisedVal(),
@@ -860,7 +831,7 @@ function RoleCardView(props: {
           {(ink) => (
             <button
               type="button"
-              class="bare relative z-10 inline-flex cursor-pointer items-center gap-1 rounded-sm border px-2 py-1 type-caption-strong"
+              class="bare relative z-10 inline-flex cursor-pointer items-center gap-1 rounded-sm border px-2 py-1 type-caption-emphasized"
               classList={{
                 "border-current": selectedInk(),
                 "border-transparent hover:border-current": !selectedInk(),
@@ -934,7 +905,7 @@ function PairChip(props: {
         if (!holds()) props.onToggle();
       }}
     >
-      <span class="row-sm px-2 py-1 type-caption-strong" style={{ color: safeInk(ink(), bg()) }}>
+      <span class="row-sm px-2 py-1 type-caption-emphasized" style={{ color: safeInk(ink(), bg()) }}>
         <swatch class="s-sm" style={{ "--swatch": ink() }} aria-hidden="true" />
         <span class="truncate">{humanName(props.floor.fg)} on {humanName(props.floor.bg)}</span>
         <Show when={numbers()} fallback={<span>{props.floor.ratio.toFixed(1)}:1</span>}>
@@ -978,7 +949,7 @@ function FloorFix(props: {
       >
         <button
           type="button"
-          class="bare relative z-10 shrink-0 cursor-pointer justify-start p-0 text-left type-caption-strong"
+          class="bare relative z-10 shrink-0 cursor-pointer justify-start p-0 text-left type-caption-emphasized"
           title={`Set ${props.floor.fg} to ${props.floor.remedy}`}
           onClick={(e) => {
             e.stopPropagation();

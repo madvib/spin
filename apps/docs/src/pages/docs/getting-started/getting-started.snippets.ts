@@ -3,7 +3,15 @@
  */
 export const GETTING_STARTED_SNIPPETS = {
   install: `npm install -D @spinjs/spin\nnpm install @spinjs/components`,
-  init: `npx spin init`,
+  init: `npx spin init --name acme --starter minimal`,
+  brandTree: `spin/
+  brand.json              # { "name": "acme" }
+  acme/
+    tokens.json           # "$extends": "minimal", faces, type styles, palette, shape
+    reference.json        # optional scale overrides
+    elements.json         # optional HTML element .type overrides
+    primitives/           # optional per-component token overrides (button.json, card.json)
+    themes/               # optional *.palette.json and *.spacing.json facets`,
   vite: `import { spin } from "@spinjs/spin/vite";
 
 export default {
@@ -16,7 +24,7 @@ import "spin/components";`,
 declare module "spin/styles.css";
 declare module "spin/components";`,
   brandExport: `// packages/brand/src/spin.ts
-import acme from "../spin/acme.json" with { type: "json" };
+import acme from "../spin/acme/tokens.json" with { type: "json" };
 
 export const acmeBrand = {
   themes: { acme },
@@ -53,14 +61,14 @@ export const plugins = [spin.esbuild()];`,
 export const plugins = [spin.bun()];`,
   unocss: `import { readFileSync } from "node:fs";
 import { defineConfig } from "unocss";
-import { spinPreset } from "@spinjs/spin/preset";
+import { spinPreset } from "@spinjs/preset";
 
-const spinTheme = JSON.parse(
+const editorialTheme = JSON.parse(
   readFileSync(new URL("./spin/<brand>/tokens.json", import.meta.url), "utf8"),
 );
 
 export default defineConfig({
-  presets: [spinPreset({ themes: { "<name>": spinTheme } })],
+  presets: [spinPreset({ themes: { "<name>": editorialTheme } })],
 });`,
   studioServe: `npx spin studio`,
   viteOptions: `spin.vite({

@@ -1,6 +1,6 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { scaffoldTheme, treeToJson } from "@spinjs/spin/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 import { measure, quantize, sliderRange } from "./scale.ts";
 import {
   declaredValue,
@@ -31,7 +31,7 @@ function fixture(): string {
 
 /** A document that declares every role a theme owes. */
 function complete(): string {
-  return treeToJson(scaffoldTheme());
+  return JSON.stringify(starterThemes.minimal, null, 2);
 }
 
 /** A document with one token's value written as something else. */

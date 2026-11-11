@@ -1,12 +1,12 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { parseHTML } from "@spinjs/runtime/testing";
-import { signal } from "@spinjs/runtime";
+import { parseHTML } from "@spinjs/components/testing";
+import { signal } from "@spinjs/components/runtime";
 import { editable } from "./editable.presentation.ts";
 const createEditableBridge = editable.createBridge;
 import type { EditableEditChange, EditableValueChange } from "./editable.presentation.ts";
 import type { EditableApi } from "./editable.presentation.ts";
-import type { InteractOutsideEvent } from "@spinjs/runtime/actions";
+import type { InteractOutsideEvent } from "@spinjs/components/actions";
 
 /** A live writable read, as the element's prop store exposes one. */
 type WriteSignal = { (): unknown; (value: unknown): void };

@@ -1,4 +1,4 @@
-import type { AssignFor } from "@spinjs/runtime/fsm";
+import type { AssignFor } from "@spinjs/components/fsm";
 import type { AvatarEvents } from "./avatar.events.ts";
 import type { AvatarContext } from "./avatar.state.ts";
 

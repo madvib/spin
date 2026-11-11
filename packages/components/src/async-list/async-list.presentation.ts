@@ -9,7 +9,7 @@ import {
   isRecord,
   type ViewFor,
   type SlotViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import { asyncList as asyncListMachine } from "./async-list.machine.ts";
 import type {
   AsyncListArgs,

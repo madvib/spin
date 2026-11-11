@@ -24,8 +24,8 @@ import {
   indexTree,
   toHex,
   valuesInMode,
-} from "@spinjs/spin/theme";
-import type { TokenLeaf, TokenTree } from "@spinjs/spin/theme";
+} from "@spinjs/theme";
+import type { TokenLeaf, TokenTree } from "@spinjs/theme";
 import { tokenValue } from "./overview.ts";
 
 /** The three families a theme's colours fall into. */
@@ -319,7 +319,9 @@ export function pairedInkPath(path: string): string | null {
     rest === "primary" ||
     rest === "secondary" ||
     rest === "accent" ||
-    rest === "disabled"
+    rest === "disabled" ||
+    rest === "selected" ||
+    rest === "contrast"
   ) {
     return `color.on-${rest}`;
   }
@@ -360,6 +362,14 @@ export function familyCards(
   for (const role of inFamily) {
     const fillPath = pairedFillPath(role.path);
     if (fillPath !== null && byPath.has(fillPath)) continue;
+    if (
+      role.path === "color.on-danger" ||
+      role.path.endsWith("-hover") ||
+      role.path.endsWith("-active") ||
+      role.path.endsWith("-visited")
+    ) {
+      continue;
+    }
     const inkPath = pairedInkPath(role.path);
     const ink = inkPath !== null ? (byPath.get(inkPath) ?? null) : null;
     out.push({ role, ink });

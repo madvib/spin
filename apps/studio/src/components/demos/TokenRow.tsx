@@ -19,12 +19,19 @@ import { createMemo, Show } from "solid-js";
 import type { TokenRow } from "../../lib/tokens";
 import { tokenStatus } from "../../lib/live-edit.ts";
 import {
+  activeBrand,
   activeMode,
   activeName,
   refusalFor,
   registry,
   themeText,
 } from "../../lib/store.ts";
+import {
+  layersOf,
+  leafOrigin,
+  originFile,
+  originLabel,
+} from "../../lib/origin.ts";
 import ValueInput from "./ValueInput.tsx";
 
 /** `color.neutral.50` → `neutral-50`, the utility suffix a swatch spends. */
@@ -55,13 +62,19 @@ export default function TokenRow_(props: {
   const status = createMemo(() =>
     tokenStatus(themeText(), projectText(), props.row.path, activeMode())
   );
+  const layers = createMemo(() => {
+    const brand = activeBrand();
+    if (brand === undefined) return undefined;
+    return layersOf(brand.layers, brand.designLanguage);
+  });
   return (
     <>
       <card class="min-h-12 flex-row items-center justify-between gap-4 px-3 py-2">
         <div class="row-sm min-w-0">
           <Show when={props.swatch ?? false}>
             <div
-              class={`h-8 w-16 shrink-0 rounded-sm bg-${tokenSuffix(props.row.path)}`}
+              class="h-8 w-16 shrink-0 rounded-sm border"
+              style={{ background: `var(${props.row.variable})` }}
             />
           </Show>
           <label for={id()} class="truncate">
@@ -92,6 +105,19 @@ export default function TokenRow_(props: {
             >
               edited
             </span>
+          </Show>
+          <Show when={layers()}>
+            {(held) => {
+              const origin = () => leafOrigin(props.row.path.split("."), held());
+              return (
+                <span
+                  class="rounded-sm bg-surface-sunken px-1 py-0 type-caption text-muted"
+                  title={originFile(origin(), props.row.path.split("."), held())}
+                >
+                  {originLabel(origin())}
+                </span>
+              );
+            }}
           </Show>
         </div>
         <div class="row-sm min-w-0 shrink-0 items-center justify-end gap-2">

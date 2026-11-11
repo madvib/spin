@@ -7,7 +7,7 @@ import { createSignal, onCleanup, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import { docsPageContext } from "../shell/nav.ts";
 import { mode, Section as SharedSection, theme } from "@spinjs/kit";
-import { starterThemes } from "@spinjs/spin/theme";
+import { starterThemes } from "@spinjs/theme";
 
 export function serializeMainToMarkdown(
   main: HTMLElement,
@@ -120,7 +120,7 @@ export function PageHeader(props: {
           <button
             type="button"
             onClick={onCopyMarkdown}
-            class="bare inline-flex items-center gap-1 rounded-md border bg-surface-raised px-2 py-1 type-code text-muted transition-colors duration-fast hover:border-strong"
+             class="bare inline-flex items-center gap-1 rounded-md border bg-surface-raised px-2 py-1 type-code text-muted transition-colors duration-fast hover:border-strong"
           >
             <span
               class={

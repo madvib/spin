@@ -1,5 +1,4 @@
 import { readFile, rm, stat, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 /**
  * The studio's theme actions, end to end.
  *
@@ -17,12 +16,12 @@ import assert, { deepStrictEqual } from "node:assert/strict";
 import { test, withPage } from "./harness.ts";
 import { type StudioPage, studioUrl } from "./studio.ts";
 import {
+  badgeLabel,
   cardText,
   chromeVar,
   createTheme,
   declaredValue,
   deleteFromCard,
-  editingLine,
   listedThemes,
   pressRail,
   previewMode,
@@ -90,8 +89,8 @@ async function openProject(page: StudioPage): Promise<string> {
   await openStudio(page);
   const root = await projectRoot(page);
   assert(root !== "", "the daemon names no project for the studio to edit");
-  const seated = await seatTheme(page, "silk");
-  assert(seated === "seated", `silk never seated: ${seated}`);
+  const seated = await seatTheme(page, "minimal");
+  assert(seated === "seated", `minimal never seated: ${seated}`);
   return root;
 }
 
@@ -104,7 +103,7 @@ async function openProject(page: StudioPage): Promise<string> {
 async function createThroughStudio(
   page: StudioPage,
   name: string,
-  source = "silk",
+  source = "minimal",
 ): Promise<void> {
   const made = await createTheme(page, name, { source });
   assert(
@@ -115,7 +114,7 @@ async function createThroughStudio(
   );
   const line = await waitForEditing(page, name);
   assert(
-    line.startsWith(`Editing ${name}`),
+    line === name || line.endsWith(` · ${name}`),
     `the studio is editing "${line}" after creating "${name}"`,
   );
 }
@@ -145,7 +144,7 @@ test("a theme created from the studio lands on disk, in the registry, and seated
 
       // the file on disk is a draft composed from the source: the same
       // document shape, with the dialog's palette and faces applied
-      const source = listed.find((theme) => theme.name === "silk");
+      const source = listed.find((theme) => theme.name === "minimal");
       assert(source !== undefined, "the registry lists no theme to copy");
       const written = await readFile(file, "utf8");
       const draft = JSON.parse(written) as Record<string, unknown>;
@@ -162,9 +161,9 @@ test("a theme created from the studio lands on disk, in the registry, and seated
         card.includes(`spin/${name}.json`),
         `the card does not name the project's file: ${card}`,
       );
-      const starter = await cardText(page, "silk");
+      const starter = await cardText(page, "minimal");
       assert(
-        starter.includes("@spinjs/spin/theme"),
+        starter.includes("the brand"),
         `the card does not name the starter's home: ${starter}`,
       );
     } finally {
@@ -251,13 +250,13 @@ test("an edit is dirty until it is saved, and the save reaches the disk", async 
         "the colour control took no value",
       );
 
-      // the overview says the theme is not on disk yet
+      // the badge names the unsaved edit
       await page.followRail("/");
       await page.settle(800);
-      const dirty = await editingLine(page);
+      const dirty = await badgeLabel(page);
       assert(
         dirty.endsWith("unsaved changes"),
-        `the overview says "${dirty}" about an unsaved edit`,
+        `the badge says "${dirty}" about an unsaved edit`,
       );
       const card = await cardText(page, name);
       assert(card.includes("unsaved"), `the card says "${card}"`);
@@ -273,8 +272,8 @@ test("an edit is dirty until it is saved, and the save reaches the disk", async 
         declaredValue(written, ["color", "primary"]) === "#b91c1c",
         "the file on disk does not hold the edit that was saved",
       );
-      const saved = await editingLine(page);
-      assert(saved.endsWith("· saved"), `the overview says "${saved}"`);
+      const saved = await badgeLabel(page);
+      assert(saved === name, `the badge says "${saved}" after the save`);
       const state = await railState(page);
       assert(!state.save, "the save control still offers to write the theme");
     } finally {
@@ -401,7 +400,7 @@ test("undo is the seated theme's history, and leaves the other theme alone", asy
       // another theme's history is its own
       await page.followRail("/");
       await page.settle(800);
-      const seated = await seatTheme(page, "neobrut");
+      const seated = await seatTheme(page, "neobrutalist");
       assert(
         seated === "seated",
         `the studio did not seat the other theme: ${seated}`,
@@ -409,9 +408,9 @@ test("undo is the seated theme's history, and leaves the other theme alone", asy
       await page.settle(1500);
       const other = await previewVar(page, "--color-primary");
       const declared = (await listedThemes(page)).find((theme) =>
-        theme.name === "neobrut"
+        theme.name === "neobrutalist"
       );
-      assert(declared !== undefined, "the registry lists no neobrut");
+      assert(declared !== undefined, "the registry lists no neobrutalist");
       assert(
         other === declaredValue(declared.text, ["color", "primary"]),
         `the other theme renders ${other}`,
@@ -449,8 +448,8 @@ test("seating a theme repaints the preview and leaves the studio's chrome alone"
   await withPage(async (page) => {
     await openStudio(page);
     const listed = await listedThemes(page);
-    const spin = listed.find((theme) => theme.name === "spin");
-    assert(spin !== undefined, "the registry lists no spin");
+    const spin = listed.find((theme) => theme.name === "neobrutalist");
+    assert(spin !== undefined, "the registry lists no neobrutalist");
     const before = await previewVar(page, "--color-primary");
     const chromeBefore = await chromeVar(page, "--color-primary");
     const chromePaper = await chromeVar(page, "--color-surface");
@@ -459,7 +458,7 @@ test("seating a theme repaints the preview and leaves the studio's chrome alone"
       "the studio rendered no colours to compare",
     );
 
-    const seated = await seatTheme(page, "spin");
+    const seated = await seatTheme(page, "neobrutalist");
     assert(
       seated === "seated",
       `the studio did not seat the theme: ${seated}`,
@@ -495,9 +494,9 @@ test("a theme with two modes renders the mode the control names", async () => {
   await withPage(async (page) => {
     await openStudio(page);
     const listed = await listedThemes(page);
-    const silk = listed.find((theme) => theme.name === "silk");
-    assert(silk !== undefined, "the registry lists no silk");
-    const seated = await seatTheme(page, "silk");
+    const minimal = listed.find((theme) => theme.name === "minimal");
+    assert(minimal !== undefined, "the registry lists no minimal");
+    const seated = await seatTheme(page, "minimal");
     assert(
       seated === "seated",
       `the studio did not seat the theme: ${seated}`,
@@ -516,7 +515,7 @@ test("a theme with two modes renders the mode the control names", async () => {
     );
     assert(
       await previewVar(page, "--color-primary") ===
-        declaredValue(silk.text, ["color", "primary"]),
+        declaredValue(minimal.text, ["color", "primary"]),
       "the preview does not render the theme's own light value",
     );
 
@@ -532,7 +531,7 @@ test("a theme with two modes renders the mode the control names", async () => {
     );
     assert(
       await previewVar(page, "--color-primary") ===
-        declaredValue(silk.text, ["color", "primary"], "dark"),
+        declaredValue(minimal.text, ["color", "primary"], "dark"),
       "the preview does not render the theme's own dark value",
     );
 
@@ -545,7 +544,11 @@ test("a theme with two modes renders the mode the control names", async () => {
   });
 });
 
-test("a theme scaffolded from the required roles lands on disk and builds", async () => {
+// The Blank template was removed when factory.ts deleted scaffoldTheme():
+// creation starts from a registry theme, never from required roles. This
+// test waits on the Blank template coming back, or on being rewritten to
+// assert the copy-from-starter flow instead.
+test.skip("a theme scaffolded from the required roles lands on disk and builds", async () => {
   await withPage(async (page) => {
     const name = "e2e-scaffold";
     const root = await openProject(page);
@@ -561,7 +564,7 @@ test("a theme scaffolded from the required roles lands on disk and builds", asyn
       );
       const line = await waitForEditing(page, name);
       assert(
-        line.startsWith(`Editing ${name}`),
+        line === name || line.endsWith(` · ${name}`),
         `the studio is editing "${line}" after scaffolding "${name}"`,
       );
 
@@ -600,7 +603,7 @@ test("a theme deleted from the registry leaves the disk", async () => {
       assert(await there(file), "the created theme is not on disk");
 
       // the card offers the delete for a theme that is not being edited
-      const seated = await seatTheme(page, "silk");
+      const seated = await seatTheme(page, "minimal");
       assert(
         seated === "seated",
         `the studio did not seat another theme: ${seated}`,
@@ -618,9 +621,9 @@ test("a theme deleted from the registry leaves the disk", async () => {
         "the file the delete removed is still on disk",
       );
       // the theme that was being edited is untouched by the delete
-      const line = await waitForEditing(page, "silk");
+      const line = await waitForEditing(page, "minimal");
       assert(
-        line.startsWith("Editing silk"),
+        line === "minimal" || line.endsWith(" · minimal"),
         `the studio is editing "${line}" after the delete`,
       );
     } finally {
@@ -671,20 +674,20 @@ test("a theme file that is not valid JSON is reported, not swallowed", async () 
 
 test("saving an un-forked starter opens Save as project theme instead of overwriting starter", async () => {
   await withPage(async (page) => {
-    const copyName = "e2e-silk-saved";
+    const copyName = "e2e-minimal-saved";
     const root = await openProject(page);
     const copyFile = themeFile(root, copyName);
-    const silkFile = themeFile(root, "silk");
+    const minimalFile = themeFile(root, "minimal");
     await take(copyFile);
-    await take(silkFile);
+    await take(minimalFile);
     try {
-      const seated = await seatTheme(page, "silk");
-      assert(seated === "seated", `failed to seat silk: ${seated}`);
+      const seated = await seatTheme(page, "minimal");
+      assert(seated === "seated", `failed to seat minimal: ${seated}`);
       await page.followRail("/themes/colors");
       await page.settle(1500);
       assert(
         (await writeToken(page, await primaryFor(page), "#b91c1c")) === "written",
-        "failed to edit silk primary color",
+        "failed to edit minimal primary color",
       );
       await page.settle(800);
       await page.eval<void>(
@@ -696,8 +699,8 @@ test("saving an un-forked starter opens Save as project theme instead of overwri
       );
       assert(dialogOpen, "Save on starter did not open Save as project theme dialog");
       assert(
-        !(await there(silkFile)),
-        "Save on starter wrote spin/silk.json before confirmation",
+        !(await there(minimalFile)),
+        "Save on starter wrote spin/minimal.json before confirmation",
       );
       await page.eval<void>(
         `(() => {
@@ -713,20 +716,20 @@ test("saving an un-forked starter opens Save as project theme instead of overwri
       await page.settle(1800);
       assert(
         await there(copyFile),
-        "Save copy did not write spin/e2e-silk-saved.json",
+        "Save copy did not write spin/e2e-minimal-saved.json",
       );
       assert(
-        !(await there(silkFile)),
-        "Save copy unexpectedly created spin/silk.json",
+        !(await there(minimalFile)),
+        "Save copy unexpectedly created spin/minimal.json",
       );
       const line = await waitForEditing(page, copyName);
       assert(
-        line.startsWith(`Editing ${copyName}`),
+        line === copyName || line.endsWith(` · ${copyName}`),
         `expected active theme ${copyName}, got "${line}"`,
       );
     } finally {
       await take(copyFile);
-      await take(silkFile);
+      await take(minimalFile);
     }
   });
 });

@@ -123,7 +123,7 @@ const BARE_ESCAPE_SNIPPET = `<!-- Standard ghost button: keeps button height, pa
 <!-- Unpainted bare trigger: keeps <button> semantics, strips button chrome -->
 <button
   type="button"
-  class="bare inline-flex items-center gap-2 rounded-md border bg-surface px-3 py-1 type-code text-muted"
+   class="bare inline-flex items-center gap-2 rounded-md border bg-surface px-3 py-1 type-code text-muted"
 >
   <span>Command palette</span>
   <kbd>⌘K</kbd>
@@ -132,7 +132,7 @@ const BARE_ESCAPE_SNIPPET = `<!-- Standard ghost button: keeps button height, pa
 <!-- Painted bare trigger: names its paired ink explicitly -->
 <button
   type="button"
-  class="bare inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 type-caption-strong text-on-primary"
+   class="bare inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 type-caption-emphasized text-on-primary"
 >
   <span>Live filter</span>
 </button>`;
@@ -170,8 +170,8 @@ export default function StylingSpace(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Space & Layout"
-        lede="How do I lay things out, space them, and make them respond? Pad, gap, and size elements from your theme's spacing scale, name the flex and grid compositions your project repeats, and reflow across your theme's breakpoints. Pin floating panels to their triggers in the top layer and strip default control chrome when a custom trigger needs button semantics without button paint."
+        title="Layout"
+        lede="Pad, gap, and size elements from your brand's spacing scale, reflow across theme breakpoints, pin floating panels to triggers in the top layer, and strip default control chrome with .bare."
       />
 
       <Section id="scale" title="Space comes from the scale">
@@ -231,7 +231,7 @@ export default function StylingSpace(): JSX.Element {
 
         <p class="max-w-prose">
           Switch starter themes in the top bar (<code>material</code> widens the
-          ramp, <code>industrial</code> tightens it) and watch every bar and gap
+          ramp, <code>neumorphic</code> tightens it) and watch every bar and gap
           resize together. Browse every directional axis (<code>px-*</code>,{" "}
           <code>py-*</code>, <code>ps-*</code>, <code>pe-*</code>,{" "}
           <code>mx-auto</code>) in the{" "}
@@ -556,12 +556,12 @@ export default function StylingSpace(): JSX.Element {
                   />
                   <div class="flex min-w-0 flex-col">
                     <strong class="break-words">{item.label}</strong>
-                    <small class="break-all">{readGroupStep("icon", item.step, "1em")}</small>
+                    <small>{readGroupStep("icon", item.step, "1em")}</small>
                   </div>
                 </div>
                 <div class="flex min-w-0 flex-col items-end gap-1">
-                  <code class="break-all">{item.sizeClass}</code>
-                  <code class="break-all">{item.glyphClass}</code>
+                  <code class="whitespace-nowrap">{item.sizeClass}</code>
+                  <code class="whitespace-nowrap">{item.glyphClass}</code>
                 </div>
               </div>
             )}
@@ -572,7 +572,7 @@ export default function StylingSpace(): JSX.Element {
       <Section id="bare" title="The bare escape">
         <p class="max-w-prose">
           Add <code>bare</code> to a <code>&lt;button&gt;</code> (or{" "}
-          <code>&lt;input class=&quot;bare&quot;&gt;</code>) when a custom
+           <code>&lt;input class=&quot;bare&quot;&gt;</code>) when a custom
           trigger — a tab chip, a command-bar launcher, a disclosure header, or
           an inline tag editor — needs native button or input semantics and
           keyboard focus without wearing default button chrome. Adding{" "}
@@ -600,14 +600,14 @@ export default function StylingSpace(): JSX.Element {
                   </button>
                   <button
                     type="button"
-                    class="bare inline-flex items-center gap-2 rounded-md border bg-surface px-3 py-1 type-code text-muted"
+                     class="bare inline-flex items-center gap-2 rounded-md border bg-surface px-3 py-1 type-code text-muted"
                   >
                     <span>Command palette</span>
                     <kbd>⌘K</kbd>
                   </button>
                   <button
                     type="button"
-                    class="bare inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 type-caption-strong text-on-primary"
+                     class="bare inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 type-caption-emphasized text-on-primary"
                   >
                     <span>Live filter</span>
                   </button>

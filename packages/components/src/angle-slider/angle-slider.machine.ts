@@ -1,4 +1,4 @@
-import { createMachine, type Machine } from "@spinjs/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/components/fsm";
 import type {
   AngleSliderArgs,
   AngleSliderContext,
@@ -13,7 +13,6 @@ import {
   setPointerValue,
   setValue,
 } from "./angle-slider.transitions.ts";
-import { isInteractive } from "./angle-slider.state.ts";
 
 export const MIN_VALUE = 0;
 export const MAX_VALUE = 359;
@@ -81,4 +80,4 @@ export function angleSlider(
 // Re-export helpers for tests/import compatibility
 export * from "./angle-slider.state.ts";
 export type { AngleSliderValueChange } from "./angle-slider.events.ts";
-export { defaultTwin } from "@spinjs/runtime";
+export { defaultTwin } from "@spinjs/components/runtime";

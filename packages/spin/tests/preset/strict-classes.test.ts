@@ -1,10 +1,9 @@
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { tmpdir } from "node:os";
 import { test } from "bun:test";
 import assert from "node:assert/strict";
 import { spin } from "../../src/plugin/plugin.ts";
-import { starterThemes } from "../../src/theme/themes/index.ts";
+import { starterThemes } from "@spinjs/theme/themes";
 import {
   candidatesInFile,
   checkStrictClasses,
@@ -12,11 +11,11 @@ import {
   formatStrictClassesError,
   nearestSuggestion,
   suggestFor,
-} from "../../src/plugin/strict-classes.ts";
-import { describeCatalog } from "../../src/compiler/catalog.ts";
-import { primitiveVariants } from "../../src/compiler/index.ts";
-import { animationVariants } from "../../src/animation/index.ts";
-import { parseTokens } from "../../src/theme/index.ts";
+} from "@spinjs/build";
+import { describeCatalog } from "@spinjs/preset";
+import { primitiveVariants } from "@spinjs/preset";
+import { animationVariants } from "@spinjs/preset";
+import { parseTokens } from "@spinjs/theme";
 
 type ViteOptions = {
   configResolved?: (config: { root: string; command: string }) => void;
@@ -65,7 +64,7 @@ test("text-text fails the production build as a dead class", async () => {
   // `border-strong`, never `text-text`, `text-text-muted`, `border-border`,
   // or `border-border-strong`.
   const root = await fixture({
-    "spin/local.json": JSON.stringify(starterThemes.silk),
+    "spin/local.json": JSON.stringify(starterThemes.minimal),
     "src/index.html": '<div class="bg-surface text-text">hi</div>\n',
   });
   try {
@@ -93,7 +92,7 @@ test("an arbitrary type size fails the production build as a dead class", async 
   // error treats it like any dead class — while `text-lg` stays producible
   // and clean.
   const root = await fixture({
-    "spin/local.json": JSON.stringify(starterThemes.silk),
+    "spin/local.json": JSON.stringify(starterThemes.minimal),
     "src/index.html": '<p class="text-lg text-[14px]">hi</p>\n',
   });
   try {
@@ -118,7 +117,7 @@ test("an arbitrary type size fails the production build as a dead class", async 
 });
 test("a dead class fails the production build with file, class, and suggestion", async () => {
   const root = await fixture({
-    "spin/local.json": JSON.stringify(starterThemes.silk),
+    "spin/local.json": JSON.stringify(starterThemes.minimal),
     "src/index.html": '<div class="p-4 bg-primry">hi</div>\n',
   });
   try {
@@ -145,7 +144,7 @@ test("a dead class fails the production build with file, class, and suggestion",
 
 test("the same project warns in dev and still serves the sheet", async () => {
   const root = await fixture({
-    "spin/local.json": JSON.stringify(starterThemes.silk),
+    "spin/local.json": JSON.stringify(starterThemes.minimal),
     "src/index.html": '<div class="p-4 bg-primry">hi</div>\n',
   });
   try {
@@ -179,7 +178,7 @@ test("the same project warns in dev and still serves the sheet", async () => {
 
 test("strictClasses: false restores silence in a production build", async () => {
   const root = await fixture({
-    "spin/local.json": JSON.stringify(starterThemes.silk),
+    "spin/local.json": JSON.stringify(starterThemes.minimal),
     "src/index.html": '<div class="p-4 bg-primry">hi</div>\n',
   });
   try {
@@ -200,7 +199,7 @@ test("strictClasses: false restores silence in a production build", async () => 
 
 test("a clean project builds with the flag at its default", async () => {
   const root = await fixture({
-    "spin/local.json": JSON.stringify(starterThemes.silk),
+    "spin/local.json": JSON.stringify(starterThemes.minimal),
     "src/index.html": '<div class="p-4 text-primary">hi</div>\n',
   });
   try {
@@ -218,11 +217,11 @@ test("a clean project builds with the flag at its default", async () => {
   }
 });
 
-test("icon glyphs, variant cores, and shortcuts never flag", () => {
+test("icon glyphs, variant cores, and shortcuts never flag", async () => {
   const vocab = vocabulary();
   const prefixes = new Set(["hover:", "focus:", "md:"]);
   assert.deepEqual(
-    deadClasses({
+    await deadClasses({
       files: new Map([["/r/a.tsx", '<i class="i-lucide-folder"></i>']]),
       matched: new Set<string>(),
       themes: { ...starterThemes },
@@ -231,7 +230,7 @@ test("icon glyphs, variant cores, and shortcuts never flag", () => {
     [],
   );
   assert.deepEqual(
-    deadClasses({
+    await deadClasses({
       files: new Map([["/r/a.tsx", '<div class="hover:p-4 primary"></div>']]),
       matched: new Set(["hover:p-4", "primary"]),
       themes: { ...starterThemes },
@@ -240,7 +239,7 @@ test("icon glyphs, variant cores, and shortcuts never flag", () => {
     [],
   );
   assert.deepEqual(
-    deadClasses({
+    await deadClasses({
       files: new Map([["/r/a.tsx", '<div class="mine">x</div>']]),
       matched: new Set(["mine"]),
       themes: { ...starterThemes },
@@ -253,8 +252,8 @@ test("icon glyphs, variant cores, and shortcuts never flag", () => {
   assert.equal(vocab.has("i-lucide-folder"), false);
 });
 
-test("a shortcut that spends a dead class is reported against the shortcut", () => {
-  const dead = deadClasses({
+test("a shortcut that spends a dead class is reported against the shortcut", async () => {
+  const dead = await deadClasses({
     files: new Map(),
     matched: new Set(["mine"]),
     themes: { ...starterThemes },
@@ -268,19 +267,24 @@ test("a shortcut that spends a dead class is reported against the shortcut", () 
   );
 });
 
-test("computed class names stay silent and unexpanded groups expand", () => {
+test("computed class names stay silent and unexpanded groups expand", async () => {
+  const runtime = await import("@spinjs/components/runtime");
   assert.deepEqual(
-    candidatesInFile("a.tsx", '<div class={`p-4 ${tone}`}>x</div>'),
+    candidatesInFile("a.tsx", '<div class={`p-4 ${tone}`}>x</div>', runtime),
     ["p-4"],
   );
   assert.deepEqual(
-    candidatesInFile("a.tsx", '<div class={tone}>x</div>'),
+    candidatesInFile("a.tsx", '<div class={tone}>x</div>', runtime),
     [],
   );
   assert(
-    candidatesInFile("a.tsx", '<div class="hover:(p-4 m-2)">x</div>').includes(
+    candidatesInFile("a.tsx", '<div class="hover:(p-4 m-2)">x</div>', runtime).includes(
       "hover:p-4",
     ),
+  );
+  assert.deepEqual(
+    candidatesInFile("a.tsx", '<div class={`p-4 ${tone}`}>x</div>'),
+    ["p-4"],
   );
 });
 
@@ -291,20 +295,19 @@ test("the suggestion keeps the variant and stays silent on noise", () => {
   assert.equal(nearestSuggestion("xyzzy-qqq-zzz", vocab), undefined);
 });
 
-test("checkStrictClasses throws in builds and warns in dev", () => {
+test("checkStrictClasses throws in builds and warns in dev", async () => {
   const base = {
     files: new Map([["/r/a.tsx", '<div class="bogus-xyz">x</div>']]),
     matched: new Set<string>(),
     themes: { ...starterThemes },
     root: "/r",
   };
-  assert.throws(
-    () => checkStrictClasses({ ...base, envMode: "build", report: () => {} }),
+  await assert.rejects(
+    checkStrictClasses({ ...base, envMode: "build", report: () => {} }),
     /bogus-xyz/,
   );
-  assert.throws(
-    () =>
-      checkStrictClasses({
+  await assert.rejects(
+    checkStrictClasses({
         ...base,
         strict: true,
         envMode: "dev",
@@ -313,20 +316,18 @@ test("checkStrictClasses throws in builds and warns in dev", () => {
     /bogus-xyz/,
   );
   const warnings: string[] = [];
-  checkStrictClasses({
+  await checkStrictClasses({
     ...base,
     envMode: "dev",
     report: (message) => warnings.push(message),
   });
   assert(warnings.some((warning) => warning.includes("bogus-xyz")));
-  assert.doesNotThrow(() =>
-    checkStrictClasses({
-      ...base,
-      strict: false,
-      envMode: "build",
-      report: () => {
-        throw new Error("must stay silent");
-      },
-    })
-  );
+  await checkStrictClasses({
+    ...base,
+    strict: false,
+    envMode: "build",
+    report: () => {
+      throw new Error("must stay silent");
+    },
+  });
 });

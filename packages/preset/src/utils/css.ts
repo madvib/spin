@@ -1,0 +1,242 @@
+/**
+ * Reading CSS the way the cascade does: one spelling per property.
+ *
+ * Shorthands expand to their longhands, logical names become physical, and
+ * a property written twice keeps the last — the cascade's own rules, so a
+ * comparison of two declaration maps compares what the browser applies.
+ */
+
+/**
+ * The logical spellings, and the physical name each one means.
+ *
+ * A document is written left to right, top to bottom, so a block's start is
+ * its top and its inline start is its left. The theme writes the logical
+ * name because it is the one that survives a right-to-left document; the
+ * utilities write the physical one because that is what the class names say.
+ * For the lint they are the same property, so they get the same name.
+ */
+const PHYSICAL: Readonly<Record<string, string>> = {
+  "margin-block-start": "margin-top",
+  "margin-block-end": "margin-bottom",
+  "margin-inline-start": "margin-left",
+  "margin-inline-end": "margin-right",
+  "padding-block-start": "padding-top",
+  "padding-block-end": "padding-bottom",
+  "padding-inline-start": "padding-left",
+  "padding-inline-end": "padding-right",
+  "border-block-start-width": "border-top-width",
+  "border-block-end-width": "border-bottom-width",
+  "border-inline-start-width": "border-left-width",
+  "border-inline-end-width": "border-right-width",
+  "border-block-start-style": "border-top-style",
+  "border-block-end-style": "border-bottom-style",
+  "border-inline-start-style": "border-left-style",
+  "border-inline-end-style": "border-right-style",
+  "border-block-start-color": "border-top-color",
+  "border-block-end-color": "border-bottom-color",
+  "border-inline-start-color": "border-left-color",
+  "border-inline-end-color": "border-right-color",
+};
+
+/** The physical name of a property. */
+export function canonical(property: string): string {
+  return PHYSICAL[property] ?? property;
+}
+
+/**
+ * The longhands a shorthand stands for.
+ *
+ * A shorthand is a way of writing several properties at once, and the way it
+ * writes them depends on how many values it carries: `padding: 1rem` pads
+ * every side, `padding: 1rem 2rem` pads top and bottom with the first and
+ * left and right with the second. So the expansion needs the value, not just
+ * the name.
+ */
+/** The longhands of the box shorthands, in the order CSS gives them. */
+const BOX: Readonly<Record<string, readonly string[]>> = {
+  padding: ["padding-top", "padding-right", "padding-bottom", "padding-left"],
+  margin: ["margin-top", "margin-right", "margin-bottom", "margin-left"],
+};
+
+/**
+ * The `background` shorthand, as the lint reads it.
+ *
+ * The shorthand stands for the fill's colour among other things, and the fill
+ * is the decision the lint compares. A variant that clears the fill with
+ * `background: none` clears the colour with it — that is what the shorthand
+ * means — so the shorthand is recorded under the colour's name, and the value
+ * is carried over as it was written.
+ */
+const BACKGROUND: Readonly<Record<string, readonly string[]>> = {
+  background: ["background-color"],
+};
+
+/** The longhands of the border shorthands. */
+const BORDER: Readonly<Record<string, readonly string[]>> = {
+  border: ["border-width", "border-style", "border-color"],
+  "border-top": ["border-top-width", "border-top-style", "border-top-color"],
+  "border-right": [
+    "border-right-width",
+    "border-right-style",
+    "border-right-color",
+  ],
+  "border-bottom": [
+    "border-bottom-width",
+    "border-bottom-style",
+    "border-bottom-color",
+  ],
+  "border-left": [
+    "border-left-width",
+    "border-left-style",
+    "border-left-color",
+  ],
+  "border-block": [
+    "border-block-start-width",
+    "border-block-start-style",
+    "border-block-start-color",
+    "border-block-end-width",
+    "border-block-end-style",
+    "border-block-end-color",
+  ],
+  "border-block-start": [
+    "border-block-start-width",
+    "border-block-start-style",
+    "border-block-start-color",
+  ],
+  "border-block-end": [
+    "border-block-end-width",
+    "border-block-end-style",
+    "border-block-end-color",
+  ],
+  "border-inline": [
+    "border-inline-start-width",
+    "border-inline-start-style",
+    "border-inline-start-color",
+    "border-inline-end-width",
+    "border-inline-end-style",
+    "border-inline-end-color",
+  ],
+  "border-inline-start": [
+    "border-inline-start-width",
+    "border-inline-start-style",
+    "border-inline-start-color",
+  ],
+  "border-inline-end": [
+    "border-inline-end-width",
+    "border-inline-end-style",
+    "border-inline-end-color",
+  ],
+};
+
+/**
+ * The values a shorthand carries, split apart.
+ *
+ * A value may hold a function with spaces in it — `calc(1rem / 2)` — so the
+ * split counts parentheses rather than cutting at every space.
+ */
+function parts(value: string): string[] {
+  const out: string[] = [];
+  let depth = 0;
+  let current = "";
+  for (const ch of value) {
+    if (ch === "(") depth += 1;
+    if (ch === ")") depth -= 1;
+    if (depth === 0 && /\s/.test(ch)) {
+      if (current !== "") out.push(current);
+      current = "";
+      continue;
+    }
+    current += ch;
+  }
+  if (current !== "") out.push(current);
+  return out;
+}
+
+/**
+ * The four values a box shorthand spreads over its sides.
+ *
+ * One value is every side; two are top-and-bottom and left-and-right; three
+ * are top, left-and-right and bottom; four are each side.
+ */
+function boxValues(
+  values: readonly string[],
+): [string, string, string, string] {
+  const [a, b, c, d] = values;
+  if (b === undefined) return [a ?? "0", a ?? "0", a ?? "0", a ?? "0"];
+  if (c === undefined) return [a ?? "0", b, a ?? "0", b];
+  if (d === undefined) return [a ?? "0", b, c ?? "0", b];
+  return [a ?? "0", b, c ?? "0", d];
+}
+
+/**
+ * The declarations a property and its value stand for.
+ *
+ * A property that is not a shorthand stands for itself. A shorthand stands
+ * for its longhands, each with the value CSS gives it.
+ */
+export function declarations(
+  property: string,
+  value: string,
+): [string, string][] {
+  const box = BOX[property];
+  if (box !== undefined) {
+    const [top, right, bottom, left] = boxValues(parts(value));
+    return box.map((name, index) =>
+      [name, [top, right, bottom, left][index] as string] as [string, string]
+    );
+  }
+  const background = BACKGROUND[property];
+  if (background !== undefined) {
+    return background.map((name) => [name, value] as [string, string]);
+  }
+  const border = BORDER[property];
+  if (border !== undefined) {
+    const values = parts(value);
+    if (border.length === 3) {
+      // The border shorthand: width, style and colour, in that order, with
+      // the style optional (`border: 1px` is a width and a style).
+      const width = values[0] ?? "";
+      const style = values[1] ?? "";
+      const color = values[2] ?? "";
+      return [
+        [border[0] as string, width],
+        [border[1] as string, style],
+        [border[2] as string, color],
+      ];
+    }
+    const [startWidth, startStyle, startColor, endWidth, endStyle, endColor] =
+      values;
+    return border.map((name, index) => {
+      const group = [
+        startWidth ?? "",
+        startStyle ?? "",
+        startColor ?? "",
+        endWidth ?? "",
+        endStyle ?? "",
+        endColor ?? "",
+      ];
+      return [name, group[index] ?? ""] as [string, string];
+    });
+  }
+  return [[property, value]];
+}
+
+/**
+ * A declaration map, brought to one spelling per property.
+ *
+ * The keys are canonical (physical) names; the values are the values as
+ * written. A property that is written twice — a shorthand and a longhand —
+ * keeps the last one, because that is the one the cascade would apply.
+ */
+export function canonicalMap(
+  entries: Iterable<readonly [string, string]>,
+): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const [property, value] of entries) {
+    for (const [name, spelled] of declarations(property, value)) {
+      out.set(canonical(name), spelled);
+    }
+  }
+  return out;
+}
+

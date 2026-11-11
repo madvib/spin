@@ -14,9 +14,8 @@ import {
   isRecord,
   type ViewFor,
   sliderThumb,
-  type SlotViewFor,
-} from "@spinjs/runtime";
-import type { DragDelta, DragPress } from "@spinjs/runtime/actions";
+} from "@spinjs/components/runtime";
+import type { DragDelta, DragPress } from "@spinjs/components/actions";
 import { colorPicker as colorPickerMachine } from "./color-picker.machine.ts";
 import {
   type ColorFormat,
@@ -90,12 +89,6 @@ type ScopeLike = ViewFor<
   ColorPickerState
 >;
 
-type SlotLike<R> = SlotViewFor<
-  R,
-  ColorPickerContext,
-  ColorPickerEvents,
-  ColorPickerState
->;
 
 const openOf = (scope: ScopeLike): boolean =>
   isOpenPhase(scope.state, scope.context.inline);
@@ -137,7 +130,6 @@ const textOf = (target: EventTarget | null): string => {
   return typeof value === "string" ? value : "";
 };
 
-const propText = (raw: unknown): string => typeof raw === "string" ? raw : "";
 
 /** Whether the platform ships the eyedropper: a feature check, never assumed. */
 const eyeDropperSupported = (): boolean => {
@@ -492,8 +484,7 @@ export const def = {
     },
     areaBackground: {
       id: "area-background",
-      attrs: (scope: ScopeLike, arg?: unknown) => {
-        const { x, y } = areaChannels(arg);
+      attrs: (scope: ScopeLike) => {
         const area: "hsla" | "hsba" = scope.context.format.startsWith("hsl")
           ? "hsla"
           : "hsba";

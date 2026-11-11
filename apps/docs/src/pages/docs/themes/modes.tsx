@@ -9,7 +9,6 @@ import {
   PageHeader,
   PropList,
   Section,
-  Specimen,
   SplitExample,
   type PropEntry,
 } from "../../../ui/index.ts";
@@ -49,7 +48,7 @@ export default function ThemesModes(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Modes"
-        lede="Light and dark are modes on a single theme, not separate themes and not dark: utility classes on every element. A token declares its mode override in $modes, and Spin emits [data-mode] selector blocks that work on <html> or any nested DOM subtree."
+        lede="Light and dark are modes on your brand, not separate themes and not dark: utility classes scattered across templates. Declare dark overrides in $modes.dark, and Spin emits [data-mode] blocks that work on <html> or any nested DOM subtree."
       />
 
       <Section id="modes" title="How modes work">
@@ -123,52 +122,21 @@ export default function ThemesModes(): JSX.Element {
           <Code
             code={THEMES_SNIPPETS.modeToken}
             lang="json"
-            title="spin/editorial.json"
+            title="spin/acme/tokens.json"
           />
         </div>
         <PropList items={MODE_RULES} />
       </Section>
 
-      <Section id="palette-density" title="Palettes and density compose with modes">
+      <Section id="facets" title="Composing with palette and density facets">
         <p class="max-w-prose">
-          Modes repaint ink; two more axes swap it outright. A palette facet
-          (<code>catppuccin.palette.json</code> →{" "}
-          <code>data-palette="catppuccin"</code>) swaps the ink a subtree
-          wears, and a spacing facet (<code>compact.spacing.json</code> →{" "}
-          <code>data-spacing="compact"</code>) swaps the rhythm it spends.
-          Both compose with <code>data-mode</code> and nest in subtrees: the
-          card below keeps the page's base theme, wears Catppuccin's ink at
-          the opposite mode, and tightens its spacing — all at once:
+          Need to swap the entire color palette (<code>data-palette</code>) or
+          tighten spatial density (<code>data-spacing</code>) alongside{" "}
+          <code>data-mode</code>? See{" "}
+          <A href="/docs/themes/facets">Facets: Palettes &amp; Density</A> for
+          how <code>*.palette.json</code> and <code>*.spacing.json</code> layer
+          over your brand on <code>&lt;html&gt;</code> or inside nested subtrees.
         </p>
-        <div class="my-4">
-          <Specimen
-            title="Catppuccin ink, compact rhythm, opposite mode — one subtree"
-            description="data-palette and data-spacing layer over the page theme; data-mode picks the dark answer"
-            code={THEMES_SNIPPETS.composedSubtree}
-            preview={
-              <div
-                data-palette="catppuccin"
-                data-spacing="compact"
-                data-mode={oppositeMode()}
-                class="flex min-w-0 flex-col gap-4 rounded-lg border bg-surface p-4"
-              >
-                <span class="type-code text-muted">
-                  data-palette="catppuccin" data-spacing="compact"
-                  data-mode="{oppositeMode()}"
-                </span>
-                <strong>Release pipeline</strong>
-                <p>
-                  Ink from Catppuccin, rhythm from compact, mode scoped to
-                  this card.
-                </p>
-                <div class="flex flex-wrap items-center gap-4">
-                  <button type="button" class="primary">Promote build</button>
-                  <button type="button">Compare diff</button>
-                </div>
-              </div>
-            }
-          />
-        </div>
       </Section>
 
       <Section id="invariance" title="Mode invariance">

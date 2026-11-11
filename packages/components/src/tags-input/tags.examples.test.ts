@@ -1,8 +1,6 @@
 import { test } from "bun:test";
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
-
-const dir = new URL("./examples/", import.meta.url);
+import { readFileSync } from "node:fs";
 const read = (stem: string): string =>
   readFileSync(new URL(`./examples/${stem}.html`, import.meta.url), "utf8");
 

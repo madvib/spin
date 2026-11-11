@@ -7,8 +7,8 @@ import {
   isRecord,
   type ViewFor,
   type SlotViewFor,
-} from "@spinjs/runtime";
-import type { DragDelta } from "@spinjs/runtime/actions";
+} from "@spinjs/components/runtime";
+import type { DragDelta } from "@spinjs/components/actions";
 import { floatingPanel as floatingPanelMachine } from "./floating-panel.machine.ts";
 import {
   type FloatingPanelArgs,
@@ -65,13 +65,6 @@ const isEdge = (arg: unknown): arg is ResizeEdge =>
 const edgeOf = (arg: unknown): ResizeEdge => (isEdge(arg) ? arg : "se");
 
 type ScopeLike = ViewFor<
-  FloatingPanelContext,
-  FloatingPanelEvents,
-  FloatingPanelState
->;
-
-type SlotLike<R> = SlotViewFor<
-  R,
   FloatingPanelContext,
   FloatingPanelEvents,
   FloatingPanelState

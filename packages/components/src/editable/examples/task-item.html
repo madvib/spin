@@ -9,7 +9,7 @@
   <span class="sr-only" {...machine.getLabelProps()}>Task</span>
   <div class="min-w-0 flex-1" {...machine.getAreaProps()}>
     <span show={!machine.editing} class="block truncate cursor-text type-body" {...machine.getPreviewProps()}>{machine.valueText}</span>
-    <input show={machine.editing} class="w-full bg-transparent outline-none" {...machine.getInputProps()} />
+    <input show={machine.editing} class="bare w-full" {...machine.getInputProps()} />
   </div>
   <div class="flex shrink-0 items-center gap-1" {...machine.getControlProps()}>
     <button class={["secondary icon s-sm", { "inline-flex": !machine.editing, "hidden": machine.editing }]} {...machine.getEditTriggerProps()}><span class="i-lucide-pencil type-caption" aria-hidden="true"></span></button>

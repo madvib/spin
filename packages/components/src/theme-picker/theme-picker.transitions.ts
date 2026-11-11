@@ -1,4 +1,4 @@
-import type { AssignFor, GuardFor } from "@spinjs/runtime/fsm";
+import type { AssignFor, GuardFor } from "@spinjs/components/fsm";
 import type { ThemePickerEvents } from "./theme-picker.events.ts";
 import type { ThemePickerContext } from "./theme-picker.state.ts";
 import { parseThemes } from "./theme-picker.state.ts";

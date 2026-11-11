@@ -10,9 +10,10 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { type Daemon, startDaemon } from "../../src/api/daemon.ts";
-import { createSpinClient, type SpinClient } from "../../src/api/index.ts";
-import { scaffoldTheme, setToken, treeToJson } from "../../src/theme/index.ts";
+import { type Daemon, startDaemon } from "@spinjs/server/daemon";
+import { createSpinClient, type SpinClient, createSpinApp } from "../../src/api/index.ts";
+import { parseTokens, setToken, treeToJson } from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 import { Client } from "@modelcontextprotocol/client";
 import { InMemoryTransport } from "@modelcontextprotocol/server";
 import { buildSpinMcpServer } from "../../src/mcp/server.ts";
@@ -52,8 +53,10 @@ describe("the spin MCP server", () => {
     // The fixture theme: the scaffold, with one dark override so the
     // round-trip has a $modes slot to lose. It serves both modes, so the
     // override it carries is one a reader will see.
+    const silkParsed = parseTokens(JSON.stringify(starterThemes.minimal));
+    if (!silkParsed.ok) throw new Error(silkParsed.error);
     const moded = setToken(
-      scaffoldTheme(),
+      silkParsed.tree,
       ["color", "primary"],
       "#8db9fa",
       undefined,
@@ -83,7 +86,7 @@ describe("the spin MCP server", () => {
       JSON.stringify(unlighted, null, 2),
     );
 
-    daemon = await startDaemon({ root: dir, port: 0 });
+    daemon = await startDaemon({ root: dir, app: createSpinApp({ root: dir, base: "/rpc" }), port: 0 });
     rpc = createSpinClient(daemon.url);
 
     const [clientTransport, serverTransport] = InMemoryTransport
@@ -241,20 +244,17 @@ describe("the spin MCP server", () => {
     deepStrictEqual(existsSync(join(dir, "spin", "copy.json")), false);
   });
 
-  it("creates a theme from the scaffold when no source is named", async () => {
+  it("refuses a create with no source to copy", async () => {
     const created = await mcp.callTool({
       name: "theme",
       arguments: { action: "create", name: "fresh" },
     });
-    deepStrictEqual(created.isError, undefined);
-    const doc = JSON.parse(
-      readFileSync(join(dir, "spin", "fresh.json"), "utf8"),
-    ) as { color?: unknown };
-    assert(doc.color !== undefined, "the scaffold carries the required roles");
+    deepStrictEqual(created.isError !== undefined, true);
+    deepStrictEqual(existsSync(join(dir, "spin", "fresh.json")), false);
   });
 
   it("writes a whole document and reports its validation", async () => {
-    const text = treeToJson(scaffoldTheme());
+    const text = JSON.stringify(starterThemes.minimal, null, 2);
     const written = await mcp.callTool({
       name: "theme",
       arguments: { action: "write", name: "whole", text },
@@ -294,6 +294,7 @@ describe("the spin MCP server", () => {
     const names = (jsonOf(listed) as Array<{ name: string }>).map((c) =>
       c.name
     );
+    assert(names.includes("card"), "listed components include card");
     const one = await mcp.callTool({
       name: "component",
       arguments: { action: "contract", name: "card" },

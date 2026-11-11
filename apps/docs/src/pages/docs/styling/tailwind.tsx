@@ -191,8 +191,8 @@ export default function StylingTailwind(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Spin vs Tailwind"
-        lede="You know Tailwind — here's what transfers, what doesn't, and why. Use the Tailwind utility and variant grammar you already know over a theme your project owns. Every utility reads a declared token, unknown classes fail the build instead of disappearing, and elements arrive styled by their HTML tags."
+        title="Tailwind"
+        lede="Use the Tailwind utility and variant grammar you already know over a brand your project owns. Every utility reads a declared token, unknown classes fail the build instead of disappearing, and elements arrive styled by their HTML tags."
       />
 
       <Section id="what-transfers" title="What transfers">
@@ -517,15 +517,14 @@ export default function StylingTailwind(): JSX.Element {
         title="What Spin adds, and why each earns its place"
       >
         <p class="max-w-prose">
-          Write <code>row-list</code> on a horizontal <code>&lt;ul&gt;</code>{" "}
-          or <code>&lt;ol&gt;</code> to lay items out in a centered flex row
-          with markers cleared and every item aligned on the same baseline, or{" "}
-          <code>flow-list</code> for a vertical UI list with markers off and
-          theme block spacing preserved. Because document lists space adjacent{" "}
-          <code>li + li</code> items vertically so prose lists breathe, putting
-          plain <code>flex</code> on a <code>&lt;ul&gt;</code> leaves the second
-          item sitting lower than the first; <code>row-list</code> zeroes that
-          sibling margin and sets the row gap in one class.
+          Put <code>flex</code>, <code>inline-flex</code>, <code>grid</code>, or{" "}
+          <code>inline-grid</code> on a <code>&lt;ul&gt;</code> or{" "}
+          <code>&lt;ol&gt;</code> and Spin automatically clears list markers,
+          inline padding, and the prose <code>li + li</code> top margin so flex
+          and grid items align on the exact same baseline. When you want a
+          dedicated list shorthand, write <code>row-list</code> for a centered
+          horizontal flex row or <code>flow-list</code> for a vertical UI list
+          with markers off and theme block spacing preserved.
         </p>
 
         <p class="max-w-prose">

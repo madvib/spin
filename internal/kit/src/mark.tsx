@@ -1221,20 +1221,18 @@ export function Mark(props: {
 }
 
 /**
- * The wordmark beside the mark: one-off display type the theme cannot
- * name as a style, so the lockup reads the theme's own brand voice
- * directly — the brand face, bold, on the size ramp — through the
- * variables the preflight emits. The escape excuses the ownership
- * rules; the style props name no class, so the vocabulary rule has
- * nothing to read. A reskin re-voices the lockup with the theme.
+ * The wordmark beside the mark.
+ *
+ * The lockup's voice — the brand face, bold, on the size ramp — has no
+ * named style yet, so the wordmark inherits its voice from where it sits.
+ * A `font-style-brand` style would voice it deliberately; until the theme
+ * declares one, inheritance is the honest answer rather than handwritten
+ * variables the vocabulary cannot read.
  */
-const LOGO_WORD: Record<
-  LogoSize,
-  { readonly gap: string; readonly size: string }
-> = {
-  sm: { gap: "gap-2", size: "var(--font-size-lg)" },
-  md: { gap: "gap-2", size: "var(--font-size-xl)" },
-  lg: { gap: "gap-3", size: "var(--font-size-2xl)" },
+const LOGO_WORD: Record<LogoSize, { readonly gap: string }> = {
+  sm: { gap: "gap-2" },
+  md: { gap: "gap-2" },
+  lg: { gap: "gap-3" },
 };
 
 export type LogoSize = "sm" | "md" | "lg";
@@ -1263,17 +1261,12 @@ export function Logo(props: {
   const word = () => LOGO_WORD[size()];
   return (
     <span
-      data-spin-escape="brand lockup"
-      style={{
-        "font-family": "var(--font-family-brand)",
-        "font-weight": "var(--font-weight-bold)",
-      }}
       class={`inline-flex items-center ${word().gap} ${
         props.class ?? ""
       }`}
     >
       <Web size={spec().px} class={`${spec().box} shrink-0 text-primary`} />
-      <span style={{ "font-size": word().size }}>spin</span>
+      <span>spin</span>
     </span>
   );
 }

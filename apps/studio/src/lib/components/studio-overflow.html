@@ -6,12 +6,12 @@ const machine = menu({});
 
 <div class="relative shrink-0">
   <button
-    class="bare inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted hover:bg-surface"
+    class="bare inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md p-0 text-muted hover:bg-surface"
     aria-label="Studio options"
     data-testid="studio-overflow"
     {...machine.getTriggerProps()}
   >
-    <span class="inline-block h-4 w-4 i-lucide-ellipsis-vertical" aria-hidden="true"></span>
+    <span class="inline-block h-4 w-4 icon-md i-lucide-ellipsis-vertical" aria-hidden="true"></span>
   </button>
   <div class="absolute right-0 z-dropdown w-max" {...machine.getPositionerProps()}>
     <div
@@ -20,7 +20,7 @@ const machine = menu({});
     >
       <template for={machine.getBlocks()} as={block} key={block.id}>
         <div class="py-1" {...machine.getItemGroupProps(block)}>
-          <span show={block.label !== null} class="block px-2 pb-1 type-caption-strong text-muted"
+          <span show={block.label !== null} class="block px-2 pb-1 type-caption-emphasized text-muted"
             {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
           <template for={machine.getRows(block)} as={row} key={row.value}>
             <div

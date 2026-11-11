@@ -8,7 +8,6 @@ import { test } from "bun:test";
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Browser, chromium } from "playwright-core";
 
 /** Parts are addressed by the machine's id scheme: `tags-input:<id>:<part>`. */
 const ROOT_PART = "spin-tags-input > div";

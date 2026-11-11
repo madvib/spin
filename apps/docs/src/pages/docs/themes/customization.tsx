@@ -35,30 +35,30 @@ const MAPPING_ITEMS: readonly PropEntry[] = [
   },
 ];
 
-const PALETTE_LAYERS: readonly PropEntry[] = [
+const BRAND_LAYER_ITEMS: readonly PropEntry[] = [
   {
-    name: "Surfaces",
-    badge: "surface · surface-raised · surface-sunken · field · scrim",
+    name: "spin/<brand>/tokens.json",
+    badge: "Brand core",
     description:
-      "The page background (surface), elevated cards and popovers (surface-raised), recessed wells and code blocks (surface-sunken), form inputs (field), and modal backdrops (scrim).",
+      "Declares \"$extends\" (the starting design language), font faces ($extensions.spin.fonts), the 13 named font.style.* tuples, semantic color roles with $modes.dark, and brand shape/motion.",
   },
   {
-    name: "Inks",
-    badge: "text · text-muted · link · link-hover · link-visited",
+    name: "spin/<brand>/reference.json",
+    badge: "Reference scales",
     description:
-      "Primary body copy (text, ≥ 4.5:1 on surface and surface-raised), secondary captions and metadata (text-muted, ≥ 3:1), and anchor states.",
+      "Optional layer for raw color ramps (color.neutral.50–900) and spatial or typographic scale steps that semantic tokens alias via {path}.",
   },
   {
-    name: "Brand & Actions",
-    badge: "primary · secondary · accent + on-*",
+    name: "spin/<brand>/elements.json",
+    badge: "HTML element type",
     description:
-      "Interactive fills for primary CTAs, secondary controls, and accent highlights, each paired with its own foreground ink (on-primary, on-secondary, on-accent, ≥ 4.5:1) and hover/active states.",
+      "Optional layer mapping intrinsic HTML elements (element.h1.type, element.p.type, element.code.type) to named font.style.* tuples.",
   },
   {
-    name: "Status & Borders",
-    badge: "semantic.{success,warning,error,info} · border · focus-ring",
+    name: "spin/<brand>/primitives/<component>.json",
+    badge: "Per-primitive slots",
     description:
-      "Semantic status fills, their paired on-* inks, hairline dividers (border), emphasized borders (border-strong), and keyboard focus outlines (focus-ring, ≥ 3:1 on surface).",
+      "Optional per-component token overrides (primitives/button.json, primitives/card.json) for geometry, paint, and slot typography (button.radius, card.title.type).",
   },
 ];
 
@@ -95,21 +95,6 @@ const SCALE_ITEMS: readonly PropEntry[] = [
   },
 ];
 
-const ACTIVE_SWATCHES: readonly {
-  readonly label: string;
-  readonly bg: string;
-}[] = [
-  { label: "surface", bg: "bg-surface" },
-  { label: "surface-raised", bg: "bg-surface-raised" },
-  { label: "surface-sunken", bg: "bg-surface-sunken" },
-  { label: "primary", bg: "bg-primary" },
-  { label: "secondary", bg: "bg-secondary" },
-  { label: "accent", bg: "bg-accent" },
-  { label: "success", bg: "bg-semantic-success" },
-  { label: "warning", bg: "bg-semantic-warning" },
-  { label: "error", bg: "bg-semantic-error" },
-  { label: "info", bg: "bg-semantic-info" },
-];
 
 export default function ThemesCustomization(): JSX.Element {
   const groups = elementGroups();
@@ -117,10 +102,25 @@ export default function ThemesCustomization(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Customization"
-        lede="Customize your theme's color roles, tune spacing and corner radii, or override individual HTML elements — every token becomes a CSS variable and a utility class, with no forks or custom CSS files."
+        title="Layers"
+        lede="How spin/<brand>/ splits brand identity, reference scales, HTML element typography, and per-primitive slot tokens into clean DTCG layers — and how every token path maps to a CSS variable and utility."
       />
 
+      <Section id="layers" title="Files inside spin/<brand>/">
+        <p class="max-w-prose">
+          A brand directory starts with a single <code>tokens.json</code> file
+          and grows into focused layer files only when you override specific
+          scales, HTML element type assignments, or individual primitives:
+        </p>
+        <div class="my-3">
+          <Code
+            code={THEMES_SNIPPETS.brandLayers}
+            lang="bash"
+            title="Brand directory layout"
+          />
+        </div>
+        <PropList items={BRAND_LAYER_ITEMS} />
+      </Section>
       <Section id="mapping" title="How tokens become CSS variables and utilities">
         <p class="max-w-prose">
           A token path is a contract: the segments join with{" "}
@@ -131,33 +131,15 @@ export default function ThemesCustomization(): JSX.Element {
         <PropList items={MAPPING_ITEMS} />
       </Section>
 
-      <Section id="palette" title="Palette and semantic roles">
+      <Section id="palette" title="Palette roles & paired inks">
         <p class="max-w-prose">
-          Instead of scattering raw color scales (<code>blue-500</code>,{" "}
-          <code>gray-200</code>) across components, Spin components and
-          elements read semantic color roles. You can define raw hex
-          ramps under{" "}
-          <code>color.neutral.*</code> or <code>color.brand.*</code> and point
-          your semantic roles at them using <code>{"{color.neutral.50}"}</code>{" "}
-          aliases:
+          Color roles (<code>color.surface</code>, <code>color.primary</code>),
+          their paired foreground inks (<code>color.on-primary</code>,{" "}
+          <code>color.on-semantic-success</code>), neutral ramps (
+          <code>color.neutral.50</code>–<code>900</code>), and WCAG contrast
+          floors live in the dedicated{" "}
+          <A href="/docs/themes/palettes">Palettes &amp; Paired Inks</A> guide.
         </p>
-
-        <div class="my-4 grid grid-cols-2 gap-2 rounded-md border bg-surface-raised p-3 sm:grid-cols-5">
-          <For each={ACTIVE_SWATCHES}>
-            {(item) => (
-              <div class="flex items-center gap-2 rounded-sm border bg-surface p-2">
-                <span
-                  class={`h-5 w-5 shrink-0 rounded-sm border ${item.bg}`}
-                />
-                <span class="truncate type-code">
-                  {item.label}
-                </span>
-              </div>
-            )}
-          </For>
-        </div>
-
-        <PropList items={PALETTE_LAYERS} />
       </Section>
 
       <Section id="scales" title="Spatial scales, shape, and motion">

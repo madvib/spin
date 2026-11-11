@@ -3,7 +3,7 @@ import {
   type ComponentDef,
   defineComponent,
   type ViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import { avatar as avatarMachine } from "./avatar.machine.ts";
 import type { AvatarArgs, AvatarContext, AvatarState } from "./avatar.state.ts";
 import type { AvatarEvents, AvatarStatus } from "./avatar.events.ts";

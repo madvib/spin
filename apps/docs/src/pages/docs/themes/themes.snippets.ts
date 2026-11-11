@@ -3,21 +3,21 @@
  */
 export const THEMES_SNIPPETS = {
   studioConfig: `{
-  "activeTheme": "silk",
-  "themeOrder": ["spin", "silk", "material", "neobrut", "industrial"]
+  "activeTheme": "minimal",
+  "themeOrder": ["minimal", "editorial", "material", "neobrutalist", "neumorphic", "glassmorphic"]
 }`,
   sparseExtends: `{
-  "$extends": "silk",
+  "$extends": "minimal",
   "modes": ["light", "dark"],
   "color": {
     "primary": { "$value": "#2563eb" }
   }
 }`,
-  composedAxes: `<html data-theme="silk" data-palette="catppuccin" data-spacing="compact" data-mode="dark">
+  composedAxes: `<html data-theme="minimal" data-palette="catppuccin" data-spacing="compact" data-mode="dark">
   <!-- base theme decides the look, palette swaps the ink,
        spacing swaps the rhythm, mode picks the dark answer -->
 </html>`,
-  nestedFacets: `<div data-theme="silk" data-spacing="compact">
+  nestedFacets: `<div data-theme="minimal" data-spacing="compact">
   <!-- dense sidebar: page ink and type, tighter rhythm -->
   <aside>…</aside>
   <aside data-palette="catppuccin" data-mode="dark">
@@ -32,6 +32,38 @@ export const THEMES_SNIPPETS = {
     <button type="button">Compare diff</button>
   </div>
 </div>`,
+  paletteFacet: `{
+  "modes": ["light", "dark"],
+  "color": {
+    "$type": "color",
+    "surface": { "$value": "#eff1f5", "$modes": { "dark": "#1e1e2e" } },
+    "surface-raised": { "$value": "#e6e9ef", "$modes": { "dark": "#313244" } },
+    "text": { "$value": "#4c4f69", "$modes": { "dark": "#cdd6f4" } },
+    "primary": { "$value": "#8839ef", "$modes": { "dark": "#cba6f7" } },
+    "on-primary": { "$value": "#ffffff", "$modes": { "dark": "#11111b" } }
+  }
+}`,
+  spacingFacet: `{
+  "spacing": {
+    "$type": "dimension",
+    "1": { "$value": "0.1875rem" },
+    "2": { "$value": "0.375rem" },
+    "3": { "$value": "0.5rem" },
+    "4": { "$value": "0.75rem" },
+    "6": { "$value": "1rem" }
+  }
+}`,
+  brandLayers: `spin/
+  brand.json                     # Active brand name: { "name": "acme" }
+  acme/
+    tokens.json                  # Brand identity: "$extends", faces, type styles, palette, shape
+    reference.json               # Optional raw scale overrides (color ramps, spacing steps)
+    elements.json                # Optional HTML element typography overrides (element.h1.type)
+    primitives/
+      <component>.json           # Optional per-primitive overrides (button.radius, card.title.type)
+    themes/
+      catppuccin.palette.json    # Optional palette facet (data-palette="catppuccin")
+      compact.spacing.json       # Optional spacing facet (data-spacing="compact")`,
   compositeStyle: `{
   "font": {
     "style": {
@@ -56,19 +88,19 @@ export const THEMES_SNIPPETS = {
   },
   "card": {
     "title": {
-      "type": { "$type": "typography", "$value": "{font.style.card-title}" }
+      "type": { "$type": "typography", "$value": "{font.style.title}" }
     }
   }
 }`,
   viteSharedBrand: `import { defineConfig } from "vite";
 import { spin } from "@spinjs/spin/vite";
-import { starterThemes } from "@spinjs/spin/theme";
+import { starterThemes } from "@spinjs/theme";
 import { acmeBrand } from "@acme/brand-theme";
 
 export default defineConfig({
   plugins: [
     spin.vite({
-      // Share a company brand package, or mount the five starter palettes:
+      // Share a company brand package, or mount the six starter palettes:
       extends: acmeBrand,
       // extends: { themes: starterThemes },
     }),
@@ -102,13 +134,13 @@ export const plugins = [
   }
 }`,
   subtreeMode: `<div class="grid gap-4 md:grid-cols-2">
-  <article class="card" data-theme="silk" data-mode="light">
+  <article class="card" data-theme="minimal" data-mode="light">
     <h3>Light Container</h3>
     <p class="type-caption text-muted">Rendered with data-mode="light".</p>
     <button class="primary">Primary Action</button>
   </article>
 
-  <article class="card" data-theme="silk" data-mode="dark">
+  <article class="card" data-theme="minimal" data-mode="dark">
     <h3>Dark Subtree</h3>
     <p class="type-caption text-muted">Scoped to data-mode="dark" with zero dark: classes.</p>
     <button class="primary">Primary Action</button>
@@ -164,13 +196,13 @@ export const plugins = [
 npx spin lint .
 
 # Or inspect themes directly from the CLI
-npx spin theme list
-npx spin theme analyze
-npx spin theme scaffold > spin/acme.json`,
+npx spin brand list
+npx spin brand analyze
+npx spin brand analyze acme`,
   validateTheme: `import { readFileSync } from "node:fs";
-import { validateTheme } from "@spinjs/spin/theme";
+import { validateTheme } from "@spinjs/theme";
 
-const text = readFileSync("spin/default.json", "utf8");
+const text = readFileSync("spin/default/tokens.json", "utf8");
 const report = validateTheme(text, { modes: ["light", "dark"] });
 
 if (!report.valid) {
@@ -183,17 +215,17 @@ if (!report.valid) {
   parseTokens,
   resolveAliases,
   resolveTheme,
-  spinTheme,
+  editorialTheme,
   starterThemes,
-} from "@spinjs/spin/theme";
+} from "@spinjs/theme";
 
 // 1. Resolve every token to its final string value in a mode:
-const dark = resolveTheme(spinTheme, "dark");
+const dark = resolveTheme(editorialTheme, "dark");
 console.log(dark.values["color.primary"]); // "#ff5a63"
 console.log(dark.values["color.surface"]); // "#0c0c0b"
 
 // 2. Non-throwing parse + alias resolution when you need $type or $modes metadata:
-const parsed = parseTokens(starterThemes.silk);
+const parsed = parseTokens(starterThemes.minimal);
 if (parsed.ok) {
   const index = indexTree(resolveAliases(parsed.tree).tree);
   const primary = index.leaves["color.primary"];

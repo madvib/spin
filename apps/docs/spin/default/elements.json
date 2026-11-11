@@ -1,0 +1,10 @@
+{
+  "element": {
+    "h1": {
+      "type": { "$type": "typography", "$value": "{font.style.display}" }
+    },
+    "p": {
+      "type": { "$type": "typography", "$value": "{font.style.body}" }
+    }
+  }
+}

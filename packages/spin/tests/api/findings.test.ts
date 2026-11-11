@@ -14,7 +14,7 @@ import { test } from "bun:test";
 
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { createSpinClient, setProjectRoot } from "../../src/api/index.ts";
-import spinStarter from "../../src/theme/themes/spin.json" with {
+import spinStarter from "../../../theme/src/themes/editorial.json" with {
   type: "json",
 };
 import { RPCHandler } from "@orpc/server/fetch";
@@ -55,7 +55,7 @@ async function project(): Promise<string> {
   );
   await writeFile(
     `${root}/vite.config.ts`,
-    `import { spin } from "../../src/compiler/index.ts";
+    `import { spin } from "@spinjs/preset";
 
 export default {
   plugins: [

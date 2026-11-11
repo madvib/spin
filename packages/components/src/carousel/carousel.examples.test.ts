@@ -2,7 +2,6 @@ import { test } from "bun:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 
-const dir = new URL("./examples/", import.meta.url);
 const read = (stem: string): string =>
   readFileSync(new URL(`./examples/${stem}.html`, import.meta.url), "utf8");
 
@@ -54,7 +53,7 @@ test("every dot keys its width on the visible page and carries no padding", () =
     if (!html.includes("getIndicatorProps(row)")) continue;
     if (stem === "thumbnails") continue;
     assert.ok(
-      html.includes("rounded-full p-0"),
+      html.includes("bare") && html.includes("rounded-full"),
       `${stem} must zero the button padding or the 8px dot renders 34px wide`,
     );
     assert.ok(

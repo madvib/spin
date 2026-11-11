@@ -29,7 +29,7 @@ export function DocsRail(props: { onSelect?: () => void }): JSX.Element {
         {(group) => (
           <div class="flex flex-col gap-1">
             <span
-              class={`px-2 pb-1 type-caption-strong uppercase ${
+              class={`px-2 pb-1 type-overline uppercase ${
                 isGroupActive(group.items) ? "text-primary" : "text-muted"
               }`}
             >
@@ -42,8 +42,8 @@ export function DocsRail(props: { onSelect?: () => void }): JSX.Element {
                     href={item.href}
                     end
                     onClick={() => props.onSelect?.()}
-                    class="block rounded-sm px-2 py-1 no-underline transition-colors duration-fast"
-                    activeClass="bg-surface-raised type-body-strong"
+                    class="block rounded-sm px-2 py-1 type-label no-underline transition-colors duration-fast"
+                    activeClass="bg-surface-raised text-primary"
                     inactiveClass="text-muted"
                   >
                     {item.title}
@@ -200,7 +200,7 @@ export function DocsLayout(props: RouteSectionProps): JSX.Element {
                     <span class="type-caption uppercase text-muted">
                       ← {prev().groupLabel}
                     </span>
-                    <span class="type-body-strong">{prev().title}</span>
+                    <span class="type-body-emphasized">{prev().title}</span>
                   </A>
                 )}
               </Show>
@@ -213,7 +213,7 @@ export function DocsLayout(props: RouteSectionProps): JSX.Element {
                     <span class="type-caption uppercase text-muted">
                       {next().groupLabel} →
                     </span>
-                    <span class="type-body-strong">{next().title}</span>
+                    <span class="type-body-emphasized">{next().title}</span>
                   </A>
                 )}
               </Show>

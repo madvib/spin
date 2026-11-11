@@ -122,7 +122,7 @@ export default function SpacingPage() {
             }
           >
             <Frame class="min-w-0 p-2">
-              <ul class="divide-y divide-border">
+              <ul class="flex flex-col divide-y">
                 <For each={ramp()}>
                   {(entry, index) => {
                     const shownVal = () =>
@@ -152,16 +152,16 @@ export default function SpacingPage() {
                           >
                             <span
                               data-studio-chrome=""
-                              class="w-8 shrink-0 type-caption-strong"
+                              class="w-8 shrink-0 type-caption-emphasized"
                             >
                               {stepOf(entry.row.path)}
                             </span>
-                            <code
+                            <span
                               data-studio-chrome=""
-                              class="w-24 shrink-0 truncate text-muted"
+                              class="w-24 shrink-0 truncate type-code text-muted"
                             >
                               {entry.row.path}
-                            </code>
+                            </span>
                             <span
                               data-studio-specimen=""
                               class="min-w-0 flex-1"
@@ -194,12 +194,12 @@ export default function SpacingPage() {
                                 ? `${Math.round(shownPx()!)}px`
                                 : ""}
                             </span>
-                            <code
+                            <span
                               data-studio-chrome=""
-                              class="w-12 shrink-0 text-right text-muted tabular-nums"
+                              class="w-12 shrink-0 text-right type-code text-muted tabular-nums"
                             >
                               {ratioAt(index())}
-                            </code>
+                            </span>
                           </span>
                         </button>
                       </li>
@@ -225,12 +225,12 @@ export default function SpacingPage() {
                         class="split items-baseline gap-2"
                       >
                         <div class="row-sm items-baseline">
-                          <span class="type-body-strong">
+                          <span class="type-body-emphasized">
                             Step {stepOf(entry().row.path)}
                           </span>
-                          <code class="text-muted">
+                          <span class="type-code text-muted">
                             {entry().row.path}
-                          </code>
+                          </span>
                         </div>
                         <span class="rounded-md bg-surface-sunken px-2 py-0 type-code text-muted tabular-nums">
                           {Math.round(shownPx())}px
@@ -301,7 +301,7 @@ export default function SpacingPage() {
                     Math.max(8, ((toPx(shown()) ?? 0) / widest()) * 100);
                   return (
                     <div class="row-sm items-center gap-3">
-                      <span class="w-10 shrink-0 type-caption-strong">
+                      <span class="w-10 shrink-0 type-caption-emphasized">
                         {row.path.split(".").pop()}
                       </span>
                       <div class="h-4 min-w-0 flex-1 overflow-hidden rounded-sm bg-surface">
@@ -313,15 +313,15 @@ export default function SpacingPage() {
                           }}
                         />
                       </div>
-                      <code class="w-16 shrink-0 text-right text-muted tabular-nums">
+                      <span class="w-16 shrink-0 text-right type-code text-muted tabular-nums">
                         {shown()}
-                      </code>
+                      </span>
                     </div>
                   );
                 }}
               </For>
             </div>
-            <ul>
+            <ul class="flex flex-col">
               <For each={breakpoints.rows()}>
                 {(row) => (
                   <TokenLine
@@ -365,8 +365,8 @@ function StepFigures(props: {
     <div class="stack-sm">
       <div class="stack-xs rounded-md border bg-surface-sunken p-3">
         <div class="split items-center">
-          <span class="type-caption-strong">Container padding</span>
-          <code class="text-muted">{`p-${step()}`}</code>
+          <span class="type-caption-emphasized">Container padding</span>
+          <span class="type-code text-muted">{`p-${step()}`}</span>
         </div>
         <div
           class="spin-preview overflow-hidden rounded-sm border border-dashed bg-surface"
@@ -383,8 +383,8 @@ function StepFigures(props: {
       </div>
       <div class="stack-xs rounded-md border bg-surface-sunken p-3">
         <div class="split items-center">
-          <span class="type-caption-strong">Stack / row gap</span>
-          <code class="text-muted">{`gap-${step()}`}</code>
+          <span class="type-caption-emphasized">Stack / row gap</span>
+          <span class="type-code text-muted">{`gap-${step()}`}</span>
         </div>
         <div
           class="spin-preview flex items-center overflow-hidden rounded-sm border bg-surface p-2"

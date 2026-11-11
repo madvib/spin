@@ -1,6 +1,6 @@
 /** Pagination machine: one idle state with guarded transitions. */
 
-import { createMachine, type Machine } from "@spinjs/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/components/fsm";
 import type {
   PaginationArgs,
   PaginationContext,

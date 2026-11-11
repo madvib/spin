@@ -1,54 +1,50 @@
 <script lang="ts">
 import { combobox } from "@spinjs/components/combobox";
 
-const machine = combobox({});
+const machine = combobox({
+  placeholder: "Search Brand, Tokens, Components, Diagnostics…",
+});
 </script>
 
-<div class="relative w-full" {...machine.getRootProps()}>
-  <div class="relative" {...machine.getControlProps()}>
-    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2 text-muted" aria-hidden="true">
+<div class="w-full" {...machine.getRootProps()}>
+  <div class="flex items-center gap-2 border-b px-3 py-2" {...machine.getControlProps()}>
+    <span class="pointer-events-none flex shrink-0 items-center text-muted" aria-hidden="true">
       <span class="inline-block icon-sm i-lucide-search"></span>
     </span>
     <input
-      class="w-full pl-8 pr-16 placeholder:text-muted"
+      class="bare w-full placeholder:text-muted"
       data-testid="command-palette-input"
       {...machine.getInputProps()}
+      placeholder="Search Brand, Tokens, Components, Diagnostics…"
     />
-    <div class="absolute inset-y-0 right-0 flex items-center gap-1 pr-1">
-      <button
-        class="ghost icon s-sm"
-        {...machine.getClearTriggerProps()}
-      ><span aria-hidden="true"><span class="inline-block icon-sm i-lucide-x" aria-hidden="true"></span></span></button>
-    </div>
-    <div
-      class={["absolute left-0 top-full z-dropdown mt-1 w-full origin-top transition duration-fast ease-decelerate", { "pointer-events-none invisible scale-95 opacity-0": !machine.open }]}
-      {...machine.getPositionerProps()}
-    >
-      <div
-        class="overflow-hidden rounded-lg border bg-surface-raised shadow-lg"
-        {...machine.getContentProps()}
-      >
-        <div class="max-h-[15rem] overflow-y-auto p-1" {...machine.getListProps()}>
-          <template for={machine.getBlocks()} as={block} key={block.id}>
-            <div class="py-1" {...machine.getItemGroupProps(block)}>
-              <span class="block px-2 py-1 type-caption-strong text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
-              <template for={machine.getRows(block)} as={row} key={row.value}>
-                <div
-                  class="relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 type-body"
-                  data-command={row.value}
-                  {...machine.getItemProps(row)}
-                >
-                  <span class="min-w-0 flex-1 truncate" {...machine.getItemTextProps(row)}>{row.label}</span>
-                  <span
-                    aria-hidden="true"
-                    class="shrink-0 type-caption text-muted"
-                    {...machine.getItemIndicatorProps(row)}
-                  ><span class="inline-block icon-sm i-lucide-chevron-right" aria-hidden="true"></span></span>
-                </div>
-              </template>
-            </div>
-          </template>
-        </div>
+    <kbd class="shrink-0">esc</kbd>
+  </div>
+  <div {...machine.getPositionerProps()}>
+    <div {...machine.getContentProps()}>
+      <div class="max-h-64 overflow-y-auto p-2" {...machine.getListProps()}>
+        <template for={machine.getBlocks()} as={block} key={block.id}>
+          <div class="py-1" {...machine.getItemGroupProps(block)}>
+            <span class="block px-2 py-1 type-caption-emphasized text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
+            <template for={machine.getRows(block)} as={row} key={row.value}>
+              <div
+                class={["relative flex cursor-pointer select-none items-center gap-2 rounded-md px-2 py-2 type-body transition-colors duration-fast", { "bg-surface-sunken text-primary": machine.highlightedValue === row.value }]}
+                data-command={row.value}
+                {...machine.getItemProps(row)}
+              >
+                <span class="min-w-0 flex-1 truncate" {...machine.getItemTextProps(row)}>{row.label}</span>
+                <span
+                  aria-hidden="true"
+                  class="shrink-0 type-caption text-muted"
+                  {...machine.getItemIndicatorProps(row)}
+                ><span class="inline-block icon-sm i-lucide-corner-down-left" aria-hidden="true"></span></span>
+              </div>
+            </template>
+          </div>
+        </template>
+      </div>
+      <div class="flex items-center justify-between border-t bg-surface px-3 py-2 type-caption text-muted">
+        <span>↑↓ to navigate · ↵ to select · esc to close</span>
+        <span>⌘K</span>
       </div>
     </div>
   </div>

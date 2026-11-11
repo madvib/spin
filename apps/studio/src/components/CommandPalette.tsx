@@ -15,16 +15,18 @@ import { combobox } from "@spinjs/components/combobox";
 import {
   activeModes,
   activeTree,
+  library,
   registry,
   setActiveMode,
   setActiveName,
 } from "../lib/store.ts";
 import type { ModeChoice } from "../lib/store.ts";
 import { ROUTES } from "../lib/routes.ts";
+import { GROUPS } from "../routes/themes.tsx";
 import { editorRouteFor } from "../lib/tokens.ts";
-import { indexTree } from "@spinjs/spin/theme";
+import { indexTree } from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 import { COMPONENT_GROUPS } from "@spinjs/components";
-
 
 interface PaletteRow {
   readonly value: string;
@@ -62,16 +64,49 @@ export default function CommandPalette() {
     for (const route of ROUTES) {
       out.push({
         value: `route:${route.path}`,
-        label: route.label,
-        group: "Routes",
+        label: `${route.label} — ${route.description}`,
+        group: "Areas",
         run: () => navigate(route.path),
       });
     }
-    for (const theme of registry() ?? []) {
+    for (const [path, label, , desc] of GROUPS) {
+      out.push({
+        value: `token-group:${path}`,
+        label: `${label} — ${desc}`,
+        group: "Token Groups",
+        run: () => navigate(path),
+      });
+    }
+    out.push(
+      {
+        value: "token-group:/tokens/type/styles",
+        label: "Type: Styles — 13 named typography tuples & HTML element map",
+        group: "Token Groups",
+        run: () => navigate("/tokens/type/styles"),
+      },
+      {
+        value: "token-group:/tokens/type/faces",
+        label: "Type: Faces — Font families and curated pairings",
+        group: "Token Groups",
+        run: () => navigate("/tokens/type/faces"),
+      },
+      {
+        value: "token-group:/tokens/type/ramps",
+        label: "Type: Ramps — Size, weight, tracking, and leading scales",
+        group: "Token Groups",
+        run: () => navigate("/tokens/type/ramps"),
+      },
+    );
+    const allThemes = registry() ?? [];
+    const localThemes = allThemes.filter(
+      (t) => t.file !== null || !(t.name in starterThemes),
+    );
+    const shownThemes = localThemes.length > 0 ? localThemes : allThemes;
+    for (const theme of shownThemes) {
       out.push({
         value: `theme:${theme.name}`,
-        label: `Theme: ${theme.name}`,
-        group: "Themes",
+        label: `Switch brand: ${theme.name}`,
+        group: "Brand & Mode",
         run: () => setActiveName(theme.name),
       });
     }
@@ -80,18 +115,35 @@ export default function CommandPalette() {
       out.push({
         value: `mode:${entry.mode}`,
         label: entry.label,
-        group: "Modes",
+        group: "Brand & Mode",
         run: () => setActiveMode(entry.mode),
       });
     }
-    for (const group of COMPONENT_GROUPS) {
-      for (const name of group.members) {
+    const libEntries = library() ?? [];
+    if (libEntries.length > 0) {
+      for (const comp of libEntries) {
+        const slug = comp.name.replace(/^(primitive|component)-/, "");
+        const title = slug
+          .split("-")
+          .map((w) => (w[0] ? w[0].toUpperCase() + w.slice(1) : w))
+          .join(" ");
         out.push({
-          value: `component:${name}`,
-          label: name,
+          value: `component:${comp.name}`,
+          label: `${title} (${comp.kind ?? "primitive"})`,
           group: "Components",
-          run: () => navigate(`/components/${name}`),
+          run: () => navigate(`/components/${comp.name}`),
         });
+      }
+    } else {
+      for (const group of COMPONENT_GROUPS) {
+        for (const name of group.members) {
+          out.push({
+            value: `component:${name}`,
+            label: name,
+            group: "Components",
+            run: () => navigate(`/components/${name}`),
+          });
+        }
       }
     }
     const tree = (() => {
@@ -104,9 +156,12 @@ export default function CommandPalette() {
     if (tree !== undefined) {
       for (const leaf of Object.values(indexTree(tree).leaves)) {
         const path = leaf.path.join(".");
+        const val = typeof leaf.value === "string" || typeof leaf.value === "number"
+          ? ` · ${leaf.value}`
+          : "";
         out.push({
           value: `token:${path}`,
-          label: path,
+          label: `${path}${val}`,
           group: "Tokens",
           run: () => navigate(editorRouteFor(path)),
         });
@@ -118,11 +173,20 @@ export default function CommandPalette() {
   const [filter, setFilter] = createSignal("");
   const visible = createMemo(() => {
     const query = filter().trim().toLowerCase();
-    if (query === "") return rows();
-    return rows().filter((row) =>
-      row.label.toLowerCase().includes(query) ||
-      row.group.toLowerCase().includes(query)
-    );
+    if (query === "") {
+      return rows().filter((row) =>
+        row.group === "Areas" ||
+        row.group === "Token Groups" ||
+        row.group === "Brand & Mode"
+      );
+    }
+    return rows()
+      .filter((row) =>
+        row.label.toLowerCase().includes(query) ||
+        row.group.toLowerCase().includes(query) ||
+        row.value.toLowerCase().includes(query)
+      )
+      .slice(0, 48);
   });
 
   createEffect(() => {
@@ -160,28 +224,42 @@ export default function CommandPalette() {
 
   return (
     <>
-      <button
-        type="button"
-        data-testid="command-palette-trigger"
-        class="bare inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface"
-        aria-label="Command palette"
-        title="Command palette (Cmd+K)"
-        onClick={() => setOpen(true)}
-      >
-        <span class="i-lucide-search h-4 w-4" aria-hidden="true" />
-      </button>
-      <Show when={open()}>
-        <dialog
-          open
-          data-testid="command-palette"
+      <span class="inline-flex items-center rounded-full border bg-surface">
+        <button
+          type="button"
+          data-testid="command-palette-trigger"
+          class="bare inline-flex h-8 w-8 items-center justify-center gap-2 rounded-full border-0 px-3 text-muted transition-colors hover:bg-surface-sunken md:w-56 md:justify-start lg:w-64"
           aria-label="Command palette"
-          onClose={() => setOpen(false)}
+          title="Search Brand, Tokens, Components, Diagnostics (Cmd+K)"
+          onClick={() => setOpen(true)}
+        >
+          <span class="i-lucide-search h-4 w-4 shrink-0" aria-hidden="true" />
+          <span class="hidden flex-1 truncate text-left type-caption md:inline">
+            Search…
+          </span>
+          <kbd class="hidden md:inline">⌘K</kbd>
+        </button>
+      </span>
+      <Show when={open()}>
+        <div
+          class="fixed inset-0 z-modal flex items-start justify-center bg-surface/60 pt-16"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setOpen(false);
+          }}
           onKeyDown={(event: KeyboardEvent) => {
             if (event.key === "Escape") setOpen(false);
           }}
         >
-          <studio-command-palette ref={(el: HTMLElement) => setElement(el)} prop:items={rows().map((row) => ({ value: row.value, label: row.label, group: row.group }))} />
-        </dialog>
+          <dialog
+            open
+            data-testid="command-palette"
+            aria-label="Command palette"
+            class="panel w-[32rem] max-w-[calc(100vw-2rem)] overflow-hidden"
+            onClose={() => setOpen(false)}
+          >
+            <studio-command-palette ref={(el: HTMLElement) => setElement(el)} prop:items={visible().map((row) => ({ value: row.value, label: row.label, group: row.group }))} />
+          </dialog>
+        </div>
       </Show>
     </>
   );

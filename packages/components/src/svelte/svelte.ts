@@ -1,4 +1,4 @@
-import type { DefinedComponent } from "@spinjs/runtime";
+import type { DefinedComponent } from "@spinjs/components/runtime";
 import { bindSpinElement, type SpinHookOptions } from "../spin-element.ts";
 import {
   type CtlFor,

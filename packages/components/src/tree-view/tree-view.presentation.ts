@@ -10,7 +10,7 @@ import {
   optionRow,
   type ViewFor,
   type SlotViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import type { TreeState } from "./tree-view.state.ts";
 import { treeView as treeViewMachine } from "./tree-view.machine.ts";
 import type {

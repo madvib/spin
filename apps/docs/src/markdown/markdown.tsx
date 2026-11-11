@@ -274,7 +274,7 @@ export function Markdown(
   props: { text: string; class?: string },
 ): JSX.Element {
   return (
-    <prose class={`w-full ${props.class ?? ""}`}>
+    <prose class={`mb-10 w-full ${props.class ?? ""}`}>
       <For each={blocks(props.text)}>
         {(block) => {
           if (block.kind === "heading") {

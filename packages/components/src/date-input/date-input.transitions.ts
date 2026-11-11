@@ -1,11 +1,10 @@
-import type { AssignFor, GuardFor } from "@spinjs/runtime/fsm";
+import type { AssignFor, GuardFor } from "@spinjs/components/fsm";
 import type { DateInputEvents } from "./date-input.events.ts";
-import type { DateInputContext, DateInputField } from "./date-input.state.ts";
+import type { DateInputContext } from "./date-input.state.ts";
 import { clampField } from "./date-input.state.ts";
 import {
   advance,
   clampValue,
-  clearEnteredKeys,
   commit,
   dateToFields,
   daysInMonth,
@@ -17,7 +16,6 @@ import {
   periodOf,
   segmentFields,
   setActiveSegment,
-  setPrevSegment,
   valueAsString,
 } from "./date-input.state.ts";
 

@@ -1,6 +1,6 @@
 /** Table of contents machine: active heading tracking and navigation. */
 
-import { createMachine, type Machine } from "@spinjs/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/components/fsm";
 import {
   clampActiveIds,
   initial,

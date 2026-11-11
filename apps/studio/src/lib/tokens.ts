@@ -5,8 +5,8 @@ import {
   ownedStyleFields,
   ownedStyleNames,
   valuesInMode,
-} from "@spinjs/spin/theme";
-import type { TokenTree } from "@spinjs/spin/theme";
+} from "@spinjs/theme";
+import type { TokenTree } from "@spinjs/theme";
 import { scaleValue } from "./scale.ts";
 import { ROUTES } from "./routes.ts";
 

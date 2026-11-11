@@ -352,7 +352,7 @@ function MachineDetail(props: { name: string }): JSX.Element {
         <Code code={`npx spin component copy ${props.name} basic`} lang="bash" />
       </div>
       <Show when={(manifest()?.parts ?? []).length > 0}>
-        <p class="mt-4 mb-1 type-label text-muted">Parts</p>
+        <span class="mt-4 mb-1 block type-label text-muted">Parts</span>
         <div class="flex flex-wrap gap-2">
           <For each={manifest()?.parts ?? []}>
             {(part) => <Chip>{part}</Chip>}
@@ -360,7 +360,7 @@ function MachineDetail(props: { name: string }): JSX.Element {
         </div>
       </Show>
       <Show when={(manifest()?.slots ?? []).length > 0}>
-        <p class="mt-4 mb-1 type-label text-muted">Slots</p>
+        <span class="mt-4 mb-1 block type-label text-muted">Slots</span>
         <div class="flex flex-wrap gap-2">
           <For each={manifest()?.slots ?? []}>
             {(slot) => <Chip>{slot}</Chip>}

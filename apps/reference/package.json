@@ -5,8 +5,11 @@
   "type": "module",
   "dependencies": {
     "@spin/check": "workspace:*",
+    "@spinjs/components": "workspace:*",
     "@spinjs/kit": "workspace:*",
+    "@spinjs/preset": "workspace:*",
     "@spinjs/spin": "workspace:*",
+    "@spinjs/theme": "workspace:*",
     "solid-js": "^1.9.3"
   },
   "scripts": {

@@ -3,12 +3,19 @@ import type { JSX } from "solid-js";
 import { inDrawer } from "../lib/host.ts";
 import { tokenStatus } from "../lib/live-edit.ts";
 import {
+  activeBrand,
   activeMode,
   activeName,
   refusalFor,
   registry,
   themeText,
 } from "../lib/store.ts";
+import {
+  layersOf,
+  leafOrigin,
+  originFile,
+  originLabel,
+} from "../lib/origin.ts";
 
 /**
  * The section furniture is the product's, not the studio's: `@spinjs/kit`
@@ -130,9 +137,14 @@ export function TokenLine(props: {
   const status = createMemo(() =>
     tokenStatus(themeText(), projectText(), props.path, activeMode())
   );
+  const layers = createMemo(() => {
+    const brand = activeBrand();
+    if (brand === undefined) return undefined;
+    return layersOf(brand.layers, brand.designLanguage);
+  });
   return (
     <li data-studio-chrome="" class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b py-3 last:border-b-0">
-      <div class="row-sm min-w-[10rem] shrink-0">
+      <div class="row-sm min-w-0 max-w-full flex-wrap">
         <code class="truncate">
           {props.path}
         </code>
@@ -176,6 +188,25 @@ export function TokenLine(props: {
               Modified in this session
             </tooltip>
           </span>
+        </Show>
+        <Show when={layers()}>
+          {(held) => {
+            const origin = () => leafOrigin(props.path.split("."), held());
+            return (
+              <span class="inline-flex items-center">
+                <span
+                  tabindex="0"
+                  class="rounded-sm bg-surface-sunken px-1 py-1 type-caption text-muted"
+                  title={originFile(origin(), props.path.split("."), held())}
+                >
+                  {originLabel(origin())}
+                </span>
+                <tooltip class="start-0 translate-none">
+                  {originFile(origin(), props.path.split("."), held())}
+                </tooltip>
+              </span>
+            );
+          }}
         </Show>
       </div>
       <Show when={props.utility}>

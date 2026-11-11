@@ -16,7 +16,7 @@ const machine = treeView({
     tree.loadChildren = async (value) => fetchChildren(value);
 -->
 <div class="mx-auto w-full max-w-sm" {...machine.getRootProps()}>
-  <span class="mb-4 block type-caption-strong"
+  <span class="mb-4 block type-caption-emphasized"
     {...machine.getLabelProps()}>Project Files</span>
   <div
     class="flex flex-col gap-1 rounded-lg border bg-surface-raised p-3"

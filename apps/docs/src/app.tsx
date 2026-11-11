@@ -12,8 +12,8 @@ import type { RouteDefinition, RouteSectionProps } from "@solidjs/router";
 import type { JSX } from "solid-js";
 import { createEffect, createSignal, For, lazy, onCleanup, Show } from "solid-js";
 import { BrandFavicon, Logo, theme, ThemePicker } from "@spinjs/kit";
-import { starterThemes } from "@spinjs/spin/theme/themes";
-import { aliasTarget, themeModes, validateTheme, valuesInMode } from "@spinjs/spin/theme";
+import { starterThemes } from "@spinjs/theme/themes";
+import { aliasTarget, themeModes, validateTheme, valuesInMode } from "@spinjs/theme";
 import {
   ComponentsRail,
   type ComponentKindFilter,
@@ -181,9 +181,9 @@ function TopNav(props: {
             {(section) => (
               <A
                 href={section.href}
-                class={`block rounded-sm px-3 py-1 no-underline transition-colors duration-fast ${
+                class={`block rounded-sm px-3 py-1 type-label no-underline transition-colors duration-fast ${
                   current(section.active)
-                    ? "bg-surface-raised type-body-strong"
+                    ? "bg-surface-raised text-primary"
                     : "text-muted"
                 }`}
               >
@@ -198,7 +198,7 @@ function TopNav(props: {
           type="button"
           onClick={props.onOpenSearch}
           aria-label="Search documentation"
-          class="bare inline-flex items-center gap-2 rounded-lg border bg-surface px-2 py-1 type-code text-muted transition-colors hover:bg-surface-raised"
+           class="bare inline-flex items-center gap-2 rounded-lg border bg-surface px-2 py-1 type-code text-muted transition-colors hover:bg-surface-raised"
         >
           <span>Search...</span>
           <kbd>⌘K</kbd>
@@ -210,7 +210,7 @@ function TopNav(props: {
         onClick={props.onToggleMobileNav}
         aria-expanded={props.mobileNavOpen}
         aria-label="Toggle navigation menu"
-        class="bare inline-flex items-center justify-center rounded-lg border bg-surface px-2 py-1 transition-colors hover:bg-surface-raised md:hidden"
+         class="bare inline-flex items-center justify-center rounded-lg border bg-surface px-2 py-1 transition-colors hover:bg-surface-raised md:hidden"
       >
         <span
           class={
@@ -331,7 +331,7 @@ function Layout(props: RouteSectionProps): JSX.Element {
                   setMobileNavOpen(false);
                   setSearchOpen(true);
                 }}
-                class="bare inline-flex flex-1 items-center gap-2 rounded-lg border bg-surface px-3 py-1 type-code text-muted transition-colors hover:bg-surface-raised"
+                 class="bare inline-flex flex-1 items-center gap-2 rounded-lg border bg-surface px-3 py-1 type-code text-muted transition-colors hover:bg-surface-raised"
               >
                 <span class="i-lucide-search icon-sm" aria-hidden="true" />
                 <span>Search...</span>
@@ -344,13 +344,13 @@ function Layout(props: RouteSectionProps): JSX.Element {
                   <A
                     href={section.href}
                     onClick={() => setMobileNavOpen(false)}
-                    class={`block rounded-sm px-3 py-1 no-underline transition-colors duration-fast ${
+                    class={`block rounded-sm px-3 py-1 type-label no-underline transition-colors duration-fast ${
                       section.active.some(
                         (prefix) =>
                           location.pathname === prefix ||
                           location.pathname.startsWith(`${prefix}/`),
                       )
-                        ? "bg-surface-raised type-body-strong"
+                        ? "bg-surface-raised text-primary"
                         : "text-muted"
                     }`}
                   >

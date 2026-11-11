@@ -60,6 +60,23 @@ export function importSpecifiers(text: string): string[] {
     for (const match of statement.matchAll(SPECIFIER)) found.push(match[2]);
     statement = "";
   }
+  // Lazy loaders resolve at runtime: dynamic `import("x")`, `require("x")`,
+  // and `require.resolve("x")` are dependencies the static scan above
+  // never sees. Comments excluded,
+  // template content included — a scaffold that names a package still needs
+  // it installed where the scaffold runs... no: emitted content is the
+  // consumer's concern, not the dist's. Only real calls count, so strip
+  // template literals first.
+  const bare = text.replace(/`(?:[^`\\]|\\.)*`/g, '""');
+  for (const line of bare.split("\n")) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("//") || trimmed.startsWith("*")) continue;
+    for (
+      const match of trimmed.matchAll(/\b(?:import|require(?:\.resolve)?)\(\s*(["'])([^"']+)\1/g)
+    ) {
+      found.push(match[2]);
+    }
+  }
   return found;
 }
 

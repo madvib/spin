@@ -4,8 +4,8 @@
 import { createEffect, createSignal, onCleanup } from "solid-js";
 import type { JSX } from "solid-js";
 import { mode, theme } from "@spinjs/kit";
-import { generateCss, parseTokens } from "@spinjs/spin/theme";
-import { starterThemes } from "@spinjs/spin/theme/themes";
+import { generateCss, parseTokens } from "@spinjs/theme";
+import { starterThemes } from "@spinjs/theme/themes";
 
 export interface ExamplePreviewProps {
   readonly kind: "markup" | "module";
@@ -17,7 +17,7 @@ export interface ExamplePreviewProps {
 
 function themeCss(): string {
   const document =
-    starterThemes[theme() as keyof typeof starterThemes] ?? starterThemes.spin;
+    starterThemes[theme() as keyof typeof starterThemes] ?? starterThemes.editorial;
   const parsed = parseTokens(document);
   return parsed.ok ? generateCss(parsed.tree) : "";
 }

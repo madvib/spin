@@ -10,7 +10,6 @@
         "@orpc/contract": "^1.0.0",
         "@orpc/server": "^1.0.0",
         "@spinjs/components": "workspace:*",
-        "@spinjs/runtime": "workspace:*",
         "@spinjs/spin": "workspace:*",
         "@unocss/core": "66.10.5",
         "@unocss/preset-icons": "66.10.5",
@@ -77,17 +76,31 @@
       "version": "0.1.0",
       "dependencies": {
         "@spinjs/components": "workspace:*",
-        "@spinjs/runtime": "workspace:*",
+        "@spinjs/preset": "workspace:*",
         "@spinjs/spin": "workspace:*",
         "animejs": "4.5.0",
         "solid-js": "^1.9.3",
       },
     },
+    "packages/build": {
+      "name": "@spinjs/build",
+      "version": "0.1.0-preview.6",
+      "dependencies": {
+        "@spinjs/components": "workspace:*",
+        "@spinjs/diagnostics": "workspace:*",
+        "@spinjs/preset": "workspace:*",
+        "@spinjs/server": "workspace:*",
+        "@spinjs/theme": "workspace:*",
+        "@unocss/core": "66.10.5",
+        "unplugin": "^3.4.0",
+      },
+    },
     "packages/components": {
       "name": "@spinjs/components",
-      "version": "0.1.0-preview.4",
+      "version": "0.1.0-preview.6",
       "dependencies": {
-        "@spinjs/runtime": "workspace:*",
+        "alien-signals": "^3.2.1",
+        "linkedom": "^0.18.0",
         "perfect-freehand": "^1.2.3",
       },
       "devDependencies": {
@@ -100,39 +113,84 @@
         "solid-js": "^1.9.0",
       },
     },
-    "packages/runtime": {
-      "name": "@spinjs/runtime",
-      "version": "0.1.0-preview.4",
+    "packages/diagnostics": {
+      "name": "@spinjs/diagnostics",
+      "version": "0.1.0-preview.6",
       "dependencies": {
-        "alien-signals": "^3.2.1",
-        "linkedom": "^0.18.0",
+        "@babel/parser": "^8.0.10",
+        "@spinjs/components": "workspace:*",
+        "@spinjs/preset": "workspace:*",
+        "@spinjs/server": "workspace:*",
+        "@spinjs/theme": "workspace:*",
+        "@unocss/core": "66.10.5",
+      },
+      "devDependencies": {
+        "@typescript-eslint/parser": "8.71.0",
+        "eslint": "^9.39.4",
+      },
+    },
+    "packages/preset": {
+      "name": "@spinjs/preset",
+      "version": "0.1.0-preview.6",
+      "dependencies": {
+        "@orpc/contract": "catalog:",
+        "@orpc/server": "catalog:",
+        "@spinjs/theme": "workspace:*",
+        "@unocss/core": "66.10.5",
+        "@unocss/preset-wind4": "66.10.5",
+        "@unocss/transformer-directives": "66.10.5",
+        "@unocss/transformer-variant-group": "66.10.5",
+        "valibot": "catalog:",
+      },
+      "devDependencies": {
+        "@spinjs/server": "workspace:*",
+        "@unocss/preset-attributify": "66.10.5",
+        "magic-string": "^1.4.1",
+        "solid-js": "^1.9.3",
+      },
+    },
+    "packages/server": {
+      "name": "@spinjs/server",
+      "version": "0.1.0-preview.6",
+      "dependencies": {
+        "@iconify-json/carbon": "^1.2.28",
+        "@iconify-json/lucide": "^1.2.0",
+        "@iconify-json/material-symbols": "^1.2.95",
+        "@iconify-json/ph": "^1.2.2",
+        "@iconify-json/tabler": "^1.2.42",
+        "@orpc/contract": "catalog:",
+        "@orpc/server": "catalog:",
+        "@spinjs/components": "workspace:*",
+        "@spinjs/theme": "workspace:*",
+        "valibot": "catalog:",
       },
     },
     "packages/spin": {
       "name": "@spinjs/spin",
-      "version": "0.1.0-preview.4",
+      "version": "0.1.0-preview.6",
       "bin": {
-        "spin": "./dist/diagnostics/cli.js",
+        "spin": "./dist/cli/main.js",
       },
       "dependencies": {
-        "@babel/parser": "^8.0.10",
         "@iconify-json/carbon": "^1.2.28",
         "@iconify-json/lucide": "^1.2.0",
         "@iconify-json/material-symbols": "^1.2.95",
         "@iconify-json/ph": "^1.2.2",
         "@iconify-json/tabler": "^1.2.42",
         "@modelcontextprotocol/server": "2.4.0",
-        "@orpc/client": "^1.0.0",
-        "@orpc/contract": "^1.0.0",
-        "@orpc/server": "^1.0.0",
+        "@orpc/client": "catalog:",
+        "@orpc/contract": "catalog:",
+        "@orpc/server": "catalog:",
+        "@spinjs/build": "workspace:*",
+        "@spinjs/diagnostics": "workspace:*",
+        "@spinjs/preset": "workspace:*",
+        "@spinjs/server": "workspace:*",
+        "@spinjs/theme": "workspace:*",
         "@unocss/core": "66.10.5",
         "@unocss/preset-icons": "66.10.5",
-        "@unocss/preset-wind4": "66.10.5",
-        "@unocss/transformer-directives": "66.10.5",
-        "@unocss/transformer-variant-group": "66.10.5",
         "hono": "^4.13.13",
         "unplugin": "^3.4.0",
-        "valibot": "^1.0.0",
+        "valibot": "catalog:",
         "zod": "^4.2.0",
       },
       "devDependencies": {
@@ -149,10 +207,24 @@
       },
       "peerDependencies": {
         "@spinjs/components": "workspace:*",
-        "@spinjs/runtime": "workspace:*",
         "solid-js": "^1.9.3",
       },
     },
+    "packages/theme": {
+      "name": "@spinjs/theme",
+      "version": "0.1.0-preview.6",
+      "dependencies": {
+        "@orpc/contract": "catalog:",
+        "@orpc/server": "catalog:",
+        "valibot": "catalog:",
+      },
+    },
+  },
+  "catalog": {
+    "@orpc/client": "^1.0.0",
+    "@orpc/contract": "^1.0.0",
+    "@orpc/server": "^1.0.0",
+    "valibot": "^1.0.0",
   },
   "packages": {
     "@acemir/cssom": ["@acemir/cssom@0.9.32", "http://localhost:4873/@acemir/cssom/-/cssom-0.9.32.tgz", {}, "sha512-OijrAUu7rrJhSIoHNg6LMPS5e344nwUHA+1EFYYjrh64D+GmytUsfBQjci45TjT+rd5Spsp8B5xsZDT+TgyXXQ=="],
@@ -319,19 +391,27 @@
 
     "@spin/check": ["@spin/check@workspace:internal/check"],
 
+    "@spinjs/build": ["@spinjs/build@workspace:packages/build"],
+
     "@spinjs/components": ["@spinjs/components@workspace:packages/components"],
+
+    "@spinjs/diagnostics": ["@spinjs/diagnostics@workspace:packages/diagnostics"],
 
     "@spinjs/docs": ["@spinjs/docs@workspace:apps/docs"],
 
     "@spinjs/kit": ["@spinjs/kit@workspace:internal/kit"],
 
+    "@spinjs/preset": ["@spinjs/preset@workspace:packages/preset"],
+
     "@spinjs/reference": ["@spinjs/reference@workspace:apps/reference"],
 
-    "@spinjs/runtime": ["@spinjs/runtime@workspace:packages/runtime"],
+    "@spinjs/server": ["@spinjs/server@workspace:packages/server"],
 
     "@spinjs/spin": ["@spinjs/spin@workspace:packages/spin"],
 
     "@spinjs/studio": ["@spinjs/studio@workspace:apps/studio"],
+
+    "@spinjs/theme": ["@spinjs/theme@workspace:packages/theme"],
 
     "@standard-schema/spec": ["@standard-schema/spec@1.1.0", "http://localhost:4873/@standard-schema/spec/-/spec-1.1.0.tgz", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
 

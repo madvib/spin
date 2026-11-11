@@ -4,18 +4,17 @@ import { themePicker } from "@spinjs/components/theme-picker";
 const machine = themePicker({ syncDocument: false });
 </script>
 
-<div class="relative shrink-0" {...machine.getRootProps()}>
+<div class="relative inline-flex shrink-0 items-center" {...machine.getRootProps()}>
   <button
-    class="bare inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface"
-    data-testid="theme-picker"
-    {...machine.getTriggerProps()}
-  >
-    <span class="inline-flex h-4 items-center gap-1" data-swatch-theme={machine.value} {...machine.getTriggerSwatchProps()}>
-      <span class="h-2 w-2 shrink-0 rounded-full border bg-surface"></span>
-      <span class="h-2 w-2 shrink-0 rounded-full bg-primary"></span>
-      <span class="h-2 w-2 shrink-0 rounded-full bg-secondary"></span>
-    </span>
-    <span class="sr-only">{machine.value}</span>
+  class="bare inline-flex h-8 shrink-0 items-center gap-2 border-0 px-3 text-muted transition-colors hover:bg-surface-sunken"
+  data-testid="theme-picker"
+  {...machine.getTriggerProps()}
+>
+  <span class="inline-flex h-4 items-center" data-swatch-theme={machine.value} {...machine.getTriggerSwatchProps()}>
+    <span class="h-4 w-4 rounded-sm border bg-primary"></span>
+  </span>
+  <span class="max-w-36 truncate type-caption" {...machine.getTriggerLabelProps()}>{machine.value}</span>
+  <span class="inline-flex shrink-0 items-center text-muted" {...machine.getTriggerIndicatorProps()}><span class="inline-block icon-sm i-lucide-chevron-down" aria-hidden="true"></span></span>
   </button>
   <div class="absolute z-dropdown" {...machine.getPositionerProps()}>
     <div

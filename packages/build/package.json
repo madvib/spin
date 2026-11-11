@@ -1,0 +1,45 @@
+{
+  "dependencies": {
+    "@spinjs/components": "workspace:*",
+    "@spinjs/diagnostics": "workspace:*",
+    "@spinjs/preset": "workspace:*",
+    "@spinjs/server": "workspace:*",
+    "@spinjs/theme": "workspace:*",
+    "@unocss/core": "66.10.5",
+    "unplugin": "^3.4.0"
+  },
+  "description": "The build stages: components stage, strict gate, content scan, and the cross-theme report.",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts",
+      "types": "./src/index.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT",
+  "name": "@spinjs/build",
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "default": "./dist/index.js",
+        "types": "./dist/index.d.ts"
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madvib/spin.git"
+  },
+  "scripts": {
+    "fmt": "biome format --write .",
+    "lint": "oxlint",
+    "test": "bun test src/"
+  },
+  "type": "module",
+  "version": "0.1.0-preview.6"
+}

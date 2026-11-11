@@ -1,0 +1,631 @@
+{
+  "$extends": "base",
+  "$extensions": {
+    "spin": {
+      "fonts": [
+        {
+          "family": "Chakra Petch",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/chakra-petch@latest/latin-600-normal.woff2) format(\"woff2\")",
+          "weight": "600",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
+          "family": "Space Grotesk",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/space-grotesk:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "300 700",
+          "style": "normal",
+          "display": "swap"
+        },
+        {
+          "family": "JetBrains Mono",
+          "src": "url(https://cdn.jsdelivr.net/fontsource/fonts/jetbrains-mono:vf@latest/latin-wght-normal.woff2) format(\"woff2\")",
+          "weight": "100 800",
+          "style": "normal",
+          "display": "swap"
+        }
+      ]
+    }
+  },
+  "color": {
+    "$type": "color",
+    "$description": "The light palette. Derived roles (surface, text, border) are references into the neutral ramp, so re-tinting the ramp re-tints every surface with it.",
+    "primary": {
+      "$value": "#c2410c",
+      "$modes": {
+        "dark": "#fb923c"
+      }
+    },
+    "secondary": {
+      "$value": "#2c3747",
+      "$modes": {
+        "dark": "#28303d"
+      }
+    },
+    "accent": {
+      "$value": "#0e7490",
+      "$modes": {
+        "dark": "#22d3ee"
+      }
+    },
+    "neutral": {
+      "50": {
+        "$value": "#eaeef4",
+        "$modes": {
+          "dark": "#13161c"
+        }
+      },
+      "100": {
+        "$value": "#dfe5ee",
+        "$modes": {
+          "dark": "#0d1015"
+        }
+      },
+      "200": {
+        "$value": "#cfd7e3",
+        "$modes": {
+          "dark": "#222731"
+        }
+      },
+      "300": {
+        "$value": "#b4c0d0",
+        "$modes": {
+          "dark": "#303745"
+        }
+      },
+      "400": {
+        "$value": "#8a99ad",
+        "$modes": {
+          "dark": "#475163"
+        }
+      },
+      "500": {
+        "$value": "#5e6d82",
+        "$modes": {
+          "dark": "#687387"
+        }
+      },
+      "600": {
+        "$value": "#435063",
+        "$modes": {
+          "dark": "#94a0b4"
+        }
+      },
+      "700": {
+        "$value": "#2c3747",
+        "$modes": {
+          "dark": "#b8c2d4"
+        }
+      },
+      "800": {
+        "$value": "#1b2330",
+        "$modes": {
+          "dark": "#d9e0ec"
+        }
+      },
+      "900": {
+        "$value": "#0d131c",
+        "$modes": {
+          "dark": "#f0f4fa"
+        }
+      },
+      "$description": "The grey ramp, 50 (lightest) through 900 (darkest)."
+    },
+    "semantic": {
+      "$description": "Status colors. Named by meaning, never by hue.",
+      "success": {
+        "$value": "#26753e",
+        "$modes": {
+          "dark": "#72cf88"
+        }
+      },
+      "warning": {
+        "$value": "#886108",
+        "$modes": {
+          "dark": "#eac26b"
+        }
+      },
+      "error": {
+        "$value": "#a6312b",
+        "$modes": {
+          "dark": "#f38277"
+        }
+      },
+      "info": {
+        "$value": "#0e629a",
+        "$modes": {
+          "dark": "#6dbbe8"
+        }
+      }
+    },
+    "surface": {
+      "$value": "{color.neutral.50}"
+    },
+    "surface-sunken": {
+      "$value": "{color.neutral.100}"
+    },
+    "surface-raised": {
+      "$value": "#f3f6fa",
+      "$modes": {
+        "dark": "#1b2029"
+      }
+    },
+    "text": {
+      "$value": "{color.neutral.900}",
+      "$description": "Default body text.",
+      "$modes": {
+        "dark": "#f3f5f8"
+      }
+    },
+    "text-muted": {
+      "$value": "{color.neutral.600}",
+      "$description": "Secondary text: captions, helper copy, placeholders.",
+      "$modes": {
+        "dark": "#999fa7"
+      }
+    },
+    "border": {
+      "$value": "{color.neutral.200}",
+      "$description": "Default hairline and divider.",
+      "$modes": {
+        "dark": "#1d242f"
+      }
+    },
+    "scrim": {
+      "$value": "rgb(15 19 30 / 45%)",
+      "$description": "What dims the page behind a modal. A theme closes its dialogs over its own ink, not a neutral black.",
+      "$modes": {
+        "dark": "rgb(15 19 30 / 60%)"
+      }
+    },
+    "on-primary": {
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#1c0a02"
+      }
+    },
+    "focus-ring": {
+      "$value": "#c2410c",
+      "$modes": {
+        "dark": "#fb923c"
+      }
+    },
+    "link": {
+      "$value": "#0e7490",
+      "$modes": {
+        "dark": "#22d3ee"
+      }
+    },
+    "on-secondary": {
+      "$value": "#f3f6fa",
+      "$modes": {
+        "dark": "#f0f4fa"
+      }
+    },
+    "on-accent": {
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#041e24"
+      }
+    },
+    "selected": {
+      "$type": "color",
+      "$value": "{color.text}"
+    },
+    "on-selected": {
+      "$type": "color",
+      "$value": "{color.surface}"
+    },
+    "on-semantic-success": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#111923"
+      }
+    },
+    "on-semantic-warning": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$modes": {
+        "dark": "#111923"
+      }
+    },
+    "field": {
+      "$value": "#dfe5ee",
+      "$modes": {
+        "dark": "#0d1015"
+      }
+    },
+    "border-strong": {
+      "$type": "color",
+      "$value": "#a6afbb",
+      "$description": "A control's own edge: stronger than `border`, which divides content. A field has to read as a field at a glance.",
+      "$modes": {
+        "dark": "#434b57"
+      }
+    },
+    "on-semantic-error": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents.",
+      "$modes": {
+        "dark": "#111923"
+      }
+    },
+    "on-danger": {
+      "$type": "color",
+      "$value": "{color.on-semantic-error}",
+      "$description": "The legacy name for the ink on the error fill. It points at `color.on-semantic-error` \u2014 the role the contract requires, the floor is measured on, and the danger button and the danger badge wear \u2014 so the two names can never disagree."
+    },
+    "on-semantic-info": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "Text on the matching fill. A fill with no foreground cannot be read, which is what this token prevents.",
+      "$modes": {
+        "dark": "#111923"
+      }
+    },
+    "disabled": {
+      "$value": "{color.neutral.200}",
+      "$description": "The fill a dead control wears: the ramp one step off the page, so a control that cannot be pressed still reads as a control rather than as a hole in the layout.",
+      "$modes": {
+        "dark": "{color.neutral.200}"
+      }
+    },
+    "on-disabled": {
+      "$type": "color",
+      "$value": "{color.neutral.600}",
+      "$description": "The ink on that fill. Dimming the control instead would dim this with it, which is how a dead button becomes an unreadable one.",
+      "$modes": {
+        "dark": "{color.neutral.600}"
+      }
+    },
+    "primary-hover": {
+      "$value": "#9a3412",
+      "$modes": {
+        "dark": "#fdba74"
+      }
+    },
+    "primary-active": {
+      "$value": "#7c2d12",
+      "$modes": {
+        "dark": "#f97316"
+      }
+    },
+    "secondary-hover": {
+      "$value": "#1b2330",
+      "$modes": {
+        "dark": "#343e4f"
+      }
+    },
+    "secondary-active": {
+      "$value": "#0d131c",
+      "$modes": {
+        "dark": "#404c60"
+      }
+    },
+    "link-hover": {
+      "$value": "#155e75",
+      "$modes": {
+        "dark": "#67e8f9"
+      }
+    },
+    "link-visited": {
+      "$value": "#4338ca",
+      "$modes": {
+        "dark": "#a5b4fc"
+      }
+    }
+  },
+  "spacing": {
+    "1": {
+      "$value": "0.225rem"
+    },
+    "2": {
+      "$value": "0.45rem"
+    },
+    "3": {
+      "$value": "0.675rem"
+    },
+    "4": {
+      "$value": "0.9rem"
+    },
+    "5": {
+      "$value": "1.125rem"
+    },
+    "6": {
+      "$value": "1.35rem"
+    },
+    "7": {
+      "$value": "1.575rem"
+    },
+    "8": {
+      "$value": "1.8rem"
+    },
+    "10": {
+      "$value": "2.25rem"
+    },
+    "12": {
+      "$value": "2.7rem"
+    },
+    "14": {
+      "$value": "3.15rem"
+    },
+    "16": {
+      "$value": "3.6rem"
+    },
+    "20": {
+      "$value": "4.5rem"
+    },
+    "24": {
+      "$value": "5.4rem"
+    },
+    "36": {
+      "$value": "8.1rem"
+    },
+    "40": {
+      "$value": "9rem"
+    },
+    "56": {
+      "$value": "12.6rem"
+    },
+    "60": {
+      "$value": "13.5rem"
+    },
+    "64": {
+      "$value": "14.4rem"
+    }
+  },
+  "font": {
+    "$description": "Typography: which face, how large, how heavy, and how open the tracking sits.",
+    "family": {
+      "$type": "fontFamily",
+      "sans": {
+        "$value": "Space Grotesk, ui-sans-serif, system-ui, sans-serif",
+        "$description": "Body and UI text."
+      },
+      "heading": {
+        "$value": "Chakra Petch, Space Grotesk, sans-serif",
+        "$description": "The display face. Silk answers with the sans; a theme with a display voice states its own."
+      },
+      "body": {
+        "$value": "{font.family.sans}",
+        "$description": "The body face. Distinct from `sans` only when a theme wants the two to differ."
+      },
+      "serif": {
+        "$value": "ui-serif, Georgia, Cambria, serif",
+        "$description": "Long-form editorial text."
+      },
+      "mono": {
+        "$value": "JetBrains Mono, ui-monospace, monospace",
+        "$description": "Code, identifiers, tabular figures."
+      },
+      "brand": {
+        "$type": "fontFamily",
+        "$value": "Bricolage Grotesque, Space Grotesk, ui-sans-serif, system-ui, sans-serif",
+        "$description": "The logotype face \u2014 one brand, every starter."
+      }
+    },
+    "style": {
+      "display": {
+        "$type": "typography",
+        "$description": "Display \u2014 the largest statement on the page. Hero headings (h1 reads it). Not section titles (that's title).",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.3xl}",
+          "weight": "{font.weight.bold}",
+          "tracking": "{font.tracking.tight}",
+          "leading": "{font.leading.tight}"
+        }
+      },
+      "title": {
+        "$type": "typography",
+        "$description": "Title \u2014 the section title. h2 and stat figures read it. Not subsections (that's heading).",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.2xl}",
+          "weight": "{font.weight.semibold}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.snug}"
+        }
+      },
+      "heading": {
+        "$type": "typography",
+        "$description": "Heading \u2014 the subsection title. h3 reads it. Not UI labels (that's label).",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.xl}",
+          "weight": "{font.weight.semibold}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.snug}"
+        }
+      },
+      "subtitle": {
+        "$type": "typography",
+        "$description": "Subtitle \u2014 the large UI step. Large buttons (button s-lg falls back to it). Not intro paragraphs (that's lead).",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.lg}",
+          "weight": "{font.weight.medium}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.snug}"
+        }
+      },
+      "lead": {
+        "$type": "typography",
+        "$description": "Lead \u2014 the intro paragraph. Article ledes and empty-state subheads. Not default reading text (that's body).",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.lg}",
+          "weight": "{font.weight.regular}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.relaxed}"
+        }
+      },
+      "body": {
+        "$type": "typography",
+        "$description": "Body \u2014 the default reading text. Every paragraph. Not UI labels (that's label), not emphasis (that's body-emphasized).",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.md}",
+          "weight": "{font.weight.regular}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.relaxed}"
+        }
+      },
+      "quote": {
+        "$type": "typography",
+        "$description": "Quote \u2014 somebody else's words (blockquote reads it). Not default reading text (that's body).",
+        "$value": {
+          "family": "{font.family.mono}",
+          "size": "{font.size.md}",
+          "weight": "{font.weight.regular}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.relaxed}"
+        }
+      },
+      "code": {
+        "$type": "typography",
+        "$description": "Code \u2014 identifiers and paths (code reads it). Monospace. Not prose of any kind.",
+        "$value": {
+          "family": "{font.family.mono}",
+          "size": "{font.size.sm}",
+          "weight": "{font.weight.regular}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.normal}"
+        }
+      },
+      "label": {
+        "$type": "typography",
+        "$description": "Label \u2014 the short named thing. Field labels, card headers, badges (badge falls back to it). Not annotations (that's caption).",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.sm}",
+          "weight": "{font.weight.medium}",
+          "tracking": "{font.tracking.wide}",
+          "leading": "{font.leading.snug}"
+        }
+      },
+      "caption": {
+        "$type": "typography",
+        "$description": "Caption \u2014 the annotation. Timestamps, helper text, stat context. Not named emphasis (that's caption-emphasized).",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.xs}",
+          "weight": "{font.weight.regular}",
+          "tracking": "{font.tracking.normal}",
+          "leading": "{font.leading.snug}"
+        }
+      },
+      "overline": {
+        "$type": "typography",
+        "$description": "Overline \u2014 the kicker above a title (h5/h6 read it). Tracked out. Not a label (that's label).",
+        "$value": {
+          "family": "{font.family.sans}",
+          "size": "{font.size.xs}",
+          "weight": "{font.weight.semibold}",
+          "tracking": "{font.tracking.widest}",
+          "leading": "{font.leading.snug}"
+        }
+      },
+      "body-emphasized": {
+        "$type": "typography",
+        "$description": "Body, emphasized \u2014 definition terms (dt reads it). Same tuple as body except the semibold step. Not a second family (see the variant convention).",
+        "$value": {
+          "family": "{font.style.body.family}",
+          "size": "{font.style.body.size}",
+          "weight": "{font.weight.semibold}",
+          "tracking": "{font.style.body.tracking}",
+          "leading": "{font.style.body.leading}"
+        }
+      },
+      "caption-emphasized": {
+        "$type": "typography",
+        "$description": "Caption, emphasized \u2014 figcaptions and table headers (figcaption, th read it). Same tuple as caption except the semibold step.",
+        "$value": {
+          "family": "{font.style.caption.family}",
+          "size": "{font.style.caption.size}",
+          "weight": "{font.weight.semibold}",
+          "tracking": "{font.style.caption.tracking}",
+          "leading": "{font.style.caption.leading}"
+        }
+      }
+    }
+  },
+  "radius": {
+    "sm": {
+      "$value": "0.1875rem"
+    },
+    "md": {
+      "$value": "0.375rem"
+    },
+    "lg": {
+      "$value": "0.625rem"
+    }
+  },
+  "shadow": {
+    "$type": "shadow",
+    "$description": "Elevation, as CSS box-shadow values.",
+    "sm": {
+      "$value": "-2px -2px 5px 0 rgb(255 255 255 / 0.75), 2px 2px 5px 0 rgb(15 23 42 / 0.14)",
+      "$modes": {
+        "dark": "-1px -1px 3px 0 rgb(255 255 255 / 0.05), 3px 3px 8px 0 rgb(0 0 0 / 0.65)"
+      }
+    },
+    "md": {
+      "$value": "-4px -4px 10px 0 rgb(255 255 255 / 0.8), 4px 4px 10px 0 rgb(15 23 42 / 0.16)",
+      "$modes": {
+        "dark": "-2px -2px 6px 0 rgb(255 255 255 / 0.05), 6px 6px 14px 0 rgb(0 0 0 / 0.7)"
+      }
+    },
+    "lg": {
+      "$value": "0 14px 32px -6px rgb(15 23 42 / 0.24), 0 4px 10px -2px rgb(15 23 42 / 0.12)",
+      "$modes": {
+        "dark": "0 16px 36px -6px rgb(0 0 0 / 0.75), 0 0 0 1px rgb(255 255 255 / 0.07)"
+      }
+    }
+  },
+  "button": {
+    "shadow": {
+      "$type": "shadow",
+      "$description": "The resting elevation. A control with no shadow sits on the page rather than in it.",
+      "$value": "{shadow.sm}"
+    },
+    "shadow-hover": {
+      "$type": "shadow",
+      "$description": "The hovered elevation. The lift is the hover feedback; without it a pointer tells the reader nothing.",
+      "$value": "{shadow.md}"
+    },
+    "radius": {
+      "$type": "dimension",
+      "$value": "{radius.sm}"
+    }
+  },
+  "badge": {
+    "pill": {
+      "$type": "boolean",
+      "$value": false,
+      "$description": "Fully round reads as a pill; false squares it into a tag."
+    }
+  },
+  "checkbox": {
+    "depth": {
+      "$type": "number",
+      "$value": 2
+    }
+  },
+  "switch": {
+    "depth": {
+      "$type": "number",
+      "$value": 2
+    }
+  },
+  "$description": "Tactile hardware & neumorphic: anodized aluminum in light mode and dark gunmetal at night, dual bevel shadows, recessed input wells, and signal orange + telemetry cyan accents.",
+  "card": {
+    "elevation": {
+      "$type": "shadow",
+      "$value": "{shadow.sm}",
+      "$description": "The theme's resting step: a card sits on the page rather than floating above it."
+    }
+  }
+}

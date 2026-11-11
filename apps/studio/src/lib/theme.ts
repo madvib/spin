@@ -1,5 +1,5 @@
-import { validateTheme } from "@spinjs/spin/theme";
-import type { Mode, ThemeReport } from "@spinjs/spin/theme";
+import { validateTheme } from "@spinjs/theme";
+import type { Mode, ThemeReport } from "@spinjs/theme";
 
 /**
  * What the studio knows about a theme's document.
@@ -28,6 +28,41 @@ export function analyzeTheme(text: string): ThemeState {
 }
 
 /**
+ * How many tokens a document authors, before the parse expands anything.
+ *
+ * A document's `$value` nodes are the tokens its author wrote; the indexed
+ * leaves are what the build emits after composites fan out. The studio
+ * shows both, because one without the other is a lie in either direction:
+ * the authored count alone hides the expansion, the composed count alone
+ * hides the author.
+ */
+export function authoredLeafCount(text: string): number {
+  let doc: unknown;
+  try {
+    doc = JSON.parse(text) as unknown;
+  } catch {
+    return 0;
+  }
+  let count = 0;
+  const walk = (node: unknown, depth: number): void => {
+    if (depth > 64 || typeof node !== "object" || node === null) return;
+    if (Array.isArray(node)) {
+      for (const item of node) walk(item, depth + 1);
+      return;
+    }
+    const record = node as Record<string, unknown>;
+    if ("$value" in record) count += 1;
+    for (const key of Object.keys(record)) {
+      if (key.startsWith("$") && key !== "$value") continue;
+      if (key === "$value") continue;
+      walk(record[key], depth + 1);
+    }
+  };
+  walk(doc, 0);
+  return count;
+}
+
+/**
  * The modes a document declares.
  *
  * `modes` is metadata at the document's root: the modes the theme serves.
@@ -52,7 +87,7 @@ export function declaredModes(text: string): Mode[] {
   }
   // A document that declares no `modes` array is not necessarily single-mode:
   // it may still carry dark overrides on individual tokens. Infer from
-  // content so a Blank scaffold (no modes, no overrides) reports one mode.
+  // content so a sparse document (no modes, no overrides) reports one mode.
   let hasDark = false;
   const walk = (node: unknown, depth: number): void => {
     if (depth > 24 || typeof node !== "object" || node === null) return;

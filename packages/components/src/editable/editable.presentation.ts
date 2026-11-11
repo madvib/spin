@@ -1,9 +1,9 @@
-import { ariaControls, ariaDisabled, ariaInvalid, ariaReadOnly, defineComponent, type ApiOf, type ComponentDef, type ViewFor, type SlotViewFor } from "@spinjs/runtime";
+import { ariaControls, ariaDisabled, ariaInvalid, ariaReadOnly, defineComponent, type ApiOf, type ViewFor } from "@spinjs/components/runtime";
 import { editable as editableMachine } from "./editable.machine.ts";
 import type { EditableArgs, EditableContext } from "./editable.state.ts";
 import type { EditableEvents } from "./editable.events.ts";
 import type { EditableState } from "./editable.state.ts";
-import type { InteractOutsideEvent } from "@spinjs/runtime/actions";
+import type { InteractOutsideEvent } from "@spinjs/components/actions";
 
 /**
  * Editable definition: the DOM contract as data. The machine owns the two

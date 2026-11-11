@@ -276,15 +276,15 @@ export class StudioPage {
     );
   }
 
-  /** The theme the registry seats, read off the line that names it. */
+  /** The theme the registry seats, read off the pill badge naming it. */
   async editingName(): Promise<string> {
     return await this.eval<string>(
       `(() => {
-        const t = document.getElementById("app")?.innerText ?? "";
-        const line = (t.split("\\n").find((l) => l.trim().indexOf("Editing") === 0) || "").trim();
-        return line.indexOf("Editing ") === 0
-          ? line.slice("Editing ".length).split("·")[0].trim()
-          : "";
+        const badge = document.querySelector('[data-testid="seat-badge"]');
+        const text = (badge?.textContent ?? "").trim();
+        if (text === "") return "";
+        const parts = text.split("·").map((part) => part.trim()).filter((part) => part !== "");
+        return parts.length === 0 ? "" : parts[parts.length - 1];
       })()`,
     );
   }
@@ -378,69 +378,124 @@ export class StudioPage {
   }
 
   /** Client-side, because a navigation would reset the mode this walk was given. */
-  async followRail(route: string): Promise<void> {
+  async followRail(rawRoute: string): Promise<void> {
+    const route = rawRoute
+      .replace(/^\/themes(\/|$)/, "/tokens$1")
+      .replace(/^\/findings(\/|$)/, "/diagnostics$1");
     await this.eval(
       `(async () => {
         const wait = (ms) => new Promise((r) => setTimeout(r, ms));
         const route = ${JSON.stringify(route)};
+        const here = location.pathname;
+        const alreadyAt = route === "/"
+          ? (here === "/" || here.endsWith("/studio") || here.endsWith("/studio/"))
+          : route === "/tokens"
+          ? (here === "/tokens" || here.endsWith("/tokens") || here.endsWith("/tokens/colors"))
+          : (here === route || here.endsWith(route));
+        if (alreadyAt) return;
+        const app = new URLSearchParams(location.search).get("app");
+        const carry = (href) => {
+          if (app === null || href === null) return href;
+          const url = new URL(href, location.origin);
+          url.searchParams.set("app", app);
+          return url.pathname + url.search;
+        };
         const pathOf = (h) => h.split("?")[0];
         const match = (h) => {
           const p = pathOf(h);
           if (route === "/") return h === "/" || p.endsWith("/studio") || p.endsWith("/studio/");
           return p === route || p.endsWith(route);
         };
-        const a = [...document.querySelectorAll("nav a")].find((x) => match(x.getAttribute("href") ?? ""));
-        if (a) { a.click(); return; }
+        const a = [...document.querySelectorAll("nav a, #app a")].find((x) => match(x.getAttribute("href") ?? ""));
+        if (a) {
+          const href = a.getAttribute("href");
+          if (app !== null && href !== null) a.setAttribute("href", carry(href));
+          a.click();
+          return;
+        }
 
         const navTrigger = document.querySelector('[data-testid="studio-nav"]');
         if (navTrigger) {
-          navTrigger.click();
-          await wait(250);
+          if (navTrigger.getAttribute("aria-expanded") !== "true") {
+            navTrigger.click();
+            await wait(250);
+          }
           const items = () => [...document.querySelectorAll('studio-nav [role="menuitem"]')];
-          if (route === "/themes" || route.startsWith("/themes/")) {
-            const themesItem = items().find((el) => el.getAttribute("data-value") === "/themes");
-            if (themesItem) {
-              themesItem.click();
-              await wait(250);
+          const target = route.startsWith("/tokens") ? "/tokens" : route.startsWith("/components/") ? "/components" : route;
+          const direct = items().find((el) => el.getAttribute("data-value") === target);
+          if (direct) {
+            direct.click();
+            return;
+          }
+          if (navTrigger.getAttribute("aria-expanded") === "true") {
+            navTrigger.click();
+          }
+        }
+        const mountIdx = here.indexOf("/studio");
+        const base = mountIdx >= 0 ? here.slice(0, mountIdx + "/studio".length) : "";
+        history.pushState({}, "", carry((base + route) || "/"));
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      })()`,
+    );
+    await this.settle(800);
+    await this.eval(
+      `(async () => {
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        const route = ${JSON.stringify(route)};
+        const app = new URLSearchParams(location.search).get("app");
+        const carry = (href) => {
+          if (app === null || href === null) return href;
+          const url = new URL(href, location.origin);
+          url.searchParams.set("app", app);
+          return url.pathname + url.search;
+        };
+        const isAt = (target) => {
+          const here = location.pathname;
+          if (target === "/") return here === "/" || here.endsWith("/studio") || here.endsWith("/studio/");
+          if (target === "/tokens") return here === "/tokens" || here.endsWith("/tokens") || here.endsWith("/tokens/colors");
+          return here === target || here.endsWith(target);
+        };
+        if (isAt(route)) return;
+        const clickHref = (target) => {
+          const a = [...document.querySelectorAll("nav a")].find((x) => (x.getAttribute("href") ?? "").split("?")[0].endsWith(target));
+          if (!a) return false;
+          const href = a.getAttribute("href");
+          if (app !== null && href !== null) a.setAttribute("href", carry(href));
+          a.click();
+          return true;
+        };
+        if (clickHref(route)) return;
+        if (route.startsWith("/tokens/")) {
+          const groupTarget = route.startsWith("/tokens/type/") ? "/tokens/type" : route;
+          if (!isAt(groupTarget)) {
+            const crumb = document.querySelector('[data-testid="crumb-themes"]');
+            if (crumb && crumb.getAttribute("aria-expanded") !== "true") {
+              crumb.click();
+              await wait(100);
             }
-            const subTarget = route === "/themes" ? "/themes/colors" : route;
-            const subItem = items().find((el) => el.getAttribute("data-value") === subTarget);
-            if (subItem) {
-              subItem.click();
-              return;
-            }
-          } else if (route.startsWith("/components/")) {
-            const compItem = items().find((el) => el.getAttribute("data-value") === "/components");
-            if (compItem) compItem.click();
-          } else {
-            const direct = items().find((el) => el.getAttribute("data-value") === route);
-            if (direct) {
-              direct.click();
-              return;
+            clickHref(groupTarget);
+            await wait(300);
+          }
+          if (!isAt(route) && route.startsWith("/tokens/type/")) {
+            if (!clickHref(route)) {
+              const typeCrumb = document.querySelector('[data-testid="crumb-type"]');
+              if (typeCrumb && typeCrumb.getAttribute("aria-expanded") !== "true") {
+                typeCrumb.click();
+                await wait(100);
+              }
+              clickHref(route);
             }
           }
         }
       })()`,
     );
-    await this.settle(800);
-    // The side list arrives with the parent: click the group row when the
-    // first click only reached the job.
-    await this.eval(
-      `(() => { const route = ${JSON.stringify(route)}; const here = location.pathname;
-      const arrived = route === "/" ? (here === "/" || here.endsWith("/studio") || here.endsWith("/studio/")) : route === "/themes" ? (here === "/themes" || here.endsWith("/themes") || here.endsWith("/themes/colors")) : (here === route || here.endsWith(route));
-      if (arrived) return;
-      const a = [...document.querySelectorAll("nav a")].find((x) => (x.getAttribute("href") ?? "").split("?")[0].endsWith(route));
-      if (a) a.click(); })()`,
-    );
-    // The arrival, not any heading: a client-side navigation leaves the
-    // old page's h1 on screen while the route's chunk compiles, and a
-    // readiness check that matches any h1 passes on the page being left.
-    // The pathname ends with the route under a mount (`/__spin/studio`).
     await this.#waitFor(
       route === "/"
         ? `(location.pathname === "/" || location.pathname.endsWith("/studio") || location.pathname.endsWith("/studio/")) ? location.pathname : null`
-        : route === "/themes"
-        ? `(location.pathname === "/themes" || location.pathname.endsWith("/themes") || location.pathname.endsWith("/themes/colors")) ? location.pathname : null`
+        : route === "/tokens"
+        ? `(location.pathname === "/tokens" || location.pathname.endsWith("/tokens") || location.pathname.endsWith("/tokens/colors")) ? location.pathname : null`
+        : route === "/tokens/type"
+        ? `(location.pathname === "/tokens/type" || location.pathname.endsWith("/tokens/type") || location.pathname.endsWith("/tokens/type/styles")) ? location.pathname : null`
         : `location.pathname === ${JSON.stringify(route)} || location.pathname.endsWith(${JSON.stringify(route)}) ? location.pathname : null`,
       20_000,
     );

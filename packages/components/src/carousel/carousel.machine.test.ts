@@ -6,7 +6,7 @@ import {
   type CarouselEvents,
 } from "./carousel.machine.ts";
 import { pageCountFor } from "./carousel.state.ts";
-import { interpret, type Service } from "@spinjs/runtime/fsm";
+import { interpret, type Service } from "@spinjs/components/fsm";
 
 /**
  * The carousel's machine, its assigns and its derived page count, through

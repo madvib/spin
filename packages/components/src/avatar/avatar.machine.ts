@@ -8,7 +8,7 @@
  * else. There is no guard: the last signal wins.
  */
 
-import { createMachine, type Machine } from "@spinjs/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/components/fsm";
 import type { AvatarArgs, AvatarContext, AvatarState } from "./avatar.state.ts";
 import { initial } from "./avatar.state.ts";
 import type { AvatarEvents } from "./avatar.events.ts";

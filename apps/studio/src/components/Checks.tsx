@@ -28,14 +28,13 @@
  */
 
 import { A } from "@solidjs/router";
-import { createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import { createMemo, createSignal, For, Show } from "solid-js";
 import { themeText } from "../lib/store.ts";
 import { checks, remedyText } from "../lib/floors.ts";
 import type { Check, Remedy } from "../lib/floors.ts";
 import { editToken } from "../lib/editing.ts";
 import { editorRouteFor } from "../lib/tokens.ts";
 import { hostPath } from "../lib/client.ts";
-import { checksRequests } from "../lib/checks-bus.ts";
 
 /**
  * How bad the findings are.
@@ -99,8 +98,7 @@ function severityOf(found: readonly Check[]): Severity | undefined {
  * badge is what says how bad it is.
  */
 const BUTTON =
-  "bare peer relative flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted hover:bg-surface";
-
+  "bare peer relative inline-flex h-8 items-center justify-center rounded-e-full px-2 text-muted transition-colors hover:bg-surface-sunken";
 export default function Checks() {
   /**
    * The checks on the document being edited.
@@ -119,9 +117,6 @@ export default function Checks() {
   const severity = createMemo(() => severityOf(findings()));
 
   const [checksOpen, setChecksOpen] = createSignal(false);
-  createEffect(() => {
-    if (checksRequests() > 0) setChecksOpen(true);
-  });
 
   /**
    * Writes a remedy into the token it belongs to.

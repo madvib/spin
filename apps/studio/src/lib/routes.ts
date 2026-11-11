@@ -30,6 +30,8 @@ export interface StudioRoute {
   readonly label: string;
   /** The chrome's glyph, as a whole utility class — the scanner reads source. */
   readonly icon: string;
+  /** One plain-words line under the label in the navigation card. */
+  readonly description: string;
   /** Absent means the route is served but the chrome does not offer it. */
   readonly place?: ChromePlace;
   /** Token path prefixes this route's editor owns, so a readout can link to it. */
@@ -47,56 +49,79 @@ export const ROUTES = [
     path: "/",
     label: "Overview",
     icon: "i-lucide-loader-pinwheel",
+    description: "Project dashboard: active brand, token groups, components, and diagnostics",
     place: "mark",
   },
   {
-    path: "/themes",
-    label: "Themes",
+    path: "/brand",
+    label: "Brand",
+    icon: "i-lucide-layers",
+    description: "Brand identity, parent design language, authored layers, and facets",
+    place: "concern",
+  },
+  {
+    path: "/tokens",
+    label: "Tokens",
     icon: "i-lucide-palette",
+    description: "Color, type, spacing, style, motion, and icon tokens",
     place: "concern",
     owns: [["color"], ["font"], ["icon"], ["motion"], ["spacing"], ["breakpoint"], ["radius"], ["shadow"], ["z-index"], ["opacity"], ["border"], [
       "focus",
     ]],
-    children: ["", "/colors", "/type", "/icons", "/motion", "/spacing", "/style"],
+    children: ["", "/colors", "/type", "/type/faces", "/type/styles", "/type/ramps", "/icons", "/motion", "/spacing", "/style"],
   },
   {
     path: "/components",
-    label: "Elements",
+    label: "Components",
     icon: "i-lucide-layout-dashboard",
+    description: "Primitives and machine components",
     place: "concern",
     children: ["", "/:name"],
   },
   {
-    path: "/findings",
-    label: "Findings",
-    // A checklist, not a warning: the page is where the lints are read, and
-    // what they say is the subject — a finding that cannot be fixed is as
-    // much a finding as one that can.
+    path: "/diagnostics",
+    label: "Diagnostics",
     icon: "i-lucide-list-checks",
+    description: "Theme contract checks, source lints, and shortcut opportunities",
     place: "concern",
   },
   {
     path: "/preferences",
     label: "Preferences",
     icon: "i-lucide-settings",
+    description: "Project wiring and studio behavior",
     place: "foot",
+  },
+  {
+    path: "/init",
+    label: "Create your brand",
+    icon: "i-lucide-sparkles",
+    description: "The init sequence: brand, language, palette, type",
   },
 ] as const satisfies readonly StudioRoute[];
 
 /**
- * The folded token-group paths, and where they land now.
- *
- * The six group routes folded into `/themes` sub-views; a bookmark or a link
- * written against the old shape still lands on the same page. A redirect,
- * not an alias: the router navigates, so the address bar tells the truth.
+ * Redirects for legacy paths so bookmarks and older links resolve cleanly
+ * to the current Brand / Tokens / Components / Diagnostics routes.
  */
 export const REDIRECTS: Readonly<Record<string, string>> = {
-  "/colors": "/themes/colors",
-  "/type": "/themes/type",
-  "/icons": "/themes/icons",
-  "/motion": "/themes/motion",
-  "/spacing": "/themes/spacing",
-  "/style": "/themes/style",
+  "/themes": "/tokens/colors",
+  "/themes/colors": "/tokens/colors",
+  "/themes/type": "/tokens/type/styles",
+  "/themes/type/faces": "/tokens/type/faces",
+  "/themes/type/styles": "/tokens/type/styles",
+  "/themes/type/ramps": "/tokens/type/ramps",
+  "/themes/icons": "/tokens/icons",
+  "/themes/motion": "/tokens/motion",
+  "/themes/spacing": "/tokens/spacing",
+  "/themes/style": "/tokens/style",
+  "/findings": "/diagnostics",
+  "/colors": "/tokens/colors",
+  "/type": "/tokens/type/styles",
+  "/icons": "/tokens/icons",
+  "/motion": "/tokens/motion",
+  "/spacing": "/tokens/spacing",
+  "/style": "/tokens/style",
 };
 
 /** Every path the studio can be told to go to, for links and for gates. */
@@ -114,12 +139,12 @@ export type RoutePath = (typeof ROUTES)[number]["path"];
 
 /** The chrome's places, derived. */
 function placed(place: ChromePlace): readonly StudioRoute[] {
-  return ROUTES.filter((route) => route.place === place);
+  return ROUTES.filter((route) => "place" in route && route.place === place);
 }
 
 /** The single route placed at a mark. Two claiming it is an error. */
 function chromeAt(place: ChromePlace): StudioRoute {
-  const claimed = ROUTES.filter((route) => route.place === place);
+  const claimed = ROUTES.filter((route) => "place" in route && route.place === place);
   if (claimed.length === 0) {
     throw new Error(
       `no route is placed at "${place}" in the chrome — one of the entries has to set place: "${place}"`,

@@ -7,11 +7,6 @@ import { test } from "bun:test";
 
 import { strict as assert } from "node:assert";
 import { runComponentSuite, step } from "./harness.ts";
-import { type Page } from "playwright-core";
-
-/** Part ids are the machine's scheme: `splitter:<element id>:<part>`. */
-const at = (id: string, part: string): string =>
-  `[id="splitter:${id}:${part}"]`;
 const ROOT_ID = '[id="splitter:group"]';
 const handle = (pair: string): string => `[id="splitter:group:handle:${pair}"]`;
 const FIRST_HANDLE = handle("nav:main");

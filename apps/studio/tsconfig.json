@@ -28,11 +28,11 @@
       "@spinjs/components/examples": [
         "../../packages/components/src/examples.ts"
       ],
-      "@spinjs/spin/theme": [
-        "../../packages/spin/src/theme/index.ts"
+      "@spinjs/theme": [
+        "../../packages/theme/src/index.ts"
       ],
-      "@spinjs/spin/theme/themes": [
-        "../../packages/spin/src/theme/themes/index.ts"
+      "@spinjs/theme/themes": [
+        "../../packages/theme/src/themes/index.ts"
       ],
       "@spinjs/kit": [
         "../../internal/kit/src/index.ts"
@@ -40,35 +40,20 @@
       "@spinjs/spin/examples": [
         "../../packages/spin/src/examples/index.ts"
       ],
-      "@spinjs/api/client": [
-        "../../packages/spin/src/api/client.ts"
-      ],
-      "@spinjs/api": [
-        "../../packages/spin/src/api/index.ts"
-      ],
-      "@spinjs/project": [
-        "../../packages/spin/src/project/index.ts"
-      ],
-      "@spinjs/project/sync": [
-        "../../packages/spin/src/project/sync.ts"
-      ],
       "@spinjs/diagnostics": [
-        "../../packages/spin/src/diagnostics/index.ts"
+        "../../packages/diagnostics/src/index.ts"
       ],
       "@spinjs/preset": [
-        "../../packages/spin/src/compiler/index.ts"
+        "../../packages/preset/src/index.ts"
       ],
-      "@spinjs/preset/config": [
-        "../../packages/spin/src/plugin/config.ts"
+      "@spinjs/theme/base": [
+        "../../packages/theme/src/base/index.ts"
       ],
-      "@spinjs/spin/theme/base": [
-        "../../packages/spin/src/theme/base/index.ts"
+      "@spinjs/preset/elements": [
+        "../../packages/preset/src/elements.d.ts"
       ],
-      "@spinjs/animation": [
-        "../../packages/spin/src/animation/index.ts"
-      ],
-      "@spinjs/spin/elements": [
-        "../../packages/spin/src/compiler/elements.d.ts"
+      "@spinjs/build": [
+        "../../packages/build/src/index.ts"
       ]
     }
   },

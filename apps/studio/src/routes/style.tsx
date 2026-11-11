@@ -74,7 +74,16 @@ export default function StylePage() {
     borders().filter((row) => row.type === "border")
   );
   const borderWidths = createMemo(() =>
-    borders().filter((row) => row.type !== "border")
+    borders().filter(
+      (row) => row.type !== "border" && !row.path.startsWith("border.style."),
+    )
+  );
+  const borderStyles = createMemo(() =>
+    borders().filter(
+      (row) =>
+        row.path.startsWith("border.style.") &&
+        !row.path.startsWith("border.style.none."),
+    )
   );
   /** The fills the theme spells in one token. */
   const gradients = createMemo(() => group([["gradient"]]));
@@ -180,6 +189,33 @@ export default function StylePage() {
                         style={{ border: `var(${row.variable})` }}
                       />
                     }
+                    editor={
+                      <ValueInput
+                        value={row.value}
+                        type={row.type}
+                        onCommit={(value) => edit(row, value)}
+                        variable={row.variable}
+                        label={row.path}
+                      />
+                    }
+                  />
+                )}
+              </For>
+            </ul>
+          </Frame>
+        </Section>
+      </Show>
+      <Show when={borderStyles().length > 0}>
+        <Section
+          title="Border styles"
+          fact={`${borderStyles().length} rules`}
+        >
+          <Frame class="p-3">
+            <ul class="flex flex-col">
+              <For each={borderStyles()}>
+                {(row) => (
+                  <TokenLine
+                    path={row.path}
                     editor={
                       <ValueInput
                         value={row.value}
@@ -369,9 +405,9 @@ function RadiusFigure(props: {
                 <span class="type-code">
                   {stepOf(row.path)}
                 </span>
-                <code class="text-muted tabular-nums">
+                <span class="type-code text-muted tabular-nums">
                   {props.shownOf(row)}
-                </code>
+                </span>
               </figcaption>
             </figure>
           );
@@ -397,9 +433,9 @@ function LiftFigure(props: { rows: readonly TokenRow[] }) {
               <span class="type-code">
                 {stepOf(row.path)}
               </span>
-              <code class="text-muted">
+              <span class="type-code text-muted">
                 shadow-{suffixOf(row.path)}
-              </code>
+              </span>
             </div>
           </figure>
         )}
@@ -440,7 +476,7 @@ function StackFigure(props: { rows: readonly TokenRow[] }) {
             <div
               class={`
                 absolute rounded-md border px-3 py-2 shadow-sm
-                ${isWinner() ? "bg-primary" : "bg-surface-raised"}
+                ${isWinner() ? "bg-primary text-on-primary" : "bg-surface-raised"}
               `}
               style={{
                 top: `${index() * 28}px`,
@@ -509,9 +545,9 @@ function OpacityFigure(props: {
                 <span class="type-code">
                   {stepOf(row.path)}
                 </span>
-                <code class="text-muted tabular-nums">
+                <span class="type-code text-muted tabular-nums">
                   {pct()}
-                </code>
+                </span>
               </figcaption>
             </figure>
           );
@@ -534,11 +570,10 @@ function BorderFigure(props: {
             style={{ "min-width": "5.5rem" }}
           >
             <div
-              class="h-12 w-full rounded-md bg-surface"
+              class="h-12 w-full rounded-md border-solid bg-surface"
               style={{
                 height: "3.25rem",
                 "border-width": `var(${row.variable})`,
-                "border-style": "solid",
                 "border-color": props.fill,
               }}
             />
@@ -546,9 +581,9 @@ function BorderFigure(props: {
                 <span class="type-code">
                 {stepOf(row.path)}
               </span>
-                <code class="text-muted tabular-nums">
+                <span class="type-code text-muted tabular-nums">
                 {row.value}
-              </code>
+              </span>
             </figcaption>
           </figure>
         )}
@@ -592,9 +627,9 @@ function FocusFigure(props: {
                 <span class="type-code">
                 {stepOf(row.path)}
               </span>
-                <code class="text-muted tabular-nums">
+                <span class="type-code text-muted tabular-nums">
                 {row.value}
-              </code>
+              </span>
             </figcaption>
           </figure>
         )}

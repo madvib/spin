@@ -2,7 +2,7 @@
  * @spinjs/api — transport for module-owned procedures.
  *
  * Each module owns its contract and its handler (`themeContract` /
- * `themeRouter` live in `@spinjs/spin/theme` because the theme implements them;
+ * `themeRouter` live in `@spinjs/theme` because the theme implements them;
  * `projectContract` lives here because the wire shape of a project is the
  * daemon's, while the operations over one live in `@spinjs/project`).
  * This package owns nothing procedural: it mounts routers on handlers,
@@ -15,35 +15,31 @@ import { createORPCClient } from "@orpc/client";
 import { RPCHandler } from "@orpc/server/fetch";
 import { Hono } from "hono";
 import { createSpinClient, type SpinClient } from "./client.ts";
-import { setProjectRoot } from "./project-procedures.ts";
-import { OVERLAY_SCRIPT } from "./overlay-client.ts";
-import { themeRouter } from "../theme/index.ts";
-import { overlayRouter, presetRouter } from "../compiler/index.ts";
-import { projectRouter } from "./project-procedures.ts";
+import { setProjectRoot } from "@spinjs/server/procedures";
+import { OVERLAY_SCRIPT } from "@spinjs/server";
+import { themeRouter } from "@spinjs/theme";
+import { presetRouter } from "@spinjs/preset";
+import { overlayRouter } from "@spinjs/server/procedures";
+import { projectRouter } from "@spinjs/server/procedures";
 import { previewRouter } from "./preview-procedures.ts";
-import { fontsRouter } from "./fonts-procedures.ts";
-import { iconsRouter } from "./icons-procedures.ts";
+import { fontsRouter } from "@spinjs/server/procedures";
+import { iconsRouter } from "@spinjs/server/procedures";
 import { findingsRouter } from "./findings-procedures.ts";
 import { componentsRouter } from "./components-procedures.ts";
-import { componentsContract } from "./components-contract.ts";
 
-export { themeRouter } from "../theme/index.ts";
-export { projectRouter, setProjectRoot } from "./project-procedures.ts";
+export { themeRouter } from "@spinjs/theme";
+export { projectRouter, setProjectRoot } from "@spinjs/server/procedures";
 export { previewRouter } from "./preview-procedures.ts";
 export { previewContract } from "./preview-procedures.ts";
-export { projectContract } from "./project-contract.ts";
-export { themeContract } from "../theme/index.ts";
+export { projectContract } from "@spinjs/server/procedures";
+export { themeContract } from "@spinjs/theme";
 
-export {
-  overlayContract,
-  overlayRouter,
-  presetContract,
-  presetRouter,
-} from "../compiler/index.ts";
+export { presetContract, presetRouter } from "@spinjs/preset";
+export { overlayContract, overlayRouter } from "@spinjs/server/procedures";
 export { componentsRouter } from "./components-procedures.ts";
 export { componentsContract } from "./components-contract.ts";
-export { fontsContract, fontsRouter } from "./fonts-procedures.ts";
-export { iconsContract, iconsRouter } from "./icons-procedures.ts";
+export { fontsContract, fontsRouter } from "@spinjs/server/procedures";
+export { iconsContract, iconsRouter } from "@spinjs/server/procedures";
 export { findingsContract, findingsRouter } from "./findings-procedures.ts";
 export { createSpinClient, type SpinClient } from "./client.ts";
 

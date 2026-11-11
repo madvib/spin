@@ -155,7 +155,6 @@ describe("tables", () => {
     "/docs/tooling/cli",
     "/docs/tooling/lints",
     "/docs/tooling/mcp",
-    "/docs/tooling/check",
   ] as const;
   for (const href of TABLE_PAGES) {
     test(`${href} tables fit their column without horizontal scroll`, async () => {

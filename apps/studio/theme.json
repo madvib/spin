@@ -527,59 +527,26 @@
           "leading": "{font.leading.snug}"
         }
       },
-      "stat": {
+      "body-emphasized": {
         "$type": "typography",
-        "$description": "The stat voice: the number a figure shows, set to be read at a glance.",
+        "$description": "Body, emphasized — definition terms. Same tuple as body except the semibold step.",
         "$value": {
-          "family": "{font.family.mono}",
-          "size": "{font.size.2xl}",
+          "family": "{font.style.body.family}",
+          "size": "{font.style.body.size}",
           "weight": "{font.weight.semibold}",
-          "tracking": "{font.tracking.normal}",
-          "leading": "{font.leading.tight}"
+          "tracking": "{font.style.body.tracking}",
+          "leading": "{font.style.body.leading}"
         }
       },
-      "badge": {
+      "caption-emphasized": {
         "$type": "typography",
-        "$description": "The badge voice: the word on a pill, set small enough to sit inside one.",
+        "$description": "Caption, emphasized — figcaptions and table headers. Same tuple as caption except the semibold step.",
         "$value": {
-          "family": "{font.family.sans}",
-          "size": "{font.size.2xs}",
-          "weight": "{font.weight.medium}",
-          "tracking": "{font.tracking.wide}",
-          "leading": "{font.leading.none}"
-        }
-      },
-      "body-strong": {
-        "$type": "typography",
-        "$description": "The strong voice: body copy with emphasis.",
-        "$value": {
-          "family": "{font.family.sans}",
-          "size": "{font.size.md}",
+          "family": "{font.style.caption.family}",
+          "size": "{font.style.caption.size}",
           "weight": "{font.weight.semibold}",
-          "tracking": "{font.tracking.normal}",
-          "leading": "{font.leading.relaxed}"
-        }
-      },
-      "caption-strong": {
-        "$type": "typography",
-        "$description": "The figure-caption voice: a caption that names its figure.",
-        "$value": {
-          "family": "{font.family.sans}",
-          "size": "{font.size.xs}",
-          "weight": "{font.weight.semibold}",
-          "tracking": "{font.tracking.wide}",
-          "leading": "{font.leading.snug}"
-        }
-      },
-      "card-title": {
-        "$type": "typography",
-        "$description": "The card-title voice: the name on a card, set to be found inside a surface.",
-        "$value": {
-          "family": "{font.family.sans}",
-          "size": "{font.size.lg}",
-          "weight": "{font.weight.semibold}",
-          "tracking": "{font.tracking.normal}",
-          "leading": "{font.leading.snug}"
+          "tracking": "{font.style.caption.tracking}",
+          "leading": "{font.style.caption.leading}"
         }
       }
     },
@@ -903,6 +870,14 @@
     "offset": {
       "$type": "dimension",
       "$value": "0.2em"
+    }
+  },
+  "tooltip": {
+    "$description": "The tooltip's own decisions: how wide it may grow before it wraps.",
+    "max-width": {
+      "$type": "dimension",
+      "$value": "16rem",
+      "$description": "The widest a tooltip grows; past this the label wraps."
     }
   },
   "modes": [

@@ -1,6 +1,6 @@
 /** Mode-picker machine: a single idle state cycling light → dark → system. */
 
-import { createMachine, type Machine } from "@spinjs/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/components/fsm";
 import type {
   ModePickerArgs,
   ModePickerContext,

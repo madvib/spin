@@ -12,7 +12,7 @@
  */
 
 import { join } from "node:path";
-import type { StudioPage } from "./studio.ts";
+import { studioUrl, type StudioPage } from "./studio.ts";
 
 /** The directory a project's themes live in, under the project root. */
 const THEMES_DIR = "spin";
@@ -61,23 +61,32 @@ export async function listedThemes(page: StudioPage): Promise<ListedTheme[]> {
   );
 }
 
-/** The line the overview names the editor with. */
+/** The seat badge text: the theme, or the brand and theme it names. */
 export async function editingLine(page: StudioPage): Promise<string> {
   return await page.eval<string>(
     `(() => {
-      const t = document.getElementById("app")?.innerText ?? "";
-      const line = (t.split("\\n").find((l) => l.trim().indexOf("Editing") === 0) || "").trim();
-      return line === "" ? "no status line: " + t.slice(0, 200).replace(/\\s+/g, " ") : line;
+      const badge = document.querySelector('[data-testid="seat-badge"]');
+      const text = (badge?.textContent ?? "").trim();
+      return text === "" ? "no seat badge" : text;
     })()`,
   );
 }
 
+/** The seat badge's accessible name: the theme, plus the unsaved run while dirty. */
+export async function badgeLabel(page: StudioPage): Promise<string> {
+  return await page.eval<string>(
+    `(() => {
+      const badge = document.querySelector('[data-testid="seat-badge"]');
+      return (badge?.getAttribute("aria-label") ?? "").trim();
+    })()`,
+  );
+}
 /**
- * The line the overview names the editor with, once the studio has drawn it.
+ * The seat badge text, once the studio has drawn it.
  *
  * The overview waits for the registry before it draws, and the registry is
- * refetched after every create and every delete — so the page is briefly
- * not there while the project answers again. Waiting for the line is
+ * refetched after every create and every delete — so the badge is briefly
+ * not there while the project answers again. Waiting for the badge is
  * waiting for the studio, not for the test.
  */
 export async function waitForEditing(
@@ -88,7 +97,7 @@ export async function waitForEditing(
   const deadline = Date.now() + timeoutMs;
   for (;;) {
     const line = await editingLine(page);
-    if (line.startsWith(`Editing ${name}`)) return line;
+    if (line === name || line.endsWith(` · ${name}`)) return line;
     if (Date.now() > deadline) return line;
     await page.settle(200);
   }
@@ -99,6 +108,13 @@ export async function cardText(
   page: StudioPage,
   name: string,
 ): Promise<string> {
+  const hasCards = await page.eval<boolean>(
+    `document.querySelectorAll('article[data-testid="theme-card"]').length > 0`,
+  );
+  if (!hasCards) {
+    await page.followRail("/brand");
+    await page.settle(600);
+  }
   return await page.eval<string>(
     `(() => {
       const card = [...document.querySelectorAll('article[data-testid="theme-card"]')].find((c) =>
@@ -173,95 +189,46 @@ export interface CreateOutcome {
 }
 
 /**
- * The "New theme" dialog, filled in and sent.
+ * A theme, created and seated.
  *
- * The two ways in are the dialog's own: a copy of a theme the project
- * serves, or a scaffold of the required roles. `source` names the theme to
- * copy; `scaffold` asks for the other one.
+ * Creation rides the copy RPC: the studio has no new-theme dialog since the
+ * init sequence took brands and the wizard took palettes, so there is no
+ * dialog to drive. Seating rides the picker's own rows, the way an author
+ * seats. `source` names the theme to copy; `scaffold` is refused — blank
+ * themes have no authoring path anymore.
  */
 export async function createTheme(
   page: StudioPage,
   name: string,
   options: { readonly source?: string; readonly scaffold?: boolean } = {},
 ): Promise<CreateOutcome> {
-  return await page.eval<CreateOutcome>(
+  if (options.scaffold === true) {
+    return { accepted: false, problem: "no-scaffold" };
+  }
+  if (name.trim() === "") {
+    return { accepted: false, problem: "a theme needs a name" };
+  }
+  const copied: string | null = await page.eval(
     `(async () => {
-      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-      const opener = [...document.querySelectorAll("button")].find((b) =>
-        b.textContent.trim() === "New theme"
-      );
-      if (!opener) return { accepted: false, problem: "no-opener" };
-      opener.click();
-      await wait(500);
-      const dialog = document.querySelector('dialog[aria-label="New theme"]');
-      if (!dialog) return { accepted: false, problem: "no-dialog" };
-      const target = ${
-      options.scaffold === true
-        ? JSON.stringify("Blank")
-        : JSON.stringify(options.source ?? "silk")
-    };
-      let choice = null;
-      for (let i = 0; i < 50; i++) {
-        const group = dialog.querySelector('[role="group"][aria-label="Template"]');
-        const buttons = group ? [...group.querySelectorAll("button")] : [];
-        choice = buttons.find((b) =>
-          (b.querySelector("span")?.textContent ?? "").trim() === target
-        ) ?? null;
-        if (choice) break;
-        await wait(100);
-      }
-      if (!choice) {
-        return {
-          accepted: false,
-          problem: ${
-      options.scaffold === true
-        ? JSON.stringify("no-scaffold-choice")
-        : JSON.stringify("no-source-choice")
-    },
-        };
-      }
-      choice.click();
-      await wait(150);
-      for (let step = 0; step < 3; step++) {
-        const next = [...dialog.querySelectorAll("button")].find((b) =>
-          b.textContent.trim() === "Next"
-        );
-        if (!next) return { accepted: false, problem: "no-next-button" };
-        next.click();
-        await wait(150);
-      }
-      const field = dialog.querySelector('input[type="text"]');
-      if (!field) return { accepted: false, problem: "no-field" };
-      field.value = ${JSON.stringify(name)};
-      field.dispatchEvent(new Event("input", { bubbles: true }));
-      await wait(100);
-      const create = [...dialog.querySelectorAll("button")].find((b) =>
-        b.textContent.trim() === "Create"
-      );
-      if (!create) return { accepted: false, problem: "no-create-button" };
-      create.click();
-      for (let i = 0; i < 80; i++) {
-        const alert = document.querySelector(
-          'dialog[aria-label="New theme"] [role="alert"]',
-        );
-        if (alert) {
-          return { accepted: false, problem: (alert.textContent ?? "").trim() };
-        }
-        if (!document.querySelector('dialog[aria-label="New theme"]')) {
-          return { accepted: true, problem: null };
-        }
-        await wait(100);
-      }
-      // No alert and no close: a silent refusal (an empty name the dialog
-      // will not create). Close it so the next creation starts clean.
-      const cancel = [...document.querySelectorAll('dialog[aria-label="New theme"] button')].find((b) =>
-        b.textContent.trim() === "Cancel"
-      );
-      cancel?.click();
-      return { accepted: false, problem: "the dialog stayed open" };
+      const res = await fetch("/__spin/rpc/project/themes/copy", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ json: { from: ${JSON.stringify(options.source ?? "minimal")}, to: ${JSON.stringify(name)} } }),
+      });
+      const body = await res.json();
+      return body.json?.error ?? null;
     })()`,
   );
+  if (copied !== null) return { accepted: false, problem: copied };
+  // The picker's list is fetched once per session: an out-of-band copy is
+  // not offered until the studio asks again. A reload is the asking.
+  await page.goto(`${studioUrl()}/`);
+  await page.settle(1500);
+  const seated = await seatTheme(page, name);
+  if (seated !== "seated") return { accepted: false, problem: seated };
+  return { accepted: true, problem: null };
 }
+
 
 /**
  * Delete a theme from its card menu.
@@ -274,6 +241,13 @@ export async function deleteFromCard(
   page: StudioPage,
   name: string,
 ): Promise<string> {
+  const hasCards = await page.eval<boolean>(
+    `document.querySelectorAll('article[data-testid="theme-card"]').length > 0`,
+  );
+  if (!hasCards) {
+    await page.followRail("/brand");
+    await page.settle(600);
+  }
   return await page.eval<string>(
     `(async () => {
       const wait = (ms) => new Promise((r) => setTimeout(r, ms));

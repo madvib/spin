@@ -1,4 +1,4 @@
-import type { EventUnion } from "@spinjs/runtime/fsm";
+import type { EventUnion } from "@spinjs/components/fsm";
 import type { DatePickerValue, DatePickerView } from "./date-picker.state.ts";
 
 export interface DatePickerValueChange {

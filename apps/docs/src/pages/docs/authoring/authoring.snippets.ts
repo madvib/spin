@@ -13,7 +13,7 @@ const ctl = createSpinComponent(el, select);
 createEffect(() => {
   ctl.bind({ items: [{ value: "bun", label: "bun" }] });
 });`,
-  runtimeSignals: `import { computed, effect, signal } from "@spinjs/runtime";
+  runtimeSignals: `import { computed, effect, signal } from "@spinjs/components/runtime";
 
 const count = signal(0);
 const doubled = computed(() => count() * 2);

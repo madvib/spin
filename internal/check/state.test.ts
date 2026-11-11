@@ -73,7 +73,7 @@ describe("what a state-contrast finding says", () => {
   it("counts the same control in two states as two findings", () => {
     const finding = {
       route: "/components/button",
-      theme: "silk",
+      theme: "minimal",
       mode: "base",
       check: "state-contrast",
       subject: 'main > button "Save"',

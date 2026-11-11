@@ -144,7 +144,7 @@ const ALPHA_RAMP: readonly AlphaStep[] = [
   { step: "0%", utility: "bg-primary/0", swatchClass: "bg-primary/0" },
 ];
 
-const MODE_SPECIMEN_SNIPPET = `<div data-theme="spin" data-mode="dark" class="rounded-lg border bg-surface p-4">
+const MODE_SPECIMEN_SNIPPET = `<div data-theme="editorial" data-mode="dark" class="rounded-lg border bg-surface p-4">
   <div class="flex items-center justify-between gap-3 rounded-md border bg-surface-raised p-3">
     <div>
       <strong>Release channel</strong>
@@ -171,8 +171,8 @@ export default function StylingColor(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Color & Dark Mode"
-        lede="How do color and dark mode work? Name the job an element performs on the page and let your theme supply the palette. Write role utilities once for light and dark mode, pair every painted fill with its readable ink, and thin any theme color toward transparency without minting new values."
+        title="Color"
+        lede="Name the role an element plays on the page and let your brand supply the palette. Write role utilities once for light and dark mode, pair every painted fill with its readable ink, and thin any theme color toward transparency."
       />
 
       <Section id="roles" title="Roles, not colors">
@@ -185,22 +185,26 @@ export default function StylingColor(): JSX.Element {
           repaints from the active palette without changing a class name:
         </p>
 
-        <div class="my-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div class="my-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <For each={ROLE_SWATCHES}>
             {(item) => (
               <div class="flex flex-col justify-between gap-2 rounded-lg border bg-surface p-2">
                 <div
                   class={`flex min-h-24 flex-col justify-between rounded-md p-3 ${item.boxClass}`}
                 >
-                  <small>{item.job}</small>
+                  <span class={`type-caption ${item.detailClass}`}>
+                    {item.job}
+                  </span>
                   <div class="flex flex-col gap-1">
-                    <span class="type-body-strong">{item.sample}</span>
-                    <small class={item.detailClass}>{item.detail}</small>
+                    <span class="type-body-emphasized">{item.sample}</span>
+                    <span class={`type-caption ${item.detailClass}`}>
+                      {item.detail}
+                    </span>
                   </div>
                 </div>
                 <div class="flex flex-wrap gap-1 px-1 pb-1">
                   <For each={item.tokens}>
-                    {(tok) => <code>{tok}</code>}
+                    {(tok) => <code class="whitespace-nowrap">{tok}</code>}
                   </For>
                 </div>
               </div>
@@ -232,7 +236,7 @@ export default function StylingColor(): JSX.Element {
                 <div
                   class={`flex items-center justify-between rounded-md px-3 py-3 ${pair.swatchClass}`}
                 >
-                  <span class="type-body-strong">{pair.label}</span>
+                  <span class="type-body-emphasized">{pair.label}</span>
                   <span class="type-code">Readable in both modes</span>
                 </div>
                 <div class="flex flex-wrap items-center gap-1 px-1 pb-1">
@@ -307,7 +311,7 @@ export default function StylingColor(): JSX.Element {
                     <strong>Release channel</strong>
                     <small>Production traffic is healthy</small>
                   </div>
-                  <span class="rounded-sm bg-semantic-success px-2 py-1 type-caption-strong text-on-semantic-success">
+                  <span class="rounded-sm bg-semantic-success px-2 py-1 type-caption-emphasized text-on-semantic-success">
                     Healthy
                   </span>
                 </div>
@@ -334,7 +338,7 @@ export default function StylingColor(): JSX.Element {
 
         <div class="my-2 flex flex-col gap-3 rounded-lg border bg-surface-raised p-4">
           <div class="flex flex-wrap items-center justify-between gap-2 rounded-md border-strong/50 bg-surface/80 px-3 py-2">
-            <span class="type-body-strong">
+            <span class="type-body-emphasized">
               Floating bar thinned over raised canvas
             </span>
             <div class="flex flex-wrap items-center gap-1">
@@ -351,7 +355,7 @@ export default function StylingColor(): JSX.Element {
                     class={`h-12 w-full rounded-sm border-strong/50 ${item.swatchClass}`}
                   />
                   <div class="flex min-w-0 flex-wrap items-center justify-between gap-1">
-                    <code class="break-all">{item.utility}</code>
+                    <code class="whitespace-nowrap">{item.utility}</code>
                     <small>{item.step}</small>
                   </div>
                 </div>

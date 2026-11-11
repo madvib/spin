@@ -8,8 +8,8 @@ import {
   focuser,
   isRecord,
   type ViewFor,
-} from "@spinjs/runtime";
-import type { DragDelta, DragPress } from "@spinjs/runtime/actions";
+} from "@spinjs/components/runtime";
+import type { DragDelta, DragPress } from "@spinjs/components/actions";
 import { signaturePad as signaturePadMachine } from "./signature-pad.machine.ts";
 import {
   isEmpty,

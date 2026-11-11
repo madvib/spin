@@ -1,4 +1,4 @@
-import { coerceJsonArray, defaultTwin } from "@spinjs/runtime";
+import { coerceJsonArray, defaultTwin } from "@spinjs/components/runtime";
 
 export type SplitterState = "idle" | "hover" | "focused" | "dragging";
 

@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { parseHTML } from "@spinjs/runtime/testing";
-import { signal } from "@spinjs/runtime";
+import { parseHTML } from "@spinjs/components/testing";
+import { signal } from "@spinjs/components/runtime";
 import { pinInput } from "./pin-input.presentation.ts";
 const createPinInputBridge = pinInput.createBridge;
 import type { PinInputApi } from "./pin-input.presentation.ts";

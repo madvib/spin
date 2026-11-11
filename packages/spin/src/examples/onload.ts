@@ -769,7 +769,7 @@ export const EXAMPLE_ONLOAD: Record<string, string> = {
         if (value === "packages") {
           return [
             { value: "packages/components", label: "components", children: [] },
-            { value: "packages/runtime", label: "runtime", children: [] },
+            { value: "packages/theme", label: "theme", children: [] },
           ];
         }
         return [];

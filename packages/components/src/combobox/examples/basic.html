@@ -12,7 +12,7 @@
 
   <div class="relative" {...machine.getControlProps()}>
     <input
-      class={["w-full pr-16 transition-colors duration-fast ease-decelerate placeholder:text-muted", { "opacity-60 cursor-not-allowed": machine.disabled, "border-strong": machine.invalid, "border-primary": machine.open }]}
+      class={["w-full transition-colors duration-fast ease-decelerate placeholder:text-muted", { "opacity-60 cursor-not-allowed": machine.disabled, "border-strong": machine.invalid, "border-primary": machine.open }]}
       {...machine.getInputProps()}
     />
 
@@ -38,7 +38,7 @@
         <div class={["max-h-[15rem] overflow-y-auto p-1 transition-opacity duration-fast ease-decelerate", { "hidden": machine.empty }]} {...machine.getListProps()}>
           <template for={machine.getBlocks()} as={block} key={block.id}>
             <div class="py-1" {...machine.getItemGroupProps(block)}>
-              <span class="block px-2 py-1 type-caption-strong text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
+              <span class="block px-2 py-1 type-caption-emphasized text-muted" {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
               <template for={machine.getRows(block)} as={row} key={row.value}>
                 <div
                   class={["relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1 type-body transition-colors duration-fast ease-decelerate", { "bg-surface": machine.highlightedValue === row.value, "text-primary": machine.value.includes(row.value), "cursor-not-allowed opacity-50": machine.disabled }]}

@@ -23,7 +23,7 @@ const ELEMENT_ICONS = new Map(
   primitiveElements.map((element) => [element.name, element.icon]),
 );
 
-type Kind = "element" | "machine";
+type Kind = "primitive" | "machine";
 
 interface Row {
   readonly name: string;
@@ -69,15 +69,15 @@ const GROUPS: readonly Group[] = UNIFIED_COMPONENT_GROUPS.map((group) => ({
       mountHtml: example?.rows[0]?.html ?? "",
       meta: variants > 0
         ? `${variants} ${variants === 1 ? "variant" : "variants"}`
-        : "pure CSS",
-      kind: "element",
+        : "unstyled",
+      kind: "primitive",
     }];
   }),
 })).filter((group) => group.rows.length > 0);
 
 const KINDS: readonly { readonly id: "all" | Kind; readonly label: string; readonly href: string }[] = [
   { id: "all", label: "All", href: "/components" },
-  { id: "element", label: "Elements", href: "/components?kind=elements" },
+  { id: "primitive", label: "Primitives", href: "/components?kind=primitives" },
   { id: "machine", label: "Machines", href: "/components?kind=machines" },
 ];
 
@@ -111,7 +111,7 @@ export default function ComponentsIndex(): JSX.Element {
   const [params] = useSearchParams();
   const kind = (): "all" | Kind => {
     const value = params["kind"];
-    return value === "elements" ? "element" : value === "machines" ? "machine" : "all";
+    return value === "primitives" ? "primitive" : value === "machines" ? "machine" : "all";
   };
   const groups = () => groupsFor(kind());
   const countOf = (id: "all" | Kind): number =>
@@ -141,7 +141,7 @@ export default function ComponentsIndex(): JSX.Element {
               href={entry.href}
               class={`rounded-md px-3 py-1 no-underline transition-colors duration-fast ${
                 kind() === entry.id
-                  ? "bg-primary text-on-primary type-body-strong"
+                  ? "bg-primary text-on-primary type-body-emphasized"
                   : "text-muted hover:bg-surface type-body"
               }`}
             >
@@ -165,10 +165,10 @@ export default function ComponentsIndex(): JSX.Element {
                 {(row) => (
                     <A
                       href={row.href}
-                      class="group flex h-full flex-col gap-3 overflow-hidden rounded-md border bg-surface p-4 no-underline transition-colors duration-fast hover:border-strong sm:flex-row sm:items-stretch sm:gap-4"
+                      class="flex h-full flex-col gap-3 overflow-hidden rounded-md border bg-surface p-4 no-underline transition-colors duration-fast hover:border-strong sm:flex-row sm:items-stretch sm:gap-4"
                     >
                     <span class="flex shrink-0 flex-row items-center justify-between gap-2 sm:w-24 sm:flex-col sm:items-start sm:justify-start sm:gap-1">
-                      <span class="flex min-w-0 items-center gap-2 type-body-strong">
+                      <span class="flex min-w-0 items-center gap-2 type-body-emphasized">
                         <i
                           class={`${row.icon} icon-md shrink-0 text-muted`}
                           aria-hidden="true"

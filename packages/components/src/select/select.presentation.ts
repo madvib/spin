@@ -12,7 +12,7 @@ import {
   optionRow,
   type ViewFor,
   type SlotViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import { dataAttr } from "./select.shared.ts";
 import { select as selectMachine } from "./select.machine.ts";
 import {
@@ -250,8 +250,7 @@ export const def = {
     if (authored("open")) return props["open"] === true ? "open" : "idle";
     return props["defaultOpen"] === true ? "open" : "idle";
   },
-  settled: ({ event, before, after, focus }: {
-    readonly event: { readonly type: string } & Record<string, unknown>;
+  settled: ({ before, after, focus }: {
     readonly before: { readonly state: string };
     readonly after: { readonly state: string };
     readonly focus: (part: string, slot?: unknown) => void;

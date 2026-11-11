@@ -38,8 +38,8 @@ import {
   declareShortcut,
   type FindingsReport,
   lintSource,
-} from "../diagnostics/index.ts";
-import { rootFor } from "./project-procedures.ts";
+} from "@spinjs/diagnostics";
+import { rootFor } from "@spinjs/server/procedures";
 
 /**
  * A project a call is about.
@@ -285,7 +285,7 @@ export const findingsRouter = os.router({
     list: os.findings.list.handler(async ({ input }) =>
       reportOf(await lintSource(rootFor(input)))
     ),
-    fix: os.findings.fix.handler(({ input }) =>
+    fix: os.findings.fix.handler(async ({ input }) =>
       applyFix(rootFor(input), input.file, {
         ruleId: input.ruleId,
         line: input.line,

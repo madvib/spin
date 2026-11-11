@@ -1,4 +1,4 @@
-import { defineController, type ControllerDef } from "@spinjs/runtime";
+import { defineController } from "@spinjs/components/runtime";
 
 /**
  * Popover on the platform: the browser owns open/closed, the top layer,

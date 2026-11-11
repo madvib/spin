@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
 import { spin } from "@spinjs/spin/vite";
-import { catppuccinPalette, compactSpacing, starterThemes } from "@spinjs/spin/theme";
+import { catppuccinPalette, compactSpacing, starterThemes } from "@spinjs/theme";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import { jibeIsolation, jibeStudio } from "./tooling/plugins/jibe.ts";
 import { markdownForAgents } from "./tooling/plugins/markdown-for-agents.ts";

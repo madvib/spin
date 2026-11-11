@@ -1,4 +1,4 @@
-import { componentExamples } from "@spinjs/spin/preset";
+import { componentExamples } from "@spinjs/preset";
 
 export interface PrimitiveExample {
   readonly name: string;

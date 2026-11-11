@@ -1,5 +1,5 @@
-import { defineController, type ControllerDef, signal } from "@spinjs/runtime";
-import type { AnchorGeometry, AnchorPlacement } from "@spinjs/runtime/actions";
+import { defineController, signal } from "@spinjs/components/runtime";
+import type { AnchorGeometry, AnchorPlacement } from "@spinjs/components/actions";
 
 /**
  * Tooltip on the platform: the browser owns open/closed, the top layer,

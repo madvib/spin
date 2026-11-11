@@ -3,16 +3,14 @@ import {
   type Machine,
   type MachineSpec,
   type Service,
-} from "@spinjs/runtime/fsm";
+} from "@spinjs/components/fsm";
 import type {
   MenuArgs,
-  MenuBlock,
   MenuContext,
   MenuEntry,
-  MenuRow,
   MenuState,
 } from "./menu.state.ts";
-import { entriesOf, initial } from "./menu.state.ts";
+import { initial } from "./menu.state.ts";
 import type { MenuEvent, MenuEvents } from "./menu.events.ts";
 const clearAnchor = (): Partial<MenuContext> => {
   return ({ anchorPoint: null });
@@ -154,7 +152,6 @@ function sameEntries(
   });
 }
 
-const implementations = {};
 
 export type MenuService = Service<MenuContext, MenuEvent>;
 

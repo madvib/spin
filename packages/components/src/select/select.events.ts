@@ -35,5 +35,5 @@ export interface SelectEvents {
   "LAYER.INTERACT_OUTSIDE": { restoreFocus?: boolean };
 }
 
-import type { EventUnion } from "@spinjs/runtime/fsm";
+import type { EventUnion } from "@spinjs/components/fsm";
 export type SelectEvent = EventUnion<SelectEvents>;

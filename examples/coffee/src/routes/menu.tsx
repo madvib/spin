@@ -52,21 +52,21 @@ const BEANS: readonly Bean[] = [
 
 export default function Menu() {
   return (
-    <div class="mx-auto max-w-5xl">
+    <div class="mx-auto max-w-xl">
       <section class="grid gap-8 p-8 md:grid-cols-2 md:items-center">
         <div class="flex flex-col items-start gap-4">
           <badge class="badge-accent">This week · four origins</badge>
-          <h1 class="m-0">
+          <h1>
             Roasted Tuesday,
             <br />
             on your table Thursday.
           </h1>
-          <p class="m-0 text-text-muted">
+          <p class="text-muted">
             A two-person roastery, twelve kilos at a time. Orders close Monday
             at noon and everything roast-fresh ships Wednesday.
           </p>
           <div class="flex flex-wrap items-center gap-3">
-            <a href="#beans" role="button" class="no-underline">
+            <a href="#beans">
               Shop this week's beans
             </a>
             <A href="/story" role="button" class="ghost no-underline">
@@ -74,7 +74,7 @@ export default function Menu() {
             </A>
           </div>
         </div>
-        <div class="rounded-md border border-border bg-surface-raised p-6">
+        <div class="rounded-md border bg-surface-raised p-6">
           <img
             src="/beans/ethiopia.svg"
             alt="Ethiopia Guji, this week's headliner"
@@ -87,8 +87,8 @@ export default function Menu() {
 
       <section id="beans" class="flex flex-col gap-6 p-8">
         <div class="flex flex-wrap items-baseline justify-between gap-3">
-          <h2 class="m-0">This week's beans</h2>
-          <p class="m-0 text-text-muted">Roasted Tuesday, shipped Wednesday.</p>
+          <h2>This week's beans</h2>
+          <p class="text-muted">Roasted Tuesday, shipped Wednesday.</p>
         </div>
         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <For each={BEANS}>
@@ -104,8 +104,8 @@ export default function Menu() {
                 <div class="flex items-center gap-2">
                   <badge variant="accent">{bean.process}</badge>
                 </div>
-                <h3 class="m-0">{bean.origin}</h3>
-                <p class="m-0 text-text-muted">{bean.notes}</p>
+                <h3>{bean.origin}</h3>
+                <p class="text-muted">{bean.notes}</p>
                 <div class="mt-auto flex items-center justify-between gap-4">
                   <strong>${bean.price}</strong>
                   {inBox(bean.origin)
@@ -137,8 +137,8 @@ export default function Menu() {
       <section class="p-8 pt-0">
         <card class="flex flex-wrap items-center justify-between gap-4 p-6">
           <div class="flex flex-col gap-1">
-            <h2 class="m-0">The week, start to finish</h2>
-            <p class="m-0 text-text-muted">
+            <h2>The week, start to finish</h2>
+            <p class="text-muted">
               Orders close Monday, roast Tuesday, out the door Wednesday.
             </p>
           </div>

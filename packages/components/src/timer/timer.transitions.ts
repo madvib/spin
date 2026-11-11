@@ -2,7 +2,7 @@ import { parseMs } from "./timer.state.ts";
 import { effectiveTarget } from "./timer.state.ts";
 import type { TimerContext } from "./timer.state.ts";
 import type { TimerEvents } from "./timer.events.ts";
-import type { AssignFor, GuardFor } from "@spinjs/runtime/fsm";
+import type { AssignFor, GuardFor } from "@spinjs/components/fsm";
 
 type TimerAssign<K extends keyof TimerEvents = keyof TimerEvents> = AssignFor<
   TimerContext,

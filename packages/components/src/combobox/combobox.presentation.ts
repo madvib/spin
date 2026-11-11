@@ -14,7 +14,7 @@ import {
   optionRow,
   type ViewFor,
   type SlotViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import {
   combobox as comboboxMachine,
   isOpenPhase,

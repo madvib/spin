@@ -50,9 +50,9 @@ export const componentRequirement = (id: string): string => {
     ? id.slice("component-".length)
     : id;
   if ((CONTROLLERS as readonly string[]).includes(machine)) {
-    return "Needs the controller glue (@spinjs/runtime, no statechart).";
+    return "Needs the controller glue (@spinjs/components/runtime, no statechart).";
   }
-  return "Requires the runtime (@spinjs/runtime): markup drives a statechart.";
+  return "Requires the runtime (@spinjs/components/runtime): markup drives a statechart.";
 };
 
 // A machine the groups and the icons both miss is a machine the rail

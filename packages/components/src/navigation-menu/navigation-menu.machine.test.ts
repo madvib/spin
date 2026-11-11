@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { parseHTML } from "@spinjs/runtime/testing";
-import { signal } from "@spinjs/runtime";
+import { parseHTML } from "@spinjs/components/testing";
+import { signal } from "@spinjs/components/runtime";
 import { navigationMenu } from "./navigation-menu.presentation.ts";
 const createNavigationMenuBridge = navigationMenu.createBridge;
 import type { NavigationMenuApi } from "./navigation-menu.presentation.ts";

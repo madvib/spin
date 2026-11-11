@@ -322,7 +322,7 @@ export function StepField(props: {
   );
   const shown = createMemo(() => current()?.name ?? props.value);
   return (
-    <label class="stack-sm text-muted">
+    <label class="stack-sm">
       {props.label}
       <Show
         when={props.steps.length > 0}
@@ -383,7 +383,7 @@ export function ColourField(props: {
   // document. `on` so the effect answers the value, not the draft.
   createEffect(on(() => props.value, (value) => setDraft(value)));
   return (
-    <label class="stack-sm text-muted">
+    <label class="stack-sm">
       {props.label}
       <div class="row-sm gap-2">
         <Panel
@@ -445,7 +445,7 @@ export function TextField(props: {
   placeholder?: string;
 }) {
   return (
-    <label class="stack-sm text-muted">
+    <label class="stack-sm">
       {props.label}
       <input
         type="text"
@@ -481,7 +481,7 @@ export function ChoiceField(props: {
 }) {
   const known = createMemo(() => props.choices.includes(props.value));
   return (
-    <label class="stack-sm text-muted">
+    <label class="stack-sm">
       {props.label}
       <Panel
         label={`${props.label}: ${props.value}`}

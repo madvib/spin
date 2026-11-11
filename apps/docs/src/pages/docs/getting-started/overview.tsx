@@ -14,24 +14,24 @@ const NEXT: readonly {
   readonly blurb: string;
 }[] = [
   {
-    title: "Quickstart",
-    href: "/docs/getting-started/quickstart",
-    blurb: "Install the three packages, wire your bundler, and open the Studio.",
+    title: "Architecture & Ownership",
+    href: "/docs/getting-started/architecture",
+    blurb: "Why Spin claims HTML tags, how elements and utilities divide work, and the 4-step customization staircase.",
   },
   {
-    title: "Install & Bundlers",
+    title: "Quickstart",
+    href: "/docs/getting-started/quickstart",
+    blurb: "Install the packages, create your brand in spin/<brand>/, and open the Studio.",
+  },
+  {
+    title: "Installation & Bundlers",
     href: "/docs/getting-started/install",
     blurb: "The devDependency split, every bundler's config, and the project layout.",
   },
   {
-    title: "Ways to Use Spin",
+    title: "Adoption Paths",
     href: "/docs/getting-started/paths",
-    blurb: "The plugin, the preset alone, or the standalone Studio.",
-  },
-  {
-    title: "Architecture & Layers",
-    href: "/docs/getting-started/architecture",
-    blurb: "Which layer owns a change, and the checks that verify it.",
+    blurb: "The full plugin, shared brand packages, incremental primitives migration, or standalone Studio.",
   },
 ];
 
@@ -40,7 +40,7 @@ export default function GettingStartedOverview(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Overview"
-        lede="What is Spin? Your theme, styling, and component layer in one verifiable system — so humans and coding agents ship consistent UI with zero CSS drift or runtime bloat."
+        lede="Brand tokens, intrinsic HTML primitives, closed-scale utilities, and statechart machines in one verifiable system — so humans and coding agents ship UI with zero CSS drift."
         playgroundExample="elements-form"
       />
       <Markdown text={startMd} />
@@ -64,7 +64,7 @@ export default function GettingStartedOverview(): JSX.Element {
                 href={item.href}
                 class="flex flex-col gap-1 rounded-lg border bg-surface p-4 no-underline transition-colors duration-fast hover:border-strong hover:bg-surface-raised"
               >
-                <div class="type-body-strong">{item.title}</div>
+                <div class="type-body-emphasized">{item.title}</div>
                 <small>{item.blurb}</small>
               </A>
             )}

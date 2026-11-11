@@ -25,7 +25,7 @@
   },
   "include": [
     "src",
-    "../../packages/spin/src/compiler/elements.d.ts",
+    "../../packages/preset/src/elements.d.ts",
     "vite.config.ts"
   ]
 }

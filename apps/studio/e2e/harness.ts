@@ -51,6 +51,14 @@ export function test(
   bunTest(name, () => fn({ step: async (_label, run) => { await run(); } }), timeoutMs);
 }
 
+/** A test the suite names but does not run: the feature it covers is gone or broken. */
+test.skip = (
+  name: string,
+  fn: (t: { step: (label: string, run: () => Promise<void>) => Promise<void> }) => Promise<void>,
+): void => {
+  bunTest.skip(name, () => fn({ step: async (_label, run) => { await run(); } }));
+};
+
 /**
  * One page for one test, closed when the test ends.
  *

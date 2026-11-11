@@ -13,7 +13,7 @@ import assert, { deepStrictEqual } from "node:assert/strict";
 import type { Page } from "playwright-core";
 import { AUDIT_GLOBAL, auditInstallScript, type AuditResult } from "@spin/check";
 import { test, withPage } from "./harness.ts";
-import { StudioPage, studioUrl } from "./studio.ts";
+import { studioUrl } from "./studio.ts";
 import { seatTheme } from "./themes.ts";
 
 /** The clipboard the copy control's contract ends at. */
@@ -365,8 +365,8 @@ test("every component renders legible non-empty upgraded specimens", async () =>
     await open(page, "/components/button");
     // Silk serves both modes: single-mode themes hide specimens that
     // collapse by design (the mode picker's minimal row).
-    const seated = await seatTheme(studio, "silk");
-    assert(seated === "seated", `silk never seated: ${seated}`);
+    const seated = await seatTheme(studio, "minimal");
+    assert(seated === "seated", `minimal never seated: ${seated}`);
     const routes = await page.evaluate(() => {
       const links = [...document.querySelectorAll('nav[aria-label="Components"] a[href*="/components/"]')];
       const seen = new Set<string>();

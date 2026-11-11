@@ -46,8 +46,8 @@ export function editTokens(
   // the answer is whether the DOCUMENT moved, which is what the control
   // needs in order to revert.
   const before = themeText();
-  const wrote = setThemeText(next, edits.map((edit) => edit.path.join(".")));
-    return themeText() !== before;
+  setThemeText(next, edits.map((edit) => edit.path.join(".")));
+  return themeText() !== before;
 }
 
 /** Apply one token edit, into `mode`'s slot when the caller names one. */

@@ -1,0 +1,72 @@
+{
+  "name": "@spinjs/server",
+  "version": "0.1.0-preview.6",
+  "description": "The project server: filesystem, procedures, and daemon session.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madvib/spin.git"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./project": {
+      "types": "./src/project/index.ts",
+      "default": "./src/project/index.ts"
+    },
+    "./procedures": {
+      "types": "./src/procedures/index.ts",
+      "default": "./src/procedures/index.ts"
+    },
+    "./daemon": {
+      "types": "./src/daemon.ts",
+      "default": "./src/daemon.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@iconify-json/carbon": "^1.2.28",
+    "@iconify-json/lucide": "^1.2.0",
+    "@iconify-json/material-symbols": "^1.2.95",
+    "@iconify-json/ph": "^1.2.2",
+    "@iconify-json/tabler": "^1.2.42",
+    "@orpc/contract": "catalog:",
+    "@orpc/server": "catalog:",
+    "@spinjs/components": "workspace:*",
+    "@spinjs/theme": "workspace:*",
+    "valibot": "catalog:"
+  },
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./project": {
+        "types": "./dist/project/index.d.ts",
+        "default": "./dist/project/index.js"
+      },
+      "./procedures": {
+        "types": "./dist/procedures/index.d.ts",
+        "default": "./dist/procedures/index.js"
+      },
+      "./daemon": {
+        "types": "./dist/daemon.d.ts",
+        "default": "./dist/daemon.js"
+      }
+    }
+  },
+  "scripts": {
+    "test": "bun test src/",
+    "lint": "oxlint",
+    "fmt": "biome format --write ."
+  }
+}

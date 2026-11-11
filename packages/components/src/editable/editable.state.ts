@@ -1,4 +1,4 @@
-import { defaultTwin } from "@spinjs/runtime";
+import { defaultTwin } from "@spinjs/components/runtime";
 
 export type EditableState = "preview" | "edit";
 

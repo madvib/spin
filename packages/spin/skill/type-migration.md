@@ -14,24 +14,23 @@ already that style's default? Drop the class if so, write the style if not.
 
 ## The whole vocabulary
 
-Fourteen styles, each spent as `type-<name>`:
+Thirteen styles, each spent as `type-<name>`:
 
 | Style | Reads as | Default on |
 |---|---|---|
 | `type-display` | hero display | `h1` |
 | `type-title` | page title | `h2` |
 | `type-heading` | section heading | `h3` |
+| `type-subtitle` | section subhead | — |
 | `type-lead` | lede paragraph | — |
 | `type-body` | body copy | `p` |
 | `type-quote` | pull quote | `blockquote` |
 | `type-code` | code | `code` |
-| `type-link` | link | `a` |
 | `type-label` | form label | `h4` |
 | `type-caption` | caption, small print | `small` |
 | `type-overline` | eyebrow, kicker | `h5`, `h6` |
-| `type-stat` | big number | — |
-| `type-body-strong` | strong body | `strong` |
-| `type-caption-strong` | strong caption | `figcaption` |
+| `type-body-emphasized` | strong body | `strong`, `dt` |
+| `type-caption-emphasized` | strong caption | `figcaption`, `th` |
 
 Placement is open: any style may sit on any element. The third column is the
 default, not a rule — `type-caption` on a `span` is fine.
@@ -46,8 +45,8 @@ default, not a rule — `type-caption` on a `span` is fine.
    beside it to "adjust" the style.
 
 Never keep a raw utility with a reason; reasons are feedback to report back.
-The `data-spin-escape` attribute is for one-off display type the theme cannot
-name (brand lockups, hero moments), not for the long tail.
+Display type the theme cannot name belongs in the brand's `tokens.json` as a
+named style, and the utility is `type-<name>`.
 
 ## Worked examples
 
@@ -63,11 +62,11 @@ should read body: the element's default is `body`, so drop the class:
 style the lint names:
 
 ```html
-<p class="type-caption-strong uppercase">The kicker above the title.</p>
+<p class="type-caption-emphasized uppercase">The kicker above the title.</p>
 ```
 
 On a `figcaption`, drop the size and weight and keep nothing — the element
-already reads `caption-strong`.
+already reads `caption-emphasized`.
 
 **3. Search-result chrome.** `<li class="text-sm">` reading body copy: `<li>`
 is not `body`'s default, so name it:
@@ -84,10 +83,10 @@ is not `body`'s default, so name it:
 ```
 
 **5. Strong inline.** `<span class="font-semibold">` emphasizing body copy:
-the lint names `type-body-strong`:
+the lint names `type-body-emphasized`:
 
 ```html
-<span class="type-body-strong">The emphasized run.</span>
+<span class="type-body-emphasized">The emphasized run.</span>
 ```
 
 On a `<strong>`, drop the class — the element already reads that style.

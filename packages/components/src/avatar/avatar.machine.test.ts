@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { parseHTML } from "@spinjs/runtime/testing";
-import { signal } from "@spinjs/runtime";
+import { parseHTML } from "@spinjs/components/testing";
+import { signal } from "@spinjs/components/runtime";
 import { avatar } from "./avatar.presentation.ts";
 const createAvatarBridge = avatar.createBridge;
 import type { AvatarApi } from "./avatar.presentation.ts";

@@ -1,4 +1,4 @@
-import type { EventUnion } from "@spinjs/runtime/fsm";
+import type { EventUnion } from "@spinjs/components/fsm";
 import type { MotionLane, MotionSpeed } from "./motion-stage.state.ts";
 
 export interface MotionStageEvents {

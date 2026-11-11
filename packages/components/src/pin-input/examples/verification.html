@@ -18,7 +18,7 @@ const machine = pinInput({
     {...machine.getControlProps()}>
     <template for={machine.getItems()} as={cell} key={cell}>
       <input
-        class={["w-10 p-0 text-center tabular-nums transition-colors duration-fast ease-decelerate", { "cursor-not-allowed opacity-50": machine.disabled }]}
+        class={["w-10 text-center tabular-nums transition-colors duration-fast ease-decelerate", { "cursor-not-allowed opacity-50": machine.disabled }]}
         {...machine.getInputProps(cell)}
       />
     </template>

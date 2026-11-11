@@ -1,6 +1,6 @@
 /** Motion-stage machine: idle/reset/running/paused for specimen races. */
 
-import { createMachine, type Machine } from "@spinjs/runtime/fsm";
+import { createMachine, type Machine } from "@spinjs/components/fsm";
 import type { MotionStageContext, MotionStageState } from "./motion-stage.state.ts";
 import { initial } from "./motion-stage.state.ts";
 import type { MotionStageEvents } from "./motion-stage.events.ts";

@@ -1,0 +1,58 @@
+{
+  "dependencies": {
+    "@orpc/contract": "catalog:",
+    "@orpc/server": "catalog:",
+    "valibot": "catalog:"
+  },
+  "exports": {
+    ".": {
+      "default": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./base": {
+      "default": "./src/base/index.ts",
+      "types": "./src/base/index.ts"
+    },
+    "./theme-types": {
+      "types": "./src/theme-types.d.ts"
+    },
+    "./themes": {
+      "default": "./src/themes/index.ts",
+      "types": "./src/themes/index.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "schema.json"
+  ],
+  "name": "@spinjs/theme",
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "default": "./dist/index.js",
+        "types": "./dist/index.d.ts"
+      },
+      "./base": {
+        "default": "./dist/base/index.js",
+        "types": "./dist/base/index.d.ts"
+      },
+      "./theme-types": {
+        "types": "./dist/theme-types.d.ts"
+      },
+      "./themes": {
+        "default": "./dist/themes/index.js",
+        "types": "./dist/themes/index.d.ts"
+      }
+    }
+  },
+  "scripts": {
+    "schema": "bun -e \"import { writeFile } from 'node:fs/promises'; import { spinThemeJsonSchema } from './src/contract/schema.ts'; await writeFile('schema.json', JSON.stringify(spinThemeJsonSchema(), null, 2) + '\\n');\"",
+    "types": "bun -e \"import { writeFile } from 'node:fs/promises'; import { parseTokens, generateTypes, minimalTheme } from './src/index.ts'; const parsed = parseTokens(minimalTheme); if (!parsed.ok) throw new Error(parsed.error); await writeFile('src/theme-types.d.ts', generateTypes(parsed.tree));\""
+  },
+  "type": "module",
+  "version": "0.1.0-preview.6",
+  "description": "The value layer: DTCG parsing, validation, gates, and the starter themes."
+}

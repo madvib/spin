@@ -14,8 +14,7 @@
   },
   "dependencies": {
     "@spinjs/components": "workspace:*",
-    "@spinjs/runtime": "workspace:*",
-    "@spinjs/spin": "workspace:*",
+    "@spinjs/theme": "workspace:*",
     "animejs": "4.5.0",
     "solid-js": "^1.9.3"
   }

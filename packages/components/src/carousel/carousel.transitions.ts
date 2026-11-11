@@ -1,4 +1,4 @@
-import type { AssignFor } from "@spinjs/runtime/fsm";
+import type { AssignFor } from "@spinjs/components/fsm";
 import type { CarouselEvents } from "./carousel.events.ts";
 import type { CarouselContext } from "./carousel.state.ts";
 import {

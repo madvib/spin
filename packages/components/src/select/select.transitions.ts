@@ -1,6 +1,6 @@
 import type { SelectContext } from "./select.state.ts";
 import type { SelectEvents } from "./select.events.ts";
-import type { AssignFor, GuardFor } from "@spinjs/runtime/fsm";
+import type { AssignFor, GuardFor } from "@spinjs/components/fsm";
 
 type SelectAssign<K extends keyof SelectEvents = keyof SelectEvents> =
   AssignFor<

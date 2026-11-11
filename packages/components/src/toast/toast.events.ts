@@ -1,4 +1,4 @@
-import type { EventUnion } from "@spinjs/runtime/fsm";
+import type { EventUnion } from "@spinjs/components/fsm";
 
 export type ToastType = "info" | "success" | "warning" | "error" | "loading";
 

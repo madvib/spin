@@ -1,0 +1,66 @@
+{
+  "name": "@spinjs/preset",
+  "version": "0.1.0-preview.6",
+  "description": "The Uno renderer: preset, vocabulary, primitives, and the checker's engine answers.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madvib/spin.git"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./elements": {
+      "types": "./src/elements.d.ts"
+    },
+    "./css": {
+      "types": "./src/utils/css.ts",
+      "default": "./src/utils/css.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@spinjs/theme": "workspace:*",
+    "@orpc/contract": "catalog:",
+    "@orpc/server": "catalog:",
+    "@unocss/core": "66.10.5",
+    "@unocss/preset-wind4": "66.10.5",
+    "@unocss/transformer-directives": "66.10.5",
+    "@unocss/transformer-variant-group": "66.10.5",
+    "valibot": "catalog:"
+  },
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./elements": {
+        "types": "./dist/elements.d.ts"
+      },
+      "./css": {
+        "types": "./dist/utils/css.d.ts",
+        "default": "./dist/utils/css.js"
+      }
+    }
+  },
+  "scripts": {
+    "test": "bun test src/",
+    "lint": "oxlint",
+    "fmt": "biome format --write ."
+  },
+  "devDependencies": {
+    "@spinjs/server": "workspace:*",
+    "@unocss/preset-attributify": "66.10.5",
+    "magic-string": "^1.4.1",
+    "solid-js": "^1.9.3"
+  }
+}

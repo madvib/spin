@@ -21,7 +21,7 @@
 
 import { z } from "zod";
 import type { SpinClient } from "../api/index.ts";
-import { MODES, TOKEN_TYPES } from "../theme/index.ts";
+import { MODES, TOKEN_TYPES } from "@spinjs/theme";
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/server";
 
 /** What every tool answers with: text content, and whether it failed. */
@@ -139,7 +139,7 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
     {
       title: "Themes",
       description:
-        "A project's themes: list them, read one as DTCG JSON text, create one (a copy of an existing theme, or the scaffold of the required roles), write one whole, analyze one, or delete one. Write answers with the issues the written document still has.",
+        "A project's themes: list them, read one as DTCG JSON text, create one as a copy of an existing theme, write one whole, analyze one, or delete one. Write answers with the issues the written document still has.",
       inputSchema: {
         action: z
           .enum(["list", "read", "create", "write", "analyze", "delete"])
@@ -154,7 +154,7 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
           .string()
           .optional()
           .describe(
-            "create: an existing theme to copy; scaffolded when absent.",
+            "create: an existing theme to copy.",
           ),
         text: z
           .string()
@@ -180,21 +180,13 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
         }
         case "create": {
           if (name === undefined) return failed("create needs a theme name");
-          if (from !== undefined) {
-            const copied = await client.project.themes.copy({
-              from,
-              to: name,
-            });
-            if (copied.error !== null) return failed(copied.error);
-            return json({ theme: name, copiedFrom: from });
-          }
-          const scaffolded = await client.theme.scaffold({});
-          const written = await client.project.themes.write({
-            name,
-            text: scaffolded.text,
+          if (from === undefined) return failed("create needs a source theme to copy via from");
+          const copied = await client.project.themes.copy({
+            from,
+            to: name,
           });
-          if (written.error !== null) return failed(written.error);
-          return json({ theme: name, copiedFrom: null });
+          if (copied.error !== null) return failed(copied.error);
+          return json({ theme: name, copiedFrom: from });
         }
         case "write": {
           if (name === undefined) return failed("write needs a theme name");
@@ -676,6 +668,182 @@ export function buildSpinMcpServer(client: SpinClient): McpServer {
           return json(res);
         }
       }
+    },
+  );
+
+  server.registerTool(
+    "brand_rename",
+    {
+      title: "Rename a brand",
+      description:
+        "Rename a brand: its spin/<brand>/ directory, the config seating and order naming it, and the name inside its definition. Flat themes are not brands and cannot be renamed.",
+      inputSchema: {
+        brand: z.string().describe("The brand's current name."),
+        to: z.string().describe("The name the brand takes."),
+      },
+    },
+    async ({ brand, to }) => {
+      const project = await client.project.current({});
+      const renamed = await client.project.brand.rename({
+        root: project.root,
+        brand,
+        to,
+      });
+      if (renamed.error !== null) return failed(renamed.error);
+      return json({ brand: to, renamedFrom: brand });
+    },
+  );
+
+  // Brands: the init sequence's procedures, one tool each.
+
+  server.registerTool(
+    "brand_create",
+    {
+      title: "Create a brand",
+      description:
+        "Create a brand: its spin/<brand>/ directory, its brand.json definition, and its config seating. Zero tokens; the design language, palette, and type follow as their own calls.",
+      inputSchema: {
+        name: z.string().describe("The brand's name: the directory and the seating key."),
+        description: z.string().optional().describe("Plain text on the brand definition file."),
+      },
+    },
+    async ({ name, description }) => {
+      const project = await client.project.current({});
+      const created = await client.project.brand.create({
+        root: project.root,
+        name,
+        ...(description === undefined ? {} : { description }),
+      });
+      if (created.error !== null) return failed(created.error);
+      return json({ brand: name });
+    },
+  );
+
+  server.registerTool(
+    "brand_setDesignLanguage",
+    {
+      title: "Set the brand's design language",
+      description:
+        "Name the brand's design language: writes $extends in tokens.json, nothing else.",
+      inputSchema: {
+        brand: z.string().describe("The brand to seat a language on."),
+        language: z.string().describe("One of the shipped design languages."),
+      },
+    },
+    async ({ brand, language }) => {
+      const project = await client.project.current({});
+      const seated = await client.project.brand.setDesignLanguage({
+        root: project.root,
+        brand,
+        language,
+      });
+      if (seated.error !== null) return failed(seated.error);
+      return json({ brand, language });
+    },
+  );
+
+  server.registerTool(
+    "brand_setPalette",
+    {
+      title: "Seed the brand's palette",
+      description:
+        "Seed the brand's palette from one primary color plus an optional neutral seed. Floors validated before write; a refusal names why.",
+      inputSchema: {
+        brand: z.string().describe("The brand to seed."),
+        primary: z.string().describe("The brand's mark: primary actions, links, focus rings."),
+        neutral: z.string().optional().describe("The neutral ramp's own seed."),
+      },
+    },
+    async ({ brand, primary, neutral }) => {
+      const project = await client.project.current({});
+      const seeded = await client.project.brand.setPalette({
+        root: project.root,
+        brand,
+        primary,
+        ...(neutral === undefined ? {} : { neutral }),
+      });
+      if (seeded.error !== null) return failed(seeded.error);
+      return json({ brand, primary });
+    },
+  );
+
+  server.registerTool(
+    "brand_setType",
+    {
+      title: "Set the brand's type",
+      description:
+        "Set the brand's type: a curated suggestion by design language, explicit faces, and the icon collection plus stroke beside them.",
+      inputSchema: {
+        brand: z.string().describe("The brand to set type on."),
+        suggestion: z.string().optional().describe("A design language whose pairing to wear outright."),
+        display: z.string().optional().describe("The display face."),
+        body: z.string().optional().describe("The body face."),
+        mono: z.string().optional().describe("The mono face."),
+        icons: z.string().optional().describe("The icon collection, kept as metadata."),
+        stroke: z.string().optional().describe("The icon stroke: outline or filled."),
+      },
+    },
+    async ({ brand, suggestion, display, body, mono, icons, stroke }) => {
+      const project = await client.project.current({});
+      const set = await client.project.brand.setType({
+        root: project.root,
+        brand,
+        ...(suggestion === undefined ? {} : { suggestion }),
+        ...(display === undefined ? {} : { display }),
+        ...(body === undefined ? {} : { body }),
+        ...(mono === undefined ? {} : { mono }),
+        ...(icons === undefined ? {} : { icons }),
+        ...(stroke === undefined ? {} : { stroke }),
+      });
+      if (set.error !== null) return failed(set.error);
+      return json({ brand });
+    },
+  );
+
+  server.registerTool(
+    "brand_get",
+    {
+      title: "Read a brand",
+      description:
+        "Read a brand: its definition, its sparse layers, and the composition's judgment.",
+      inputSchema: {
+        brand: z.string().describe("The brand to read."),
+      },
+    },
+    async ({ brand }) => {
+      const project = await client.project.current({});
+      const report = await client.project.brand.get({
+        root: project.root,
+        brand,
+      });
+      return json(report);
+    },
+  );
+
+  server.registerTool(
+    "facet_create",
+    {
+      title: "Create a facet",
+      description:
+        "Write one facet file beside the theme it composes over: a palette facet (color.*) or a spacing facet (spacing.*). Shape-checked before write; a refusal names the file and the wrong keys.",
+      inputSchema: {
+        name: z.string().describe("The facet's name."),
+        base: z.string().describe("The theme the facet composes over."),
+        kind: z.enum(["palette", "spacing"]).describe("Which tokens the facet carries."),
+        tokens: z.record(z.string(), z.unknown()).describe("The facet document, as DTCG JSON."),
+      },
+    },
+    async ({ name, base, kind, tokens }) => {
+      const project = await client.project.current({});
+      const created = await client.project.themes.createFacet({
+        root: project.root,
+        name,
+        base,
+        kind,
+        tokens,
+      });
+      if (created.error !== null) return failed(created.error);
+      return json({ facet: `${name}.${kind}` });
     },
   );
 

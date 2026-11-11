@@ -39,7 +39,7 @@ const machine = listbox({
   >
     <template for={machine.getBlocks()} as={block} key={block.id}>
       <div class="py-1" {...machine.getItemGroupProps(block)}>
-        <span class="block px-2 py-1 type-caption-strong text-muted"
+        <span class="block px-2 py-1 type-caption-emphasized text-muted"
           {...machine.getItemGroupLabelProps(block)}>{block.label}</span>
         <template for={machine.getRows(block)} as={row} key={row.value}>
           <div

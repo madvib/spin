@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { parseHTML } from "@spinjs/runtime/testing";
-import { provideController, type SpinController } from "@spinjs/runtime";
+import { parseHTML } from "@spinjs/components/testing";
+import { provideController, type SpinController } from "@spinjs/components/runtime";
 import { spinComponentCtl } from "./controller.ts";
 import { useSpinComponent as useVueSpinComponent } from "./vue/vue.ts";
 import { createSpinComponent as createSvelteSpinComponent } from "./svelte/svelte.ts";
@@ -177,7 +177,7 @@ test("svelte createSpinComponent action binds props and store reads the ctl", ()
 });
 
 test("spinComponentCtl subscribe re-runs on state moves and stops after dispose", async () => {
-  const { signal } = await import("@spinjs/runtime");
+  const { signal } = await import("@spinjs/components/runtime");
   const el = element();
   const open = signal(false);
   provideController(el, () => ({

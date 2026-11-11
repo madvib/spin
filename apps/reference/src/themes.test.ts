@@ -7,7 +7,7 @@ import { deepStrictEqual } from "node:assert/strict";
  * named after, in the renderings that theme actually serves. These are the
  * rules that decide which renderings those are.
  */
-import { starterThemes, themeModes } from "@spinjs/spin/theme/themes";
+import { starterThemes, themeModes } from "@spinjs/theme/themes";
 import { renderingsFor } from "./themes.ts";
 
 test("a theme renders its own face, and its dark restatement when it has one", () => {
@@ -30,7 +30,7 @@ test("a theme renders its own face, and its dark restatement when it has one", (
 });
 
 test("a rendering is named by the mode the reader sees", () => {
-  for (const name of ["silk", "spin", "material", "neobrut", "industrial"] as const) {
+  for (const name of ["minimal", "editorial", "material", "neobrutalist", "neumorphic", "glassmorphic"] as const) {
     deepStrictEqual(
       renderingsFor(name).map((r) => r.label),
       ["light", "dark"],

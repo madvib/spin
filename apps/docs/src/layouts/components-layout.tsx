@@ -40,7 +40,7 @@ export function ComponentsRail(props: {
               type="button"
               aria-pressed={props.kind === kind}
               onClick={() => props.onKind(kind)}
-              class="bare rounded-sm px-2 py-1 type-caption text-muted aria-[pressed=true]:bg-surface-raised"
+               class="bare rounded-sm px-2 py-1 type-caption text-muted aria-[pressed=true]:bg-surface-raised"
             >
               {kind === "all"
                 ? "all"
@@ -55,8 +55,8 @@ export function ComponentsRail(props: {
         href="/components"
         end
         onClick={() => props.onSelect?.()}
-        class="block rounded-sm px-2 py-1 no-underline transition-colors duration-fast"
-        activeClass="bg-surface-raised type-body-strong"
+        class="block rounded-sm px-2 py-1 type-label no-underline transition-colors duration-fast"
+        activeClass="bg-surface-raised text-primary"
         inactiveClass="text-muted"
       >
         Overview
@@ -64,7 +64,7 @@ export function ComponentsRail(props: {
       <For each={groups()}>
         {(group) => (
           <>
-            <span class="pt-2 type-caption-strong uppercase text-muted">
+            <span class="pt-2 type-overline uppercase text-muted">
               {group.label}
             </span>
             <For each={group.items}>
@@ -72,8 +72,8 @@ export function ComponentsRail(props: {
                 <A
                   href={item.href}
                   onClick={() => props.onSelect?.()}
-                  class="flex items-center gap-2 rounded-sm px-2 py-1 no-underline transition-colors duration-fast"
-                  activeClass="bg-surface-raised type-body-strong"
+                  class="flex items-center gap-2 rounded-sm px-2 py-1 type-label no-underline transition-colors duration-fast"
+                  activeClass="bg-surface-raised text-primary"
                   inactiveClass="text-muted"
                 >
                   <span

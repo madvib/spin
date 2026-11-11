@@ -16,14 +16,14 @@
 import { oc } from "@orpc/contract";
 import { implement } from "@orpc/server";
 import * as v from "valibot";
-import { parseTokens } from "../theme/index.ts";
+import { parseTokens } from "@spinjs/theme";
 import {
   claimedElements,
   describeCatalog,
   primitiveVariants,
   spinPreset,
-} from "../compiler/index.ts";
-import type { ThemeDocument } from "../theme/index.ts";
+} from "@spinjs/preset";
+import type { ThemeDocument } from "@spinjs/theme";
 import { createGenerator } from "@unocss/core";
 
 const PreviewInput = v.object({
@@ -221,7 +221,7 @@ export async function generatePreview(
   // holds the edit an undo just took back, which would win the merge and
   // repaint with the undone value. Restored after, so the running app
   // keeps wearing the edit.
-  const { clearOverlay, overlayThemes, setOverlay } = await import("../plugin/session.ts");
+  const { clearOverlay, overlayThemes, setOverlay } = await import("@spinjs/server/project");
   const held = overlayThemes();
   clearOverlay();
   try {

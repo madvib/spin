@@ -1,4 +1,4 @@
-import type { AssignFor } from "@spinjs/runtime/fsm";
+import type { AssignFor } from "@spinjs/components/fsm";
 import type { ListboxEvents } from "./listbox.events.ts";
 import type { ListboxContext } from "./listbox.state.ts";
 import { parseKeys, rowsOf as rowsOfState } from "./listbox.state.ts";

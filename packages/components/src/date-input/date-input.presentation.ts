@@ -5,13 +5,11 @@ import {
   ariaLabelledBy,
   ariaReadOnly,
   type ComponentDef,
-  dataAttr,
   defineComponent,
   isRecord,
   type ViewFor,
   sliderThumb,
-  type SlotViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import {
   clampValue,
   type DateGranularity,
@@ -100,12 +98,6 @@ const placeholderFor = (field: DateInputField): string => {
 };
 
 type ScopeLike = ViewFor<DateInputContext, DateInputEvents, DateInputState>;
-type SlotLike<R> = SlotViewFor<
-  R,
-  DateInputContext,
-  DateInputEvents,
-  DateInputState
->;
 
 const partToField = (
   type: string,

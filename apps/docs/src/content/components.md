@@ -60,7 +60,7 @@ const machine = select({
 - **Reactive loops (`<template for={...} as={row} key={row.value}>`):** Keyed fine-grained list rendering.
 - **Reactive conditionals (`<template if={machine.open}>` / `show={...}`):** Mount or toggle visibility from machine state.
 - **Class arrays (`class={["base", { "bg-surface": machine.open }]}`):** Toggle utility classes from state booleans.
-- **Directives (`on:click={...}`, `use:anchor={...}`):** Attach DOM listeners and actions from `@spinjs/runtime/actions`.
+- **Directives (`on:click={...}`, `use:anchor={...}`):** Attach DOM listeners and actions from `@spinjs/components/actions`.
 
 ## Framework controllers
 

@@ -10,8 +10,8 @@ export default function ThemesFonts(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Fonts"
-        lede="Name a font family in your theme and Spin loads it: declare sources in $extensions.spin.fonts, spend the families through font.family roles, and tune the monotonic type scale — no @font-face boilerplate, no bundler font plugin."
+        title="Typography"
+        lede="Declare font sources in $extensions.spin.fonts, assign font.family roles, and bind the 13 named font.style.* tuples across your brand — with automatic @font-face generation."
       />
 
       <Section id="loading" title="Automatic @font-face generation">
@@ -57,9 +57,9 @@ export default function ThemesFonts(): JSX.Element {
         </p>
       </Section>
 
-      <Section id="styles" title="Sixteen styles, spent whole">
+      <Section id="styles" title="Thirteen styles, spent whole">
         <p class="max-w-prose">
-          A theme declares sixteen named styles in{" "}
+          A theme declares thirteen named styles in{" "}
           <code>font.style.&lt;name&gt;</code>, each a composite{" "}
           <code>$type: "typography"</code> tuple of family, size, weight,
           tracking, and leading — written once, spent with{" "}
@@ -75,13 +75,12 @@ export default function ThemesFonts(): JSX.Element {
           />
         </div>
         <p class="max-w-prose">
-          Sixteen styles ship with every starter — <code>display</code>,{" "}
+          Thirteen styles ship with every starter — <code>display</code>,{" "}
           <code>title</code>, <code>heading</code>, <code>subtitle</code>,{" "}
-          <code>lead</code>, <code>body</code>, <code>quote</code>,{" "}
-          <code>code</code>, <code>label</code>, <code>caption</code>,{" "}
-          <code>overline</code>, <code>stat</code>, <code>badge</code>,{" "}
-          <code>body-strong</code>, <code>caption-strong</code>, and{" "}
-          <code>card-title</code>. Four carry the page —{" "}
+          <code>lead</code>, <code>body</code>, <code>body-emphasized</code>,{" "}
+          <code>quote</code>, <code>code</code>, <code>label</code>,{" "}
+          <code>caption</code>, <code>caption-emphasized</code>, and{" "}
+          <code>overline</code>. Four carry the page —{" "}
           <code>type-display</code>, <code>type-heading</code>,{" "}
           <code>type-body</code>, <code>type-code</code> — and the full set
           with live specimens lives in the{" "}
@@ -113,7 +112,7 @@ export default function ThemesFonts(): JSX.Element {
           Each element and component carries a <code>.type</code> token
           aliasing its default style (<code>element.h1.type</code> reads{" "}
           <code>display</code>, <code>card.title.type</code> reads{" "}
-          <code>card-title</code>). While elements carry a style,{" "}
+          <code>title</code>). While elements carry a style,{" "}
           <code>&lt;a&gt;</code> and <code>&lt;strong&gt;</code> are inline
           modifiers over inherited text — a link adds only its paint
           (<code>color.link</code>, an

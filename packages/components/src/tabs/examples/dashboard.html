@@ -16,7 +16,7 @@ const machine = tabs({
  <div class="flex gap-2" {...machine.getListProps()}>
   <template for={machine.items} as={row} key={row.value}>
    <button
-    class="bare rounded-md px-4 py-2 type-body-strong transition-colors aria-[selected=true]:bg-surface aria-[selected=true]:shadow-sm aria-[selected=false]:text-muted"
+    class="bare rounded-md px-4 py-2 type-body-emphasized transition-colors aria-[selected=true]:bg-surface aria-[selected=true]:shadow-sm aria-[selected=false]:text-muted"
     {...machine.getTriggerProps(row)}
    >{row.label}</button>
   </template>
@@ -27,19 +27,19 @@ const machine = tabs({
     <div class="grid grid-cols-3 gap-4">
      <div class="rounded-md border bg-surface-raised p-4">
       <span class="type-body text-muted">Active users</span>
-      <div class="type-stat">12,480</div>
+      <div class="type-title">12,480</div>
      </div>
      <div class="rounded-md border bg-surface-raised p-4">
       <span class="type-body text-muted">Conversion</span>
-      <div class="type-stat">3.2%</div>
+      <div class="type-title">3.2%</div>
      </div>
      <div class="rounded-md border bg-surface-raised p-4">
       <span class="type-body text-muted">Revenue</span>
-      <div class="type-stat">$48.2k</div>
+      <div class="type-title">$48.2k</div>
      </div>
     </div>
-    <div class="rounded-md border bg-surface-raised p-6">
-     <span class="type-body-strong">Traffic over 7 days</span>
+    <div class="grid gap-3 rounded-md border bg-surface-raised p-6">
+     <span class="type-body-emphasized">Traffic over 7 days</span>
      <div class="mt-4 flex items-end gap-2" style="height: 8rem;">
       <div class="w-full rounded-md bg-primary" style="height: 60%;"></div>
       <div class="w-full rounded-md bg-primary" style="height: 75%;"></div>
@@ -52,17 +52,17 @@ const machine = tabs({
     </div>
    </div>
    <div class="grid gap-4" show={row.value === "analytics"}>
-    <div class="rounded-md border bg-surface-raised p-6">
-     <span class="type-body-strong">Top pages</span>
-     <ul class="mt-3 grid gap-2">
+    <div class="grid gap-3 rounded-md border bg-surface-raised p-6">
+     <span class="type-body-emphasized">Top pages</span>
+     <ul class="grid gap-2">
       <li class="flex items-center justify-between"><span>/pricing</span><span class="text-muted">4,210</span></li>
       <li class="flex items-center justify-between"><span>/docs</span><span class="text-muted">3,880</span></li>
       <li class="flex items-center justify-between"><span>/blog</span><span class="text-muted">2,104</span></li>
      </ul>
     </div>
-    <div class="rounded-md border bg-surface-raised p-6">
-     <span class="type-body-strong">Devices</span>
-     <div class="mt-3 grid gap-2">
+    <div class="grid gap-3 rounded-md border bg-surface-raised p-6">
+     <span class="type-body-emphasized">Devices</span>
+     <div class="grid gap-2">
       <div class="flex items-center justify-between type-body"><span>Desktop</span><span class="text-muted">62%</span></div>
       <div class="flex items-center justify-between type-body"><span>Mobile</span><span class="text-muted">31%</span></div>
       <div class="flex items-center justify-between type-body"><span>Tablet</span><span class="text-muted">7%</span></div>
@@ -70,30 +70,30 @@ const machine = tabs({
     </div>
    </div>
    <div class="grid gap-4" show={row.value === "reports"}>
-    <div class="rounded-md border bg-surface-raised p-6">
-     <span class="type-body-strong">Scheduled reports</span>
-     <ul class="mt-3 grid gap-3">
+    <div class="grid gap-3 rounded-md border bg-surface-raised p-6">
+     <span class="type-body-emphasized">Scheduled reports</span>
+     <ul class="grid gap-3">
       <li class="flex items-center justify-between">
        <div class="grid gap-1">
         <span class="type-label">Weekly revenue</span>
         <span class="type-caption text-muted">Every Monday, 09:00</span>
        </div>
-       <button class="rounded-md border px-3 py-1">Edit</button>
+       <button class="secondary s-sm">Edit</button>
       </li>
       <li class="flex items-center justify-between">
        <div class="grid gap-1">
         <span class="type-label">Monthly active users</span>
         <span class="type-caption text-muted">First of month</span>
        </div>
-       <button class="rounded-md border px-3 py-1">Edit</button>
+       <button class="secondary s-sm">Edit</button>
       </li>
      </ul>
     </div>
    </div>
    <div class="grid gap-4" show={row.value === "team"}>
-    <div class="rounded-md border bg-surface-raised p-6">
-     <span class="type-body-strong">Members</span>
-     <ul class="mt-3 grid gap-3">
+    <div class="grid gap-3 rounded-md border bg-surface-raised p-6">
+     <span class="type-body-emphasized">Members</span>
+     <ul class="grid gap-3">
       <li class="flex items-center gap-3">
        <span class="grid h-8 w-8 place-items-center rounded-full bg-selected type-label text-on-selected">AL</span>
        <div class="grid gap-0">

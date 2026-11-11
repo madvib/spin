@@ -8,6 +8,6 @@
   <span class="sr-only" {...machine.getLabelProps()}>Document title</span>
   <div class="rounded-lg border bg-surface-raised px-3 py-2" {...machine.getAreaProps()}>
     <span show={!machine.editing} class="block cursor-text type-heading hover:text-primary" {...machine.getPreviewProps()}>{machine.valueText}</span>
-    <input show={machine.editing} class="w-full bg-transparent outline-none" {...machine.getInputProps()} />
+    <input show={machine.editing} class="bare w-full" {...machine.getInputProps()} />
   </div>
 </div>

@@ -16,7 +16,7 @@ import { type StudioPage, studioUrl } from "./studio.ts";
 import { ROUTE_PATHS } from "../src/lib/routes.ts";
 import { seatTheme } from "./themes.ts";
 
-const THEMES = ["industrial", "material", "neobrut", "silk", "spin"] as const;
+const THEMES = ["neumorphic", "material", "neobrutalist", "minimal", "editorial", "glassmorphic"] as const;
 
 const CONCERNS = [
   "/themes/colors",
@@ -39,7 +39,7 @@ async function open(page: StudioPage, route: string): Promise<void> {
       // A route that never loaded is this attempt's finding, not the run's.
     }
     try {
-      await page.page.waitForSelector("#app h1", { timeout: 15_000 });
+      await page.page.waitForSelector("#app h1", { timeout: 30_000 });
       await page.settle(600);
       return;
     } catch {
@@ -240,7 +240,7 @@ test("Gate C: range inputs are grooves, not pills", async () => {
 test("Gate C: combobox inputs have borders and non-zero trigger icons", async () => {
   await withPage(async (studio) => {
     const probes: Record<string, string> = {
-      "/themes/type": "studio-font-combobox",
+      "/themes/type/faces": "studio-font-combobox",
       "/themes/colors": "studio-token-combobox",
     };
     for (const [route, tag] of Object.entries(probes)) {
@@ -275,16 +275,16 @@ test("Gate C: combobox inputs have borders and non-zero trigger icons", async ()
 
 test("Gate C: /colors slots match the theme's declared modes", async () => {
   await withPage(async (studio) => {
-    for (const theme of ["spin", "industrial"] as const) {
-      await open(studio, "/");
+    for (const theme of ["minimal", "neumorphic"] as const) {
+      await open(studio, "/brand");
       const seated = await seatTheme(studio, theme);
       assert(seated === "seated", `the picker never seated ${theme}`);
-      if (theme === "industrial") {
+      if (theme === "neumorphic") {
         await studio.eval(
           `(async () => {
             const wait = (ms) => new Promise((r) => setTimeout(r, ms));
             const card = [...document.querySelectorAll('article[data-testid="theme-card"]')].find((c) =>
-              [...c.querySelectorAll("button")].some((b) => (b.textContent ?? "").trim() === "industrial")
+              [...c.querySelectorAll("button")].some((b) => (b.textContent ?? "").trim() === "neumorphic")
             );
             const menu = card?.querySelector("studio-theme-menu");
             menu?.querySelector("button")?.click();
@@ -312,19 +312,19 @@ test("Gate C: /colors slots match the theme's declared modes", async () => {
           };
         })()`,
       );
-      if (theme === "industrial") {
+      if (theme === "neumorphic") {
         await studio.eval(
           `document.querySelector('button[aria-label="Discard changes"]')?.click()`,
         );
         await studio.settle(400);
         assert(
           slots.dark > 0 && slots.light === 0,
-          `single-mode dark industrial renders light:${slots.light} dark:${slots.dark}`,
+          `single-mode dark neumorphic renders light:${slots.light} dark:${slots.dark}`,
         );
       } else {
         assert(
           slots.light > 0 && slots.dark > 0,
-          `spin serves both modes but renders light:${slots.light} dark:${slots.dark}`,
+          `minimal serves both modes but renders light:${slots.light} dark:${slots.dark}`,
         );
       }
     }

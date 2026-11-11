@@ -6,19 +6,17 @@ import {
   legibilityFloors,
   parseTokens,
   requiredPaths,
-  scaffoldTheme,
-  treeToJson,
   validateTokens,
-} from "../../src/theme/index.ts";
-import type { TokenNode } from "../../src/theme/index.ts";
-import { starterThemes, themeModes } from "../../src/theme/themes/index.ts";
+} from "@spinjs/theme";
+import type { TokenNode } from "@spinjs/theme";
+import { starterThemes, themeModes } from "@spinjs/theme/themes";
 
 /**
  * The per-element contract, held to the same gates as the base one.
  *
  * A per-element group is a decision an ELEMENT owns, and the theme is what
  * makes it. So the gates are the same three the base roles answer to: every
- * starter declares the groups the contract knows, a scaffold carries them
+ * starter declares the groups the contract knows, silk states them
  * all, and the ink the danger surfaces wear is a role the contract asks for
  * rather than a name nothing reads.
  */
@@ -55,22 +53,23 @@ test("every starter declares every per-element token the contract knows", () => 
   }
 });
 
-test("a scaffold carries every per-element token", () => {
-  // The scaffold is the document an author edits, and the studio writes it
-  // when a theme is created. A per-element token missing from it is a
-  // decision the author is never shown — and a rule that falls back to the
-  // shared scale because the document was too empty to say otherwise.
-  const declared = pathsOf(scaffoldTheme());
+test("silk states every per-element token", () => {
+  // The starters are the documents an author copies, and the studio copies
+  // them when a theme is created. A per-element token missing from silk is
+  // a decision the author is never shown — and a rule that falls back to
+  // the shared scale because the document was too empty to say otherwise.
+  const parsed = parseTokens(starterThemes.minimal);
+  if (!parsed.ok) throw new Error(parsed.error);
+  const declared = pathsOf(parsed.tree);
   for (const path of elementPaths()) {
-    assert(declared.has(path), `the scaffold must carry ${path}`);
+    assert(declared.has(path), `silk must carry ${path}`);
   }
 });
 
-test("a scaffolded theme validates with every per-element group in it", () => {
-  // The scaffold's values are placeholders, but they must be sound: a
-  // scaffold that does not validate is a document the studio writes and the
-  // validator rejects.
-  const parsed = parseTokens(treeToJson(scaffoldTheme()));
+test("a silk document validates with every per-element group in it", () => {
+  // Silk's values must be sound: a starter that does not validate is a
+  // document the studio copies and the validator rejects.
+  const parsed = parseTokens(starterThemes.minimal);
   if (!parsed.ok) throw new Error(parsed.error);
   const report = validateTokens(parsed.tree, { required: requiredPaths() });
   deepStrictEqual(report.issues, []);
@@ -104,7 +103,7 @@ test("the ink the danger surfaces wear is a role the contract asks for", () => {
 });
 
 test("a theme that serves a mode it does not override is valid", () => {
-  const darkOnly = structuredClone(starterThemes.industrial) as Record<string, unknown>;
+  const darkOnly = structuredClone(starterThemes.neumorphic) as Record<string, unknown>;
   for (const group of Object.values(darkOnly)) {
     if (group && typeof group === "object") {
       for (const leaf of Object.values(group as Record<string, unknown>)) {
@@ -126,10 +125,10 @@ test("a theme that serves a mode it does not override is valid", () => {
 
 test("a value written for a mode the theme does not serve is reported", () => {
   const parsed = parseTokens({
-    ...starterThemes.neobrut,
+    ...starterThemes.neobrutalist,
     modes: ["light"],
     color: {
-      ...(starterThemes.neobrut["color"] as Record<string, unknown>),
+      ...(starterThemes.neobrutalist["color"] as Record<string, unknown>),
       primary: {
         $value: "#2b5fd0",
         $modes: { dark: "#8db9fa" },

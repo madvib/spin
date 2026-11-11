@@ -149,7 +149,7 @@ const GRID =
 
 /** One theme's column: the name, and the renderings under it. */
 const COLUMN = "flex min-w-0 flex-col gap-2";
-const THEME_NAME = "m-0 truncate type-body-strong";
+const THEME_NAME = "m-0 truncate type-body-emphasized";
 const MODE_LABEL = "type-code text-muted";
 
 /**

@@ -3,7 +3,7 @@
  * in the one shared augmentation rather than a second copy that would drift
  * from it.
  */
-/// <reference types="@spinjs/spin/elements" />
+/// <reference types="@spinjs/preset/elements" />
 
 declare module "src/lib/components/*.html" {
   const tag: string;
@@ -11,8 +11,10 @@ declare module "src/lib/components/*.html" {
 }
 
 declare module "@spinjs/components/examples" {
-  const tags: readonly string[];
-  export default tags;
+  import type { ExampleSource } from "../../packages/components/src/examples.ts";
+  export function exampleSources(): Map<string, readonly ExampleSource[]>;
+  export function exampleMachines(): readonly string[];
+  export function mountTag(machine: string, stem: string): string;
 }
 
 declare module "@spinjs/components/*.html" {

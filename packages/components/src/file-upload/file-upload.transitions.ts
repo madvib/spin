@@ -1,4 +1,4 @@
-import type { AssignFor } from "@spinjs/runtime/fsm";
+import type { AssignFor } from "@spinjs/components/fsm";
 import type { FileUploadEvents } from "./file-upload.events.ts";
 import type { FileUploadContext } from "./file-upload.state.ts";
 import { filesOf, splitFiles } from "./file-upload.state.ts";

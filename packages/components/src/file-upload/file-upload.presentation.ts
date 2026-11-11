@@ -8,7 +8,7 @@ import {
   isRecord,
   type ViewFor,
   type SlotViewFor,
-} from "@spinjs/runtime";
+} from "@spinjs/components/runtime";
 import { fileUpload as fileUploadMachine } from "./file-upload.machine.ts";
 import type {
   FileRecord,

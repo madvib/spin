@@ -3,12 +3,12 @@ import { treeView } from "../tree-view.presentation.ts";
 
 const machine = treeView({
   nodes:
-    '[{"value": "packages", "label": "packages", "children": [{"value": "packages/components", "label": "components", "children": [{"value": "packages/combobox", "label": "combobox"}, {"value": "packages/select", "label": "select"}]}, {"value": "packages/runtime", "label": "runtime"}]}, {"value": "packages/preset", "label": "preset"}, {"value": "readme", "label": "README.md"}]',
+    '[{"value": "packages", "label": "packages", "children": [{"value": "packages/components", "label": "components", "children": [{"value": "packages/combobox", "label": "combobox"}, {"value": "packages/select", "label": "select"}]}, {"value": "packages/theme", "label": "theme"}]}, {"value": "packages/preset", "label": "preset"}, {"value": "readme", "label": "README.md"}]',
   expandedValue: ["packages", "packages/components"],
 });
 </script>
 <div class="mx-auto w-full max-w-sm" {...machine.getRootProps()}>
-  <span class="mb-4 block type-caption-strong"
+  <span class="mb-4 block type-caption-emphasized"
     {...machine.getLabelProps()}>Project Files</span>
   <div
     class="flex flex-col gap-1 rounded-lg border bg-surface-raised p-3"
