@@ -6,9 +6,9 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { designLanguages } from "@spinjs/theme";
 import { lint } from "../src/service.ts";
-import { createState, handleMessage, type LspState } from "../../spin/src/lsp/server.ts";
-import { completionsAt, hoverAt } from "../../spin/src/lsp/features.ts";
-import { encodeFrame, isRequest, readFrames } from "../../spin/src/lsp/protocol.ts";
+import { createState, handleMessage, type LspState } from "../../dev/src/lsp/server.ts";
+import { completionsAt, hoverAt } from "../../dev/src/lsp/features.ts";
+import { encodeFrame, isRequest, readFrames } from "../../dev/src/lsp/protocol.ts";
 import { engineAnswers } from "@spinjs/preset";
 import { readProjectThemes } from "../src/project.ts";
 import { factsForFile, rootOf } from "../src/provider.ts";
@@ -224,7 +224,7 @@ test("completion names the project vocabulary", async () => {
 });
 
 test("the CLI names the language server", async () => {
-  const { parseArgs } = await import("@spinjs/spin/cli");
+  const { parseArgs } = await import("@spinjs/dev/cli");
   const bare = parseArgs(["lsp"]);
   deepStrictEqual(bare, { kind: "lsp" });
   const rooted = parseArgs(["lsp", "--root", "/tmp/proj"]);

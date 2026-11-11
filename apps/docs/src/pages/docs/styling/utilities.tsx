@@ -40,7 +40,7 @@ const COMPOSITION_AFTER_SNIPPET = `<div class="stack rounded-lg border bg-surfac
   </div>
 </div>`;
 
-const SHORTCUTS_CONFIG_SNIPPET = `import { spin } from "@spinjs/spin/vite";
+const SHORTCUTS_CONFIG_SNIPPET = `import { spin } from "@spinjs/dev/vite";
 
 export default {
   plugins: [

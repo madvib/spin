@@ -1,5 +1,5 @@
 /**
- * @spinjs/spin/theme/base — the document a theme makes before any component exists.
+ * @spinjs/dev/theme/base — the document a theme makes before any component exists.
  *
  * Everything here spends a token the theme owns, so this is identity rather
  * than taste. Stage-setting that spends nothing — reset, the reduced-motion

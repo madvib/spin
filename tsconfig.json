@@ -44,11 +44,44 @@
       "@spinjs/components/*": [
         "./packages/components/src/*"
       ],
-      "@spinjs/spin": [
-        "./packages/spin/src/index.ts"
+      "@spinjs/dev": [
+        "./packages/dev/src/plugin/plugin.ts"
       ],
-      "@spinjs/spin/*": [
-        "./packages/spin/src/*"
+      "@spinjs/dev/preset": [
+        "./packages/dev/src/preset.ts"
+      ],
+      "@spinjs/dev/preset/css": [
+        "./packages/dev/src/preset-css.ts"
+      ],
+      "@spinjs/dev/preset/elements": [
+        "./packages/dev/src/elements.d.ts"
+      ],
+      "@spinjs/dev/elements": [
+        "./packages/dev/src/elements.d.ts"
+      ],
+      "@spinjs/dev/theme": [
+        "./packages/dev/src/theme.ts"
+      ],
+      "@spinjs/dev/theme/base": [
+        "./packages/dev/src/theme-base.ts"
+      ],
+      "@spinjs/dev/theme/theme-types": [
+        "./packages/dev/src/theme-types.d.ts"
+      ],
+      "@spinjs/dev/diagnostics": [
+        "./packages/dev/src/diagnostics.ts"
+      ],
+      "@spinjs/dev/eslint": [
+        "./packages/dev/src/eslint.ts"
+      ],
+      "@spinjs/dev/vite": [
+        "./packages/dev/src/plugin/plugin.ts"
+      ],
+      "@spinjs/dev/cli": [
+        "./packages/dev/src/cli/main.ts"
+      ],
+      "@spinjs/dev/*": [
+        "./packages/dev/src/*"
       ],
       "@spinjs/preset/elements": [
         "./packages/preset/src/elements.d.ts"

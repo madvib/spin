@@ -1,7 +1,7 @@
 {
-  "name": "@spinjs/spin",
-  "version": "0.1.0-preview.6",
-  "description": "The spin toolchain: themes, the Uno preset and plugin, project operations, diagnostics, the daemon, and the agent server.",
+  "name": "@spinjs/dev",
+  "version": "0.2.0-preview.1",
+  "description": "The Spin toolchain: bundler plugins, UnoCSS preset, theme engine, Studio, CLI, LSP, lints, and MCP server.",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -18,6 +18,39 @@
     "./vite": {
       "types": "./src/plugin/plugin.ts",
       "default": "./src/plugin/plugin.ts"
+    },
+    "./preset": {
+      "types": "./src/preset.ts",
+      "default": "./src/preset.ts"
+    },
+    "./preset/css": {
+      "types": "./src/preset-css.ts",
+      "default": "./src/preset-css.ts"
+    },
+    "./preset/elements": {
+      "types": "./src/elements.d.ts"
+    },
+    "./elements": {
+      "types": "./src/elements.d.ts"
+    },
+    "./theme": {
+      "types": "./src/theme.ts",
+      "default": "./src/theme.ts"
+    },
+    "./theme/base": {
+      "types": "./src/theme-base.ts",
+      "default": "./src/theme-base.ts"
+    },
+    "./theme/theme-types": {
+      "types": "./src/theme-types.d.ts"
+    },
+    "./diagnostics": {
+      "types": "./src/diagnostics.ts",
+      "default": "./src/diagnostics.ts"
+    },
+    "./eslint": {
+      "types": "./src/eslint.ts",
+      "default": "./src/eslint.ts"
     },
     "./compositions": {
       "types": "./src/compositions.ts",
@@ -87,14 +120,13 @@
     "@orpc/client": "catalog:",
     "@orpc/contract": "catalog:",
     "@orpc/server": "catalog:",
-    "@spinjs/build": "workspace:*",
-    "@spinjs/diagnostics": "workspace:*",
-    "@spinjs/preset": "workspace:*",
-    "@spinjs/server": "workspace:*",
-    "@spinjs/theme": "workspace:*",
     "@unocss/core": "66.10.5",
     "@unocss/preset-icons": "66.10.5",
+    "@unocss/preset-wind4": "66.10.5",
+    "@unocss/transformer-directives": "66.10.5",
+    "@unocss/transformer-variant-group": "66.10.5",
     "hono": "^4.13.13",
+    "oxc-parser": "^0.126.0",
     "unplugin": "^3.4.0",
     "valibot": "catalog:",
     "zod": "^4.2.0"
@@ -105,6 +137,11 @@
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.0",
+    "@spinjs/build": "workspace:*",
+    "@spinjs/diagnostics": "workspace:*",
+    "@spinjs/preset": "workspace:*",
+    "@spinjs/server": "workspace:*",
+    "@spinjs/theme": "workspace:*",
     "@modelcontextprotocol/client": "2.4.0",
     "@types/react": "^19.0.0",
     "@typescript-eslint/parser": "8.71.0",
@@ -128,6 +165,39 @@
       "./vite": {
         "types": "./dist/plugin/plugin.d.ts",
         "default": "./dist/plugin/plugin.js"
+      },
+      "./preset": {
+        "types": "./dist/preset.d.ts",
+        "default": "./dist/preset.js"
+      },
+      "./preset/css": {
+        "types": "./dist/preset-css.d.ts",
+        "default": "./dist/preset-css.js"
+      },
+      "./preset/elements": {
+        "types": "./dist/elements.d.ts"
+      },
+      "./elements": {
+        "types": "./dist/elements.d.ts"
+      },
+      "./theme": {
+        "types": "./dist/theme.d.ts",
+        "default": "./dist/theme.js"
+      },
+      "./theme/base": {
+        "types": "./dist/theme-base.d.ts",
+        "default": "./dist/theme-base.js"
+      },
+      "./theme/theme-types": {
+        "types": "./dist/theme-types.d.ts"
+      },
+      "./diagnostics": {
+        "types": "./dist/diagnostics.d.ts",
+        "default": "./dist/diagnostics.js"
+      },
+      "./eslint": {
+        "types": "./dist/eslint.d.ts",
+        "default": "./dist/eslint.js"
       },
       "./compositions": {
         "types": "./dist/compositions.d.ts",

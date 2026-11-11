@@ -283,7 +283,7 @@ export function buildStylingMarkdown(routePath: string): string | undefined {
       "Promote a utility list to a named composition the third time you write the same arrangement across your templates, and declare it under `spin.vite({ shortcuts })` in your bundler config (see the full plugin setup on [Install & Bundlers](/docs/getting-started/install#config)). Every composition still spends your theme's spacing scale — `gap-4` inside `stack`, `row`, and `split` rescales whenever the theme changes — and the build verifies both the composition name and the utilities it expands to:",
       "",
       "```ts",
-      "import { spin } from \"@spinjs/spin/vite\";",
+      "import { spin } from \"@spinjs/dev/vite\";",
       "",
       "export default {",
       "  plugins: [",

@@ -24,22 +24,7 @@
     "schema.json"
   ],
   "name": "@spinjs/theme",
-  "publishConfig": {
-    "access": "public",
-    "exports": {
-      ".": {
-        "default": "./dist/index.js",
-        "types": "./dist/index.d.ts"
-      },
-      "./base": {
-        "default": "./dist/base/index.js",
-        "types": "./dist/base/index.d.ts"
-      },
-      "./theme-types": {
-        "types": "./dist/theme-types.d.ts"
-      }
-    }
-  },
+  "private": true,
   "scripts": {
     "test": "bun test src/",
     "lint": "bunx oxlint@1.85.0 --config ../../.oxlintrc.json src/",
@@ -48,6 +33,6 @@
     "types": "bun -e \"import { writeFile } from 'node:fs/promises'; import { parseTokens, generateTypes, minimalLanguage } from './src/index.ts'; const parsed = parseTokens(minimalLanguage); if (!parsed.ok) throw new Error(parsed.error); await writeFile('src/theme-types.d.ts', generateTypes(parsed.tree));\""
   },
   "type": "module",
-  "version": "0.1.0-preview.6",
+  "version": "0.2.0-preview.1",
   "description": "The value layer: DTCG parsing, validation, gates, design languages, and facets."
 }

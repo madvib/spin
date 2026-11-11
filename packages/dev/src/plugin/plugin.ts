@@ -164,12 +164,13 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
       return undefined;
     }
   };
-  const componentsSrc = tryDir("@spinjs/components") ?? "";
-  const themeSrc = dirname(req.resolve("@spinjs/theme"));
-  const presetSrc = dirname(req.resolve("@spinjs/preset"));
-  const serverSrc = dirname(req.resolve("@spinjs/server"));
-  const diagnosticsSrc = dirname(req.resolve("@spinjs/diagnostics"));
-  const buildSrc = dirname(req.resolve("@spinjs/build"));
+  const missing = "/__spin_workspace_absent__";
+  const componentsSrc = tryDir("@spinjs/components") ?? missing;
+  const themeSrc = tryDir("@spinjs/theme") ?? missing;
+  const presetSrc = tryDir("@spinjs/preset") ?? missing;
+  const serverSrc = tryDir("@spinjs/server") ?? missing;
+  const diagnosticsSrc = tryDir("@spinjs/diagnostics") ?? missing;
+  const buildSrc = tryDir("@spinjs/build") ?? missing;
   const source = {
     spinSrc: pkg("../"),
     themeSrc: `${themeSrc}/`,
@@ -193,62 +194,77 @@ export async function spinAliases(): Promise<SpecTableEntry[]> {
   const table: readonly Specifier[] = [
     ...componentsEntries,
     {
-      find: "@spinjs/spin/vite",
+      find: "@spinjs/dev/vite",
       replacement: pkg("./plugin.ts"),
       targets: [pkg("./plugin.ts")],
     },
     {
-      find: "@spinjs/spin/examples",
+      find: "@spinjs/dev/examples",
       replacement: pkg("../examples/index.ts"),
       targets: [pkg("../examples/index.ts")],
     },
     {
-      find: "@spinjs/spin/eslint",
+      find: "@spinjs/dev/eslint",
       replacement: join(diagnosticsSrc, "eslint.ts"),
       targets: [source.diagnosticsIndex],
     },
     {
-      find: "@spinjs/spin/cli",
+      find: "@spinjs/dev/diagnostics",
+      replacement: source.diagnosticsIndex,
+      targets: [source.diagnosticsIndex],
+    },
+    {
+      find: "@spinjs/dev/theme/base",
+      replacement: source.themeBaseIndex,
+      targets: [source.themeIndex],
+    },
+    {
+      find: "@spinjs/dev/theme",
+      replacement: source.themeIndex,
+      targets: [source.themeIndex],
+    },
+    {
+      find: "@spinjs/dev/cli",
       replacement: pkg("../cli/main.ts"),
       targets: [pkg("../cli/main.ts")],
     },
     {
-      find: "@spinjs/spin/mcp",
+      find: "@spinjs/dev/mcp",
       replacement: pkg("../mcp/main.ts"),
       targets: [source.apiIndex],
     },
     {
-      find: "@spinjs/spin/api/procedures",
+      find: "@spinjs/dev/api/procedures",
       replacement: pkg("../api/components-procedures.ts"),
       targets: [source.apiIndex],
     },
     {
-      find: /^@spinjs\/spin\/preset\/(.+)$/,
+      find: /^@spinjs\/dev\/preset\/(.+)$/,
       replacement: `${source.presetSrc}$1`,
       targets: [source.presetIndex],
     },
     {
-      find: "@spinjs/spin/preset",
+      find: "@spinjs/dev/preset",
       replacement: source.presetIndex,
       targets: [source.presetIndex],
     },
     {
-      find: "@spinjs/spin/skill/authoring",
+      find: "@spinjs/dev/skill/authoring",
       replacement: pkg("../skill/authoring.ts"),
       targets: [pkg("../skill/authoring.ts")],
     },
     {
-      find: "@spinjs/spin/skill",
+      find: "@spinjs/dev/skill",
       replacement: pkg("../skill/index.ts"),
       targets: [pkg("../skill/index.ts")],
     },
     {
-      find: /^@spinjs\/spin\/(.+)$/,
+      find: /^@spinjs\/dev\/(.+)$/,
       replacement: `${source.spinSrc}$1`,
       targets: [pkg("./plugin.ts")],
     },
     {
-      find: "@spinjs/spin",
+      find: "@spinjs/dev",
       replacement: source.presetIndex,
       targets: [source.presetIndex],
     },
@@ -763,14 +779,23 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
     // package name, so no app spells the workspace geometry.
     const { createRequire } = await import("node:module");
     const { dirname } = await import("node:path");
+    const { fileURLToPath } = await import("node:url");
     const req = createRequire(import.meta.url);
-    const machines = dirname(req.resolve("@spinjs/components"));
-    const preset = dirname(req.resolve("@spinjs/preset"));
+    const tryResolveDir = (spec: string): string | undefined => {
+      try {
+        return dirname(req.resolve(spec));
+      } catch {
+        return undefined;
+      }
+    };
+    const machines = tryResolveDir("@spinjs/components");
+    const preset = tryResolveDir("@spinjs/preset") ?? fileURLToPath(new URL("../_internal/preset", import.meta.url));
     const internal = [
-      `${preset}/rules/primitives/*.examples.ts`,
-      `${preset}/rules/primitives/categories.ts`,
-      `${machines}/*/examples/*.html`,
-      `${machines}/index.ts`,
+      `${preset}/rules/primitives/*.examples.{ts,js}`,
+      `${preset}/rules/primitives/categories.{ts,js}`,
+      ...(machines !== undefined
+        ? [`${machines}/*/examples/*.html`, `${machines}/index.{ts,js}`]
+        : []),
     ];
     const filesystem = [
       ...internal,
@@ -934,7 +959,7 @@ spinOverlay("${studioBase}/rpc"${
       // dependencies point the other way — and `options.mount` stays as
       // the override for a custom root or studio directory.
       if (options.studio !== false) {
-        const { mountSpinApp } = await import("@spinjs/spin/api");
+        const { mountSpinApp } = await import("@spinjs/dev/api");
         (options.mount ?? mountSpinApp(root))({ server, root });
       }
     },

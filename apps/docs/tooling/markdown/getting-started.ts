@@ -55,7 +55,7 @@ export function buildGettingStartedMarkdown(routePath: string): string | undefin
         GETTING_STARTED_SNIPPETS.install,
         "```",
         "",
-        "- **`@spinjs/spin`** (devDependency): Build toolchain, bundler plugins, UnoCSS preset, theme engine, `.html` component compiler, CLI, MCP server, and Studio.",
+        "- **`@spinjs/dev`** (devDependency): Build toolchain, bundler plugins, UnoCSS preset, theme engine, `.html` component compiler, CLI, LSP, lints, MCP server, and Studio.",
         "- **`@spinjs/components`** (dependency): Headless state-machine components with React, Solid, Vue, and Svelte adapters.",
         "- **`@spinjs/components/runtime`** (subpath of `@spinjs/components`): Reactive signals, custom-element bridges, and finite-state machines.",
         "",

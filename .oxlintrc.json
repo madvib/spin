@@ -47,7 +47,7 @@
             "patterns": [
               {
                 "group": [
-                  "@spinjs/spin*",
+                  "@spinjs/dev*",
                   "@spinjs/components*"
                 ],
                 "message": "theme is the value layer: zero workspace dependencies"
@@ -160,7 +160,7 @@
             "patterns": [
               {
                 "group": [
-                  "@spinjs/spin*",
+                  "@spinjs/dev*",
                   "@spinjs/theme*"
                 ],
                 "message": "the client is independent: no spin, no theme"
@@ -181,9 +181,9 @@
             "patterns": [
               {
                 "group": [
-                  "@spinjs/spin/preset",
-                  "@spinjs/spin/diagnostics",
-                  "@spinjs/spin/api"
+                  "@spinjs/dev/preset",
+                  "@spinjs/dev/diagnostics",
+                  "@spinjs/dev/api"
                 ],
                 "message": "components spend tokens; they do not know how tokens become utilities"
               },

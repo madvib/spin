@@ -99,7 +99,7 @@ export const CONFIG_FILES: readonly string[] = [
  * as unwired — which is how this bug shipped, caught by the init test.
  */
 export function isWired(text: string): boolean {
-  return /@spinjs\/spin|@spinjs\/config|spin\s*\(|spin\.(?:vite|rspack|webpack|rollup|rolldown|esbuild|bun)\s*\(|@spinjs\/preset|spinPreset/.test(
+  return /@spinjs\/dev|@spinjs\/config|spin\s*\(|spin\.(?:vite|rspack|webpack|rollup|rolldown|esbuild|bun)\s*\(|@spinjs\/preset|spinPreset/.test(
     text,
   );
 }

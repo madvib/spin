@@ -29,19 +29,7 @@
   ],
   "license": "MIT",
   "name": "@spinjs/diagnostics",
-  "publishConfig": {
-    "access": "public",
-    "exports": {
-      ".": {
-        "default": "./dist/index.js",
-        "types": "./dist/index.d.ts"
-      },
-      "./eslint": {
-        "default": "./dist/eslint.js",
-        "types": "./dist/eslint.d.ts"
-      }
-    }
-  },
+  "private": true,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/madvib/spin.git"
@@ -52,7 +40,7 @@
     "test": "bun test src/"
   },
   "type": "module",
-  "version": "0.1.0-preview.6",
+  "version": "0.2.0-preview.1",
   "devDependencies": {
     "@typescript-eslint/parser": "8.71.0",
     "eslint": "^9.39.4"

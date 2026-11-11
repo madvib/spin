@@ -32,8 +32,8 @@
 import { dirname, join, relative, resolve } from "node:path";
 import { mkdir, rm, copyFile, chmod, stat, symlink, readdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { renderAuthoringSkill } from "../packages/spin/src/skill/authoring.ts";
-import { renderSkill } from "../packages/spin/src/skill/index.ts";
+import { renderAuthoringSkill } from "../packages/dev/src/skill/authoring.ts";
+import { renderSkill } from "../packages/dev/src/skill/index.ts";
 import { importSpecifiers, reachableFiles } from "./dist-graph.ts";
 import { build } from "tsdown";
 
@@ -41,6 +41,7 @@ const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PACKAGES_DIR = join(REPO, "packages");
 /** Where the rewritten copy of a package's sources lives while it compiles. */
 const COPY_PREFIX = ".dist-";
+const INTERNAL_PACKAGES = ["theme", "preset", "diagnostics", "server", "build"] as const;
 /**
  * The packages whose skill's checklist is emitted from the contract.
  *
@@ -49,7 +50,7 @@ const COPY_PREFIX = ".dist-";
  * can follow.
  */
 const SKILL_RENDERERS: Record<string, (template: string) => string> = {
-  "@spinjs/spin": (template) => renderSkill(template),
+  "@spinjs/dev": (template) => renderSkill(template),
 };
 
 /**
@@ -279,11 +280,35 @@ function owningPackage(
 function rewriteSpecifier(
   specifier: string,
   fromFile: string,
+  toFile: string,
   boundary: string,
   manifests: Map<string, Manifest>,
+  internalManifests: Map<string, Manifest>,
+  copySrc: string | null,
   compiled: boolean,
   text: string,
 ): string {
+  if (copySrc !== null && specifier.startsWith("@spinjs/")) {
+    for (const [internalDir, internal] of internalManifests) {
+      if (specifier === internal.name || specifier.startsWith(internal.name + "/")) {
+        const sub = specifier === internal.name
+          ? "."
+          : "./" + specifier.slice(internal.name.length + 1);
+        const exported = internal.exports[sub];
+        if (exported === undefined) {
+          throw new Error(
+            `${relative(REPO, fromFile)} imports ${specifier}, which ${internal.name} does not export`,
+          );
+        }
+        const relInSrc = exported.replace(/^\.\/src\//, "");
+        const destTarget = join(copySrc, "_internal", internalDir, relInSrc);
+        let rel = relative(dirname(toFile), destTarget).replaceAll("\\", "/");
+        if (!rel.startsWith(".")) rel = `./${rel}`;
+        if (compiled && /\.tsx?$/.test(rel)) rel = rel.replace(/\.tsx?$/, ".js");
+        return rel;
+      }
+    }
+  }
   if (!specifier.startsWith("./") && !specifier.startsWith("../")) {
     return specifier;
   }
@@ -291,6 +316,17 @@ function rewriteSpecifier(
   if (target.startsWith(boundary + "/")) {
     if (!compiled || !/\.tsx?$/.test(specifier)) return specifier;
     return specifier.replace(/\.tsx?$/, ".js");
+  }
+  if (copySrc !== null) {
+    const internalOwner = owningPackage(target, [...internalManifests.keys()]);
+    if (internalOwner !== null) {
+      const relInSrc = relative(join(PACKAGES_DIR, internalOwner, "src"), target);
+      const destTarget = join(copySrc, "_internal", internalOwner, relInSrc);
+      let rel = relative(dirname(toFile), destTarget).replaceAll("\\", "/");
+      if (!rel.startsWith(".")) rel = `./${rel}`;
+      if (compiled && /\.tsx?$/.test(rel)) rel = rel.replace(/\.tsx?$/, ".js");
+      return rel;
+    }
   }
   const owner = owningPackage(target, [...manifests.keys()]);
   if (owner === null) {
@@ -326,8 +362,11 @@ function rewriteSpecifier(
 function rewriteFile(
   text: string,
   fromFile: string,
+  toFile: string,
   boundary: string,
   manifests: Map<string, Manifest>,
+  internalManifests: Map<string, Manifest>,
+  copySrc: string | null,
   compiled: boolean,
 ): string {
   const comments = commentRanges(text);
@@ -346,8 +385,11 @@ function rewriteFile(
       const rewritten = rewriteSpecifier(
         specifier,
         fromFile,
+        toFile,
         boundary,
         manifests,
+        internalManifests,
+        copySrc,
         compiled,
         text,
       );
@@ -396,7 +438,7 @@ async function entryMap(
  * name matches itself and its subpaths (`linkedom`, `linkedom/esm/...`).
  */
 function bareExternals(manifest: Manifest): RegExp[] {
-  const out = [new RegExp("^node:"), new RegExp("^@spinjs/")];
+  const out = [new RegExp("^node:"), new RegExp("^@spinjs/(?:components|dev)(?=/|$)")];
   for (const name of manifest.bareDeps) {
     out.push(new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?=/|$)`));
   }
@@ -429,6 +471,7 @@ interface Prepared {
 async function prepare(
   name: string,
   manifests: Map<string, Manifest>,
+  internalManifests: Map<string, Manifest>,
 ): Promise<Prepared> {
   const dir = join(PACKAGES_DIR, name);
   const manifest = manifests.get(name)!;
@@ -445,6 +488,7 @@ async function prepare(
     else entryFiles.push(file);
   }
 
+  const internalCopySrc = name === "dev" ? copySrc : null;
   // The copy, with the cross-package imports pointed at their subpaths.
   for (const file of await walk(join(dir, "src"))) {
     const from = join(dir, "src", file);
@@ -455,15 +499,39 @@ async function prepare(
       continue;
     }
     const text = await readFile(from, "utf8");
-    // Test files are never compiled or shipped — entries and targets
-    // exclude them — so they copy verbatim: their fixtures name imports
-    // (machine paths, example markup) the rewrite must not resolve.
     const rewritten = /\.test\.tsx?$/.test(file)
       ? text
-      : rewriteFile(text, from, dir, manifests, false);
+      : rewriteFile(text, from, to, dir, manifests, internalManifests, internalCopySrc, false);
     await writeFile(to, rewritten);
   }
 
+  if (name === "dev") {
+    for (const internalName of INTERNAL_PACKAGES) {
+      const internalDir = join(PACKAGES_DIR, internalName);
+      for (const file of await walk(join(internalDir, "src"))) {
+        if (/\.test\.tsx?$/.test(file)) continue;
+        const from = join(internalDir, "src", file);
+        const to = join(copySrc, "_internal", internalName, file);
+        await mkdir(dirname(to), { recursive: true });
+        if (!/\.tsx?$/.test(file)) {
+          await copyFile(from, to);
+          continue;
+        }
+        const text = await readFile(from, "utf8");
+        const rewritten = rewriteFile(
+          text,
+          from,
+          to,
+          internalDir,
+          manifests,
+          internalManifests,
+          copySrc,
+          false,
+        );
+        await writeFile(to, rewritten);
+      }
+    }
+  }
   // The package's own `node_modules`: the bare specifiers the sources write
   // (`hono`, `@iconify-json/*`) resolve through the workspace member, not
   // the root. The copy sits beside the package, not inside it, so the link
@@ -553,8 +621,9 @@ function rawLoader(): {
 async function buildPackage(
   name: string,
   manifests: Map<string, Manifest>,
+  internalManifests: Map<string, Manifest>,
 ): Promise<Built> {
-  const prepared = await prepare(name, manifests);
+  const prepared = await prepare(name, manifests, internalManifests);
   const { dir, copyDir, copySrc, manifest } = prepared;
   const dist = join(dir, "dist");
 
@@ -606,7 +675,7 @@ async function buildPackage(
     if (renderer && (await exists(skillFile))) {
       await writeFile(skillFile, renderer(await readFile(skillFile, "utf8")));
     }
-    if (manifest.name === "@spinjs/spin") {
+    if (manifest.name === "@spinjs/dev") {
       for (const file of AUTHORING_SKILL_FILES) {
         const path = join(dir, file);
         if (await exists(path)) {
@@ -617,18 +686,19 @@ async function buildPackage(
 
 
 
-    // The declarations that are exports in their own right: a `.d.ts` source
-    // is copied, not compiled.
-    for (const file of prepared.declarationExports) {
-      const target = join(
-        dist,
-        relative(join(dir, "src"), resolve(dir, file)),
-      );
+    // Declaration sources (`.d.ts` files with no `.ts` counterpart) are not
+    // compiled by tsdown; copy the already-rewritten declaration sources from
+    // `copySrc` with relative `.d.ts` specifiers turned into `.js`.
+    for (const file of await walk(copySrc)) {
+      if (!file.endsWith(".d.ts")) continue;
+      const target = join(dist, file);
       await mkdir(dirname(target), { recursive: true });
-      await writeFile(
-        target,
-        await readFile(join(dir, file), "utf8"),
+      const rawDts = await readFile(join(copySrc, file), "utf8");
+      const emittedDts = rawDts.replace(
+        /((?:from|import)\s*\(?\s*["'])(\.\.?\/[^"']+?)\.d\.ts(["'])/g,
+        "$1$2.js$3",
       );
+      await writeFile(target, emittedDts);
     }
 
     // A declaration with no runtime to write: the source names it (`import
@@ -698,10 +768,10 @@ async function buildPackage(
     await markBins(dir);
 
     // The studio bundle, built by `bun run build:studio` in this checkout.
-    // A published `@spinjs/spin` serves `/__spin/studio` from this copy;
+    // A published `@spinjs/dev` serves `/__spin/studio` from this copy;
     // shipping without it strands every consumer's Studio, so the build
     // fails loudly instead of publishing a package that cannot serve it.
-    if (manifest.name === "@spinjs/spin") {
+    if (manifest.name === "@spinjs/dev") {
       const built = join(REPO, "apps", "studio", "dist");
       const shipped = join(dist, "studio");
       if (!(await exists(join(built, "index.html")))) {
@@ -827,9 +897,13 @@ async function main(): Promise<void> {
   for (const name of names) {
     manifests.set(name, await loadManifest(join(PACKAGES_DIR, name)));
   }
+  const internalManifests = new Map<string, Manifest>();
+  for (const name of INTERNAL_PACKAGES) {
+    internalManifests.set(name, await loadManifest(join(PACKAGES_DIR, name)));
+  }
 
   for (const name of dependencyOrder(selected, manifests)) {
-    const built = await buildPackage(name, manifests);
+    const built = await buildPackage(name, manifests, internalManifests);
     console.log(
       `built ${built.name} — ${built.files} files in ` +
         relative(REPO, join(PACKAGES_DIR, name, "dist")),

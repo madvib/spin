@@ -9,7 +9,7 @@
  * button examples" and it lives with the rules.
  */
 
-import { EXAMPLE_ONLOAD } from "@spinjs/spin/examples";
+import { EXAMPLE_ONLOAD } from "@spinjs/dev/examples";
 import { spinClient } from "./client.ts";
 
 /** One example row, as the RPC surface carries it. */

@@ -1,6 +1,6 @@
 {
   "name": "@spinjs/components",
-  "version": "0.1.0-preview.6",
+  "version": "0.2.0-preview.1",
   "description": "The machine components: headless statecharts with typed bridges, framework adapters, and vendored examples.",
   "type": "module",
   "license": "MIT",
@@ -235,7 +235,7 @@
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@unocss/core": "66.10.5",
-    "@spinjs/spin": "workspace:*"
+    "@spinjs/dev": "workspace:*"
   },
   "publishConfig": {
     "access": "public",

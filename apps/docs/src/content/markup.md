@@ -127,7 +127,7 @@ Pass `primitives: [...]` to `spin.vite()` (or `spinPreset()`) when introducing S
 ```ts
 // vite.config.ts
 import { defineConfig } from "vite";
-import { spin } from "@spinjs/spin/vite";
+import { spin } from "@spinjs/dev/vite";
 
 export default defineConfig({
   plugins: [

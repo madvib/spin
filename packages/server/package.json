@@ -1,7 +1,8 @@
 {
   "name": "@spinjs/server",
-  "version": "0.1.0-preview.6",
+  "version": "0.2.0-preview.1",
   "description": "The project server: filesystem, procedures, and daemon session.",
+  "private": true,
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -42,27 +43,6 @@
     "@spinjs/components": "workspace:*",
     "@spinjs/theme": "workspace:*",
     "valibot": "catalog:"
-  },
-  "publishConfig": {
-    "access": "public",
-    "exports": {
-      ".": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      },
-      "./project": {
-        "types": "./dist/project/index.d.ts",
-        "default": "./dist/project/index.js"
-      },
-      "./procedures": {
-        "types": "./dist/procedures/index.d.ts",
-        "default": "./dist/procedures/index.js"
-      },
-      "./daemon": {
-        "types": "./dist/daemon.d.ts",
-        "default": "./dist/daemon.js"
-      }
-    }
   },
   "scripts": {
     "test": "bun test src/",

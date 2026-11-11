@@ -34,8 +34,17 @@
       "@spinjs/kit": [
         "../../internal/kit/src/index.ts"
       ],
-      "@spinjs/spin/examples": [
-        "../../packages/spin/src/examples/index.ts"
+      "@spinjs/dev/examples": [
+        "../../packages/dev/src/examples/index.ts"
+      ],
+      "@spinjs/dev/api": [
+        "../../packages/dev/src/api/index.ts"
+      ],
+      "@spinjs/dev/api/client": [
+        "../../packages/dev/src/api/client.ts"
+      ],
+      "@spinjs/dev/vite": [
+        "../../packages/dev/src/plugin/plugin.ts"
       ],
       "@spinjs/diagnostics": [
         "../../packages/diagnostics/src/index.ts"

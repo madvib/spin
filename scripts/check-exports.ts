@@ -26,8 +26,8 @@ import { dirname, join, relative, resolve } from "node:path";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { importSpecifiers, reachableFiles } from "./dist-graph.ts";
-import { renderAuthoringSkill } from "../packages/spin/src/skill/authoring.ts";
-import { renderSkill } from "../packages/spin/src/skill/index.ts";
+import { renderAuthoringSkill } from "../packages/dev/src/skill/authoring.ts";
+import { renderSkill } from "../packages/dev/src/skill/index.ts";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PACKAGES_DIR = join(REPO, "packages");
@@ -190,13 +190,13 @@ async function checkPackage(name: string, findings: Findings): Promise<void> {
         `${name}: the package has a skill, and the built package does not ` +
           `carry it`,
       );
-    } else if (pkg.name === "@spinjs/spin") {
+    } else if (pkg.name === "@spinjs/dev") {
       const rendered = renderSkill(await readFile(skillMd, "utf8"));
       const current = await readFile(skillMd, "utf8");
       if (rendered !== current) {
         findings.fail(
           `${name}: skill/SKILL.md is not the rendered checklist — run ` +
-            `bun run skill in packages/spin`,
+            `bun run skill in packages/dev`,
         );
       }
       const authoringMd = join(dir, "skill", "spin-type.md");
@@ -208,8 +208,8 @@ async function checkPackage(name: string, findings: Findings): Promise<void> {
         if (renderedAuthoring !== currentAuthoring) {
           findings.fail(
             `${name}: skill/spin-type.md is not the rendered style list — run ` +
-              `bun run skill in packages/spin`,
-          );
+              `bun run skill in packages/dev`,
+        );
         }
       }
     }

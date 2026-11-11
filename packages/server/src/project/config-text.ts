@@ -37,7 +37,7 @@ export function configScaffoldText(
       return {
         filename: "rspack.config.ts",
         text: `import { defineConfig } from "@rspack/cli";
-import { spin } from "@spinjs/spin/vite";
+import { spin } from "@spinjs/dev/vite";
 
 export default defineConfig({
   plugins: [spin.rspack${suffix}],
@@ -47,7 +47,7 @@ export default defineConfig({
     case "webpack":
       return {
         filename: "webpack.config.mjs",
-        text: `import { spin } from "@spinjs/spin/vite";
+        text: `import { spin } from "@spinjs/dev/vite";
 
 export default {
   plugins: [spin.webpack${suffix}],
@@ -57,7 +57,7 @@ export default {
     case "rollup":
       return {
         filename: "rollup.config.mjs",
-        text: `import { spin } from "@spinjs/spin/vite";
+        text: `import { spin } from "@spinjs/dev/vite";
 
 export default {
   plugins: [spin.rollup${suffix}],
@@ -67,7 +67,7 @@ export default {
     case "rolldown":
       return {
         filename: "rolldown.config.ts",
-        text: `import { spin } from "@spinjs/spin/vite";
+        text: `import { spin } from "@spinjs/dev/vite";
 import { defineConfig } from "rolldown";
 
 export default defineConfig({
@@ -78,7 +78,7 @@ export default defineConfig({
     case "esbuild":
       return {
         filename: "spin.config.ts",
-        text: `import { spin } from "@spinjs/spin/vite";
+        text: `import { spin } from "@spinjs/dev/vite";
 
 export const plugins = [spin.esbuild${suffix}];
 `,
@@ -86,7 +86,7 @@ export const plugins = [spin.esbuild${suffix}];
     case "bun":
       return {
         filename: "spin.config.ts",
-        text: `import { spin } from "@spinjs/spin/vite";
+        text: `import { spin } from "@spinjs/dev/vite";
 
 export const plugins = [spin.bun${suffix}];
 `,
@@ -96,7 +96,7 @@ export const plugins = [spin.bun${suffix}];
       return {
         filename: "vite.config.ts",
         text: `import { defineConfig } from "vite";
-import { spin } from "@spinjs/spin/vite";
+import { spin } from "@spinjs/dev/vite";
 
 export default defineConfig({
   plugins: [spin.vite${suffix}],
@@ -125,7 +125,7 @@ export function wireConfigText(
     );
   }
   const suffix = scaffoldArg(options);
-  const importLine = 'import { spin } from "@spinjs/spin/vite";';
+  const importLine = 'import { spin } from "@spinjs/dev/vite";';
   const call = `spin.${bundler}${suffix}`;
   let result = source;
   const importRegex = /^import\b[\s\S]*?;\s*$/gm;
@@ -150,7 +150,7 @@ export function wireConfigText(
 }
 
 function isWiredSource(source: string): boolean {
-  return /@spinjs\/spin|@spinjs\/config|spin\s*\(|spin\.(?:vite|rspack|webpack|rollup|rolldown|esbuild|bun)\s*\(|@spinjs\/preset|spinPreset/.test(
+  return /@spinjs\/dev|@spinjs\/config|spin\s*\(|spin\.(?:vite|rspack|webpack|rollup|rolldown|esbuild|bun)\s*\(|@spinjs\/preset|spinPreset/.test(
     source,
   );
 }

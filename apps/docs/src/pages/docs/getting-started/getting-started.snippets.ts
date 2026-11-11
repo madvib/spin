@@ -2,7 +2,7 @@
  * Code snippets for the Getting Started subgroup (`/docs/getting-started/*`).
  */
 export const GETTING_STARTED_SNIPPETS = {
-  install: `npm install -D @spinjs/spin\nnpm install @spinjs/components`,
+  install: `npm install -D @spinjs/dev\nnpm install @spinjs/components`,
   init: `npx spin init --name acme --starter minimal`,
   brandTree: `spin/
   brand.json              # { "name": "acme" }
@@ -12,7 +12,7 @@ export const GETTING_STARTED_SNIPPETS = {
     elements.json         # optional HTML element .type overrides
     primitives/           # optional per-component token overrides (button.json, card.json)
     themes/               # optional *.palette.json and *.spacing.json facets`,
-  vite: `import { spin } from "@spinjs/spin/vite";
+  vite: `import { spin } from "@spinjs/dev/vite";
 
 export default {
   plugins: [spin.vite()],
@@ -30,38 +30,38 @@ export const acmeBrand = {
   themes: { acme },
   componentsDir: new URL("../src/lib/components", import.meta.url).pathname,
 };`,
-  viteExtends: `import { spin } from "@spinjs/spin/vite";
+  viteExtends: `import { spin } from "@spinjs/dev/vite";
 import { acmeBrand } from "@acme/brand/spin";
 
 export default {
   plugins: [spin.vite({ extends: acmeBrand })],
 };`,
-  studio: `import { spin } from "@spinjs/spin/vite";
+  studio: `import { spin } from "@spinjs/dev/vite";
 
 export default {
   plugins: [spin.vite({ studio: false })],
 };`,
-  rollup: `import { spin } from "@spinjs/spin/vite";
+  rollup: `import { spin } from "@spinjs/dev/vite";
 export default { plugins: [spin.rollup()] };`,
   rspack: `import { defineConfig } from "@rspack/cli";
-import { spin } from "@spinjs/spin/vite";
+import { spin } from "@spinjs/dev/vite";
 
 export default defineConfig({ plugins: [spin.rspack()] });`,
-  webpack: `import { spin } from "@spinjs/spin/vite";
+  webpack: `import { spin } from "@spinjs/dev/vite";
 export default { plugins: [spin.webpack()] };`,
-  rolldown: `import { spin } from "@spinjs/spin/vite";
+  rolldown: `import { spin } from "@spinjs/dev/vite";
 import { defineConfig } from "rolldown";
 
 export default defineConfig({ plugins: [spin.rolldown()] });`,
-  esbuild: `import { spin } from "@spinjs/spin/vite";
+  esbuild: `import { spin } from "@spinjs/dev/vite";
 
 export const plugins = [spin.esbuild()];`,
-  bun: `import { spin } from "@spinjs/spin/vite";
+  bun: `import { spin } from "@spinjs/dev/vite";
 
 export const plugins = [spin.bun()];`,
   unocss: `import { readFileSync } from "node:fs";
 import { defineConfig } from "unocss";
-import { spinPreset } from "@spinjs/preset";
+import { spinPreset } from "@spinjs/dev/preset";
 
 const brandTheme = JSON.parse(
   readFileSync(new URL("./spin/<brand>/tokens.json", import.meta.url), "utf8"),
@@ -98,5 +98,5 @@ export default defineConfig({
     }
   }
 }`,
-  agentPrompt: `This project uses Spin (@spinjs/spin). Connect to the \`spin\` MCP server in .mcp.json and read /llms.txt (or run \`npx spin --help\`) before writing UI: style exclusively through spin/<brand>/ tokens, bare-tag elements (<card>, <button class="primary">, <input>), and project-declared compositions (spin.vite({ shortcuts })); vendor interactive widgets via \`npx spin component copy\`; and run \`npx spin lint .\` before finishing.`,
+  agentPrompt: `This project uses Spin (@spinjs/dev). Connect to the \`spin\` MCP server in .mcp.json and read /llms.txt (or run \`npx spin --help\`) before writing UI: style exclusively through spin/<brand>/ tokens, bare-tag elements (<card>, <button class="primary">, <input>), and project-declared compositions (spin.vite({ shortcuts })); vendor interactive widgets via \`npx spin component copy\`; and run \`npx spin lint\` before finishing.`,
 } as const;

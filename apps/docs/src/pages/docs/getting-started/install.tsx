@@ -113,10 +113,10 @@ function BundlerPicker(): JSX.Element {
 
 const PACKAGE_ITEMS: readonly PropEntry[] = [
   {
-    name: "@spinjs/spin",
+    name: "@spinjs/dev",
     badge: "devDependency",
     description:
-      "The build toolchain: bundler plugins, UnoCSS preset, theme engine, .html component compiler, CLI, MCP server, and Studio.",
+      "The build toolchain: bundler plugins, UnoCSS preset, theme engine, .html component compiler, CLI, LSP, lints, MCP server, and Studio.",
   },
   {
     name: "@spinjs/components",

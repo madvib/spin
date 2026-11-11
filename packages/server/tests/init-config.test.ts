@@ -146,7 +146,7 @@ test("the generated rspack config carries a plugin with an apply hook", async ()
   );
   await writeFile(
     join(dir, "rspack.wired.ts"),
-    'import { spin } from "@spinjs/spin/vite";\nexport default { plugins: [spin.rspack()] };\n',
+    'import { spin } from "@spinjs/dev/vite";\nexport default { plugins: [spin.rspack()] };\n',
     "utf8",
   );
   const module = await load(join(dir, "rspack.wired.ts"));
@@ -177,7 +177,7 @@ test("the generated rolldown config is an ESM module with both spin stages", asy
   );
   await writeFile(
     join(dir, "rolldown.wired.ts"),
-    'import { spin } from "@spinjs/spin/vite";\nexport default { plugins: [spin.rolldown()] };\n',
+    'import { spin } from "@spinjs/dev/vite";\nexport default { plugins: [spin.rolldown()] };\n',
     "utf8",
   );
   const module = await load(join(dir, "rolldown.wired.ts"));

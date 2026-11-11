@@ -81,27 +81,16 @@ where history lives.
 
 | Package              | Role                                                                                                  |
 | -------------------- | ----------------------------------------------------------------------------------------------------- |
-| `@spinjs/runtime`    | The component runtime: signals, bridges, elements, directives, machines. No workspace dependencies.   |
-| `@spinjs/components` | The machine components: per-component subpaths plus `/react`, `/solid`, `/controller`.                |
-| `@spinjs/spin`       | The toolchain: themes, the preset and `spin()` plugin, the daemon, lints, MCP server.                 |
+| `@spinjs/components` | The machine components and reactive runtime (`/runtime`, `/react`, `/solid`, `/controller`, plus per-component subpaths). |
+| `@spinjs/dev`        | The published toolchain: themes, the preset and `spin` plugin, Studio, the daemon, lints, LSP, CLI, and MCP server. |
 
-Public subpaths: `@spinjs/spin/vite`, `/eslint`, `/cli`, `/mcp`, plus the
-toolchain areas (`theme`, `preset`, `project`, `diagnostics`, `api`,
-`animation`).
+Public subpaths: `@spinjs/dev/vite`, `/preset`, `/theme`, `/diagnostics`, `/eslint`, `/cli`, `/mcp`, `/lsp`, `/api`, `/skill`, `/compositions`, `/examples`. Internal workspace layers (`@spinjs/{theme,preset,diagnostics,server,build}`) stay `private: true` and bundle into `@spinjs/dev`.
 
 ### The element library
 
-The primitives are a layer, not a package: they live in the toolchain, as RULES
-under `packages/spin/src/preset/rules/primitives/` — one file per element, beside the
-examples that show it. There are no component stylesheets; an element ships by
-being matched.
+The primitives are a layer, not a package: they live in `packages/preset/src/rules/primitives/` — one file per element, beside the examples that show it. There are no component stylesheets; an element ships by being matched.
 
-What the old `.css` + manifest package did is still here, in the shape the rules
-can carry it: each element's contract with the theme is written down in
-`packages/spin/src/preset/rules/primitives/manifest.ts`, and `bun run codegen` in
-the toolchain derives that manifest by probing the rules themselves, so the
-manifest cannot disagree with the code that produces it. The lint plugin and the
-docs site read that manifest; nothing maintains a second list.
+Each element's contract with the theme is written down in `packages/preset/src/rules/primitives/manifest.ts`, and `bun run codegen` derives that manifest by probing the rules themselves, so the manifest cannot disagree with the code that produces it. The lint plugin and the docs site read that manifest; nothing maintains a second list.
 
 Supporting trees:
 

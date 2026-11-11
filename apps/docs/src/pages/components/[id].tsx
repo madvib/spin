@@ -18,7 +18,7 @@ import "@spinjs/components/examples";
 import * as library from "@spinjs/components";
 import { A, Navigate, useParams } from "@solidjs/router";
 import { Specimen } from "@spinjs/kit";
-import { EXAMPLE_ONLOAD } from "@spinjs/spin/examples";
+import { EXAMPLE_ONLOAD } from "@spinjs/dev/examples";
 import { COMPONENT_ALIASES, COMPONENT_GROUPS } from "../../shell/nav.ts";
 import { Chip, Code, Section } from "../../ui/index.ts";
 import { ExampleRow } from "../../playground/example-row.tsx";

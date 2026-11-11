@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { spin } from "../../../../packages/spin/src/plugin/plugin.ts";
+import { spin } from "../../../../packages/dev/src/plugin/plugin.ts";
 import { describeCatalog, spinPreset } from "@spinjs/preset";
 import {
   indexTree,
@@ -11,8 +11,8 @@ import {
   designLanguages,
   themeGates,
 } from "../../../../packages/theme/src/index.ts";
-import { parseArgs } from "../../../../packages/spin/src/cli/main.ts";
-import { mountSpinApp } from "../../../../packages/spin/src/api/index.ts";
+import { parseArgs } from "../../../../packages/dev/src/cli/main.ts";
+import { mountSpinApp } from "../../../../packages/dev/src/api/index.ts";
 import { GETTING_STARTED_SNIPPETS } from "../pages/docs/getting-started/getting-started.snippets.ts";
 import { THEMES_SNIPPETS } from "../pages/docs/themes/themes.snippets.ts";
 import { AUTHORING_SNIPPETS } from "../pages/docs/authoring/authoring.snippets.ts";
@@ -34,12 +34,14 @@ const ALL_SNIPPETS = {
 
 const ROOT = resolve(import.meta.dir, "../../../..");
 const PACKAGES: Readonly<Record<string, string>> = {
-  "@spinjs/spin": "packages/spin",
+  "@spinjs/dev": "packages/dev",
   "@spinjs/components/runtime": "packages/components",
   "@spinjs/components": "packages/components",
   "@spinjs/theme": "packages/theme",
   "@spinjs/preset": "packages/preset",
   "@spinjs/server": "packages/server",
+  "@spinjs/diagnostics": "packages/diagnostics",
+  "@spinjs/build": "packages/build",
 };
 
 function specifiers(): readonly string[] {

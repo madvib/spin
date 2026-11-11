@@ -93,8 +93,8 @@ export const THEMES_SNIPPETS = {
   }
 }`,
   viteSharedBrand: `import { defineConfig } from "vite";
-import { spin } from "@spinjs/spin/vite";
-import { designLanguages } from "@spinjs/theme";
+import { spin } from "@spinjs/dev/vite";
+import { designLanguages } from "@spinjs/dev/theme";
 import { acmeBrand } from "@acme/brand-theme";
 
 export default defineConfig({
@@ -106,7 +106,7 @@ export default defineConfig({
     }),
   ],
 });`,
-  bundlerPlugin: `import { spin } from "@spinjs/spin/vite";
+  bundlerPlugin: `import { spin } from "@spinjs/dev/vite";
 // spin.vite(), spin.rspack(), spin.webpack(), spin.bun(), and the rest
 // all share one options surface: { extends, themes, activeTheme }.
 

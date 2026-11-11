@@ -7,8 +7,8 @@ and two resources for read-only documents.
 `spin mcp` starts the stdio server and reads the project's themes and
 components. Add `--url http://127.0.0.1:7463/rpc` to dial a running daemon
 instead. `spin studio` serves that RPC at `http://127.0.0.1:7463/rpc` and the
-Studio at `http://127.0.0.1:7463/studio/`. 0.1 is a preview; the server ships
-in `@spinjs/spin` as `spin mcp`.
+Studio at `http://127.0.0.1:7463/studio/`. 0.2 is a preview; the server ships
+in `@spinjs/dev` as `spin mcp`.
 
 ## The sixteen tools
 

@@ -41,6 +41,7 @@ apps/reference/spin/e2e-copy.json
 # Release tarballs (built by `bun run pack`, published, never tracked)
 dist-tarballs/
 *.tgz
+!apps/docs/vendor/*.tgz
 
 # Local-only state
 .local/

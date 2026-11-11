@@ -2,8 +2,8 @@ import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
-import { spin } from "../../packages/spin/src/plugin/plugin.ts";
-import { mountSpinApp } from "../../packages/spin/src/api/index.ts";
+import { spin } from "../../packages/dev/src/plugin/plugin.ts";
+import { mountSpinApp } from "../../packages/dev/src/api/index.ts";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 
 const here = import.meta.dirname!;

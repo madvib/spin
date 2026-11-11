@@ -20,7 +20,7 @@ import {
   type SemanticOptions,
 } from "../src/core.ts";
 import { applyFixes, type Diagnostic } from "../src/engine.ts";
-import { run } from "@spinjs/spin/cli";
+import { run } from "@spinjs/dev/cli";
 import eslintPlugin from "../src/eslint.ts";
 import { engineAnswers } from "@spinjs/preset";
 import { designLanguages } from "@spinjs/theme";

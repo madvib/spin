@@ -75,9 +75,9 @@ export default [
 npx spin lint src/        # print findings as text (or --format json)
 npx spin lint --fix src/  # apply the edits the findings carry
 ```
-The `spin` binary ships with `@spinjs/spin`. The oxlint plugin
-(`jsPlugins: ["@spinjs/diagnostics"]`) and the ESLint plugin
-(`@spinjs/diagnostics/eslint`) are the same rules over the same facts, for editors and CI.
+The `spin` binary ships with `@spinjs/dev`. The oxlint plugin
+(`jsPlugins: ["@spinjs/dev/diagnostics"]`) and the ESLint plugin
+(`@spinjs/dev/eslint`) are the same rules over the same facts, for editors and CI.
 The bundler plugin fails production builds on the same vocabulary the lints
 enforce: a class no theme can produce refuses `vite build` with the file, the
 class, and what to write instead.

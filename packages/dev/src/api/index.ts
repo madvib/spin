@@ -196,7 +196,7 @@ export interface SpinAppOptions {
   readonly base?: `/${string}`;
   /**
    * The studio's built bundle, served beside the procedures. Defaults to
-   * the shipped bundle — `packages/spin/dist/studio` in a published
+   * the shipped bundle — `packages/dev/dist/studio` in a published
    * install, `apps/studio/dist` in this checkout — and absent when neither
    * is built, where the mount skips it rather than failing the server.
    */
@@ -207,7 +207,7 @@ export interface SpinAppOptions {
  * The studio's built bundle, when one is present.
  *
  * A published install carries it beside the procedures
- * (`packages/spin/dist/studio`); this checkout builds it at
+ * (`packages/dev/dist/studio`); this checkout builds it at
  * `apps/studio/dist`. Either path with an `index.html` wins — an explicit
  * `studioDir` still overrides both.
  */
@@ -229,7 +229,7 @@ export function defaultStudioDir(): string | undefined {
   // workspaces — found by walking package boundaries, not by counting
   // directory levels.
   try {
-    let dir = dirname(createRequire(import.meta.url).resolve("@spinjs/spin/package.json"));
+    let dir = dirname(createRequire(import.meta.url).resolve("@spinjs/dev/package.json"));
     for (let depth = 0; depth < 6; depth++) {
       candidates.push(join(dir, "apps/studio/dist"));
       const parent = dirname(dir);

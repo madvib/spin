@@ -110,7 +110,7 @@ export {
 // typography tuples and `ThemeBorder` border tuples spend, and the flat
 // `ThemeTokens` map with its path and custom-property unions. Re-exported
 // here so Uno, StyleX, Flutter and Studio import them from
-// `@spinjs/spin/theme` rather than reaching into the generated file.
+// `@spinjs/dev/theme` rather than reaching into the generated file.
 export type {
   Theme,
   ThemeBorder,

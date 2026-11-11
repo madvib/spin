@@ -21,7 +21,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { classTokens, expandVariantGroups, parse } from "../packages/components/src/runtime/syntax/index.ts";
 import { spinPreset } from "@spinjs/preset";
 import { designLanguages } from "@spinjs/theme";
-import { spinCompositions } from "../packages/spin/src/compositions.ts";
+import { spinCompositions } from "../packages/dev/src/compositions.ts";
 
 /** Where the classes live: the recipes (markup) and the specimens (Solid). */
 const SOURCES = [

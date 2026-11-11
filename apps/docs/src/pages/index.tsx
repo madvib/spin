@@ -53,11 +53,11 @@ const ELEMENT_COUNT = primitiveElements.filter(
 ).length;
 
 const PACKAGE_MANAGERS = [
-  { id: "bun", command: "bun add -d @spinjs/spin && bun add @spinjs/components" },
-  { id: "npm", command: "npm i -D @spinjs/spin && npm i @spinjs/components" },
-  { id: "pnpm", command: "pnpm add -D @spinjs/spin && pnpm add @spinjs/components" },
-  { id: "yarn", command: "yarn add -D @spinjs/spin && yarn add @spinjs/components" },
-  { id: "deno", command: "deno add -D npm:@spinjs/spin && deno add npm:@spinjs/components" },
+  { id: "bun", command: "bun add -d @spinjs/dev && bun add @spinjs/components" },
+  { id: "npm", command: "npm i -D @spinjs/dev && npm i @spinjs/components" },
+  { id: "pnpm", command: "pnpm add -D @spinjs/dev && pnpm add @spinjs/components" },
+  { id: "yarn", command: "yarn add -D @spinjs/dev && yarn add @spinjs/components" },
+  { id: "deno", command: "deno add -D npm:@spinjs/dev && deno add npm:@spinjs/components" },
 ] as const;
 
 type PackageManager = (typeof PACKAGE_MANAGERS)[number]["id"];

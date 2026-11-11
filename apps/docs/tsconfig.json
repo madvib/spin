@@ -34,20 +34,23 @@
       "@spinjs/preset": [
         "../../packages/preset/src/index.ts"
       ],
-      "@spinjs/spin/vite": [
-        "../../packages/spin/src/plugin/plugin.ts"
+      "@spinjs/dev/vite": [
+        "../../packages/dev/src/plugin/plugin.ts"
+      ],
+      "@spinjs/dev/theme": [
+        "../../packages/dev/src/theme.ts"
       ],
       "@spinjs/theme": [
         "../../packages/theme/src/index.ts"
       ],
-      "@spinjs/spin/api": [
-        "../../packages/spin/src/api/index.ts"
+      "@spinjs/dev/api": [
+        "../../packages/dev/src/api/index.ts"
       ],
-      "@spinjs/spin/skill": [
-        "../../packages/spin/src/skill/index.ts"
+      "@spinjs/dev/skill": [
+        "../../packages/dev/src/skill/index.ts"
       ],
-      "@spinjs/spin/examples": [
-        "../../packages/spin/src/examples/index.ts"
+      "@spinjs/dev/examples": [
+        "../../packages/dev/src/examples/index.ts"
       ],
       "@spin/check": [
         "../../internal/check/harness.ts"

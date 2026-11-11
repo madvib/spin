@@ -11,9 +11,9 @@ describe("tokenizeCode", () => {
   });
 
   test("ts: import keyword and code-string", () => {
-    const tokens = tokenizeCode('import { spin } from "@spinjs/spin/vite";', "ts");
+    const tokens = tokenizeCode('import { spin } from "@spinjs/dev/vite";', "ts");
     expect(tokens).toContainEqual({ type: "keyword", value: "import" });
-    expect(tokens).toContainEqual({ type: "code-string", value: '"@spinjs/spin/vite"' });
+    expect(tokens).toContainEqual({ type: "code-string", value: '"@spinjs/dev/vite"' });
   });
 
   test("html: tag-name, attr, string, lossless roundtrip", () => {

@@ -53,7 +53,7 @@ async function projectWithBrand(): Promise<string> {
   );
   await writeFile(
     join(dir, "vite.config.ts"),
-    `import { acmeBrand } from "./brand.ts";\nimport { spin } from "@spinjs/spin/vite";\nexport default { plugins: [spin.vite({ extends: acmeBrand })] };\n`,
+    `import { acmeBrand } from "./brand.ts";\nimport { spin } from "@spinjs/dev/vite";\nexport default { plugins: [spin.vite({ extends: acmeBrand })] };\n`,
     "utf8",
   );
   return dir;
@@ -70,7 +70,7 @@ async function projectVerbatim(): Promise<string> {
   );
   await writeFile(
     join(dir, "vite.config.ts"),
-    `import halide from "./halide.json";\nimport { spin } from "@spinjs/spin/vite";\nexport default { plugins: [spin.vite({ themes: { halide } })] };\n`,
+    `import halide from "./halide.json";\nimport { spin } from "@spinjs/dev/vite";\nexport default { plugins: [spin.vite({ themes: { halide } })] };\n`,
     "utf8",
   );
   return dir;
@@ -87,7 +87,7 @@ async function projectWithRecord(): Promise<string> {
   );
   await writeFile(
     join(dir, "vite.config.ts"),
-    `import { records } from "./records.ts";\nimport { spin } from "@spinjs/spin/vite";\nexport default { plugins: [spin.vite({ extends: { themes: records } })] };\n`,
+    `import { records } from "./records.ts";\nimport { spin } from "@spinjs/dev/vite";\nexport default { plugins: [spin.vite({ extends: { themes: records } })] };\n`,
     "utf8",
   );
   return dir;
@@ -99,7 +99,7 @@ test("a root with themes and a wired config is a spin project", async () => {
   await writeFile(join(dir, "spin", "acme.json"), "{}", "utf8");
   await writeFile(
     join(dir, "vite.config.ts"),
-    'import { spin } from "@spinjs/spin/vite";\nspin.vite();',
+    'import { spin } from "@spinjs/dev/vite";\nspin.vite();',
     "utf8",
   );
 

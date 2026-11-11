@@ -1,7 +1,8 @@
 {
   "name": "@spinjs/preset",
-  "version": "0.1.0-preview.6",
+  "version": "0.2.0-preview.1",
   "description": "The Uno renderer: preset, vocabulary, primitives, and the checker's engine answers.",
+  "private": true,
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -35,22 +36,6 @@
     "@unocss/transformer-directives": "66.10.5",
     "@unocss/transformer-variant-group": "66.10.5",
     "valibot": "catalog:"
-  },
-  "publishConfig": {
-    "access": "public",
-    "exports": {
-      ".": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      },
-      "./elements": {
-        "types": "./dist/elements.d.ts"
-      },
-      "./css": {
-        "types": "./dist/utils/css.d.ts",
-        "default": "./dist/utils/css.js"
-      }
-    }
   },
   "scripts": {
     "test": "bun test src/",

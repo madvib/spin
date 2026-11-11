@@ -323,9 +323,7 @@ interface LiveConfigurePatch {
   };
 }
 
-interface LiveJibeEmbedHandle extends JibeEmbedHandle {
-  readonly configure?: (patch: LiveConfigurePatch) => Promise<unknown>;
-}
+type LiveJibeEmbedHandle = JibeEmbedHandle;
 
 export interface SpinEmbedProps {
   readonly files: Readonly<Record<string, string>>;
@@ -544,12 +542,12 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
     const mounted = await createJibeEmbed(node, {
       embedOrigin,
       files: { ...files, ...hostSeedFiles() },
-      customSetup: { modules },
+      ...(props.chrome === "ide" ? { chrome: "studio" as const } : {}),
       theme: resolveSpinJibeTheme(theme(), mode()),
       activeFile: props.activeFile ?? defaultActive,
       visibleFiles: props.visibleFiles ?? [defaultActive, "spin/spin.json"],
       ...(props.view === undefined ? {} : { view: props.view }),
-      chrome: props.chrome ?? "studio",
+      chrome: props.chrome === "ide" ? "studio" : (props.chrome ?? "studio"),
     });
     if (disposed) {
       mounted.destroy();
@@ -613,7 +611,7 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
   createEffect(() => {
     const h = liveHandle();
     const view = props.view ?? "split";
-    const chrome = props.chrome ?? "studio";
+    const chrome = props.chrome === "ide" ? "studio" : (props.chrome ?? "studio");
     const activeFile = props.activeFile;
     const nextTheme = resolveSpinJibeTheme(theme(), mode());
     const configure = h === undefined ? undefined : h.configure;

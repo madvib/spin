@@ -132,7 +132,7 @@ const LIST_PATTERNS: readonly PropEntry[] = [
 
 const INCREMENTAL_ADOPTION_SNIPPET = `// vite.config.ts
 import { defineConfig } from "vite";
-import { spin } from "@spinjs/spin/vite";
+import { spin } from "@spinjs/dev/vite";
 
 export default defineConfig({
   plugins: [

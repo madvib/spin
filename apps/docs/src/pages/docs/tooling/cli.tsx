@@ -183,25 +183,18 @@ const pluginOptions = (): readonly PropEntry[] => [
 ];
 
 const SPIN_SUBPATHS: readonly PropEntry[] = [
-  { name: "@spinjs/spin/vite", badge: "plugin", description: "Unplugin entry for Vite, Rspack, webpack, Rollup, Rolldown, esbuild, and Bun, plus SpinPluginOptions." },
-  { name: "@spinjs/spin/plugin", badge: "barrel", description: "Composer barrel re-exporting the @spinjs/build stages plus the spin plugin object." },
-  { name: "@spinjs/spin/cli", badge: "cli", description: "The spin CLI command runner and argument parser." },
-  { name: "@spinjs/spin/mcp", badge: "mcp", description: "Stdio MCP server for coding agents (nine tools: theme, token, component, utility, icon, savedIcon, font, preview, findings)." },
-  { name: "@spinjs/spin/api", badge: "api", description: "Daemon RPC surface the Studio and MCP server compose (project, themes, findings, components, preview, serve)." },
-  { name: "@spinjs/spin/lsp", badge: "lsp", description: "Language server over stdio: the same lint findings as spin lint, plus hover and completion from your theme." },
-  { name: "@spinjs/spin/skill", badge: "skill", description: "Agent skill text (house rules) and authoring helpers for theme/component work." },
-  { name: "@spinjs/spin/compositions", badge: "compositions", description: "Project-declared utility compositions the build spends and the lints own." },
-  { name: "@spinjs/spin/examples", badge: "examples", description: "Component example recipes for copy/list/contract flows." },
-];
-
-const THEME_PRESET_SUBPATHS: readonly PropEntry[] = [
-  { name: "@spinjs/theme", badge: "tokens", description: "Token parser, alias resolver, six-gate validator (themeGates), designLanguages, and facets." },
-  { name: "@spinjs/preset", badge: "preset", description: "Standalone UnoCSS preset (spinPreset) and primitive contracts/examples." },
-  { name: "@spinjs/server", badge: "project", description: "Project reads and writes: themes, components, config (spin/config.json)." },
-  { name: "@spinjs/server/project", badge: "service", description: "Brand service, file discovery, and the RPC procedures the API composes." },
-  { name: "@spinjs/build", badge: "stages", description: "Pure build stages: component compiler, strict-classes gate, content scan, cross-theme report." },
-  { name: "@spinjs/diagnostics", badge: "lints", description: "The six spin/* rules over project facts, plus the shared check engine." },
-  { name: "@spinjs/diagnostics/eslint", badge: "eslint", description: "ESLint plugin: spread spin.configs.recommended, then tune per rule." },
+  { name: "@spinjs/dev/vite", badge: "plugin", description: "Unplugin entry for Vite, Rspack, webpack, Rollup, Rolldown, esbuild, and Bun, plus SpinPluginOptions." },
+  { name: "@spinjs/dev/preset", badge: "preset", description: "Standalone UnoCSS preset (spinPreset), CSS variable helpers (/preset/css), and custom-element types (/elements)." },
+  { name: "@spinjs/dev/theme", badge: "tokens", description: "Token parser, alias resolver, six-gate validator (themeGates), designLanguages, and facets." },
+  { name: "@spinjs/dev/diagnostics", badge: "lints", description: "The six spin/* oxlint rules over project facts, plus the shared check engine." },
+  { name: "@spinjs/dev/eslint", badge: "eslint", description: "ESLint flat-config plugin: spread spin.configs.recommended, then tune per rule." },
+  { name: "@spinjs/dev/cli", badge: "cli", description: "The spin CLI command runner and argument parser." },
+  { name: "@spinjs/dev/mcp", badge: "mcp", description: "Stdio MCP server for coding agents (theme, token, component, utility, icon, savedIcon, font, preview, findings)." },
+  { name: "@spinjs/dev/lsp", badge: "lsp", description: "Language server over stdio: live lint diagnostics, quick fixes, hover, and completions from your brand." },
+  { name: "@spinjs/dev/api", badge: "api", description: "Daemon RPC surface the Studio and MCP server compose." },
+  { name: "@spinjs/dev/skill", badge: "skill", description: "Agent skill text and authoring helpers for brand and component work." },
+  { name: "@spinjs/dev/compositions", badge: "compositions", description: "Project-declared utility compositions." },
+  { name: "@spinjs/dev/examples", badge: "examples", description: "Component example recipes for copy, list, and contract flows." },
 ];
 
 const COMPONENT_SUBPATHS: readonly PropEntry[] = [
@@ -247,7 +240,7 @@ export default function ToolingCli(): JSX.Element {
           <code>spin.rollup()</code>, <code>spin.rolldown()</code>,{" "}
           <code>spin.esbuild()</code>, and <code>spin.bun()</code> — accept the
           same <code>SpinPluginOptions</code> object from{" "}
-          <code>@spinjs/spin/vite</code>:
+          <code>@spinjs/dev/vite</code>:
         </p>
         <div class="my-4">
           <PropList items={pluginOptions()} />
@@ -260,11 +253,8 @@ export default function ToolingCli(): JSX.Element {
       </Section>
 
       <Section id="subpaths" title="Published package subpaths">
-        <h3>@spinjs/spin (devDependency)</h3>
+        <h3>@spinjs/dev (devDependency)</h3>
         <PropList items={SPIN_SUBPATHS} />
-
-        <h3>@spinjs/theme · @spinjs/preset · @spinjs/server · @spinjs/build · @spinjs/diagnostics</h3>
-        <PropList items={THEME_PRESET_SUBPATHS} />
 
         <h3>@spinjs/components (dependency)</h3>
         <PropList items={COMPONENT_SUBPATHS} />

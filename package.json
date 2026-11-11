@@ -21,7 +21,7 @@
     "@orpc/contract": "^1.0.0",
     "@orpc/server": "^1.0.0",
     "@spinjs/components": "workspace:*",
-    "@spinjs/spin": "workspace:*",
+    "@spinjs/dev": "workspace:*",
     "@unocss/core": "66.10.5",
     "@unocss/preset-icons": "66.10.5",
     "@unocss/preset-tagify": "66.10.5",
@@ -37,7 +37,7 @@
   "scripts": {
     "test": "bun test --path-ignore-patterns=\"**/e2e/**\" --path-ignore-patterns=\"**/e2e.test.ts\" packages/ apps/ internal/ examples/",
     "test:launch": "bun test ./.agents/launch/launch.test.ts",
-    "lint": "bun packages/spin/src/cli/main.ts lint",
+    "lint": "bun packages/dev/src/cli/main.ts lint",
     "lint:ox": "bunx oxlint@1.85.0 --config .oxlintrc.json packages/ apps/ internal/ examples/",
     "fmt": "bunx oxfmt@0.78.0 --write packages/ apps/ internal/ examples/ scripts/",
     "check": "tsc --noEmit && tsc --noEmit -p apps/docs && tsc --noEmit -p apps/studio && tsc --noEmit -p apps/reference && tsc --noEmit -p internal/check && bun run lint",
@@ -52,10 +52,10 @@
     "dev": "bun run dev:studio & bun run dev:daemon & wait",
     "dev:docs": "cd apps/docs && bun run dev",
     "build:docs": "cd apps/docs && bun run build",
-    "dev:daemon": "cd packages/spin && bun run src/api/serve.ts --root ../../examples/fixture-app --port 0",
+    "dev:daemon": "cd packages/dev && bun run src/api/serve.ts --root ../../examples/fixture-app --port 0",
     "dev:studio": "cd apps/studio && bun run dev",
     "build:studio": "cd apps/studio && bun run build",
-    "skill": "cd packages/spin && bun run skill",
+    "skill": "cd packages/dev && bun run skill",
     "e2e": "cd apps/studio && bun run e2e"
   },
   "devDependencies": {

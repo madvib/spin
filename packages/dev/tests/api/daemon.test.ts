@@ -121,7 +121,7 @@ describe("daemon project.themes over HTTP", () => {
     );
     writeFileSync(
       join(branded, "vite.config.ts"),
-      `import { acmeBrand } from "./brand.ts";\nimport { spin } from "@spinjs/spin/vite";\nexport default { plugins: [spin.vite({ extends: acmeBrand })] };\n`,
+      `import { acmeBrand } from "./brand.ts";\nimport { spin } from "@spinjs/dev/vite";\nexport default { plugins: [spin.vite({ extends: acmeBrand })] };\n`,
     );
     try {
       const served = await client.project.themes.read({
@@ -195,7 +195,7 @@ describe("daemon project.themes over HTTP", () => {
     deepStrictEqual(noPlugin.wired, false, "a build config without the preset");
     writeFileSync(
       join(bare, "vite.config.ts"),
-      'import { spin } from "@spinjs/spin/vite";\nspin.vite();',
+      'import { spin } from "@spinjs/dev/vite";\nspin.vite();',
     );
     const wired = await client.project.detect({ root: bare });
     deepStrictEqual(wired.wired, true, "a build config naming the plugin");
@@ -260,7 +260,7 @@ describe("daemon project.themes over HTTP", () => {
     deepStrictEqual(detect.wired, true, "and that config wires the preset");
     const config = readFileSync(join(fresh, "vite.config.ts"), "utf8");
     deepStrictEqual(
-      config.includes('"@spinjs/spin/vite"'),
+      config.includes('"@spinjs/dev/vite"'),
       true,
       "it applies the spin plugin",
     );

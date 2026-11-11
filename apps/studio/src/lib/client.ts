@@ -10,7 +10,7 @@
  * preview CSS, and validation all stay on the server side of this file.
  */
 
-import { createSpinClient, type SpinClient } from "@spinjs/spin/api/client";
+import { createSpinClient, type SpinClient } from "@spinjs/dev/api/client";
 import { studioRpc } from "./mount.ts";
 
 /**

@@ -8,7 +8,7 @@
     "@spinjs/components": "workspace:*",
     "@spinjs/kit": "workspace:*",
     "@spinjs/preset": "workspace:*",
-    "@spinjs/spin": "workspace:*",
+    "@spinjs/dev": "workspace:*",
     "@spinjs/theme": "workspace:*",
     "solid-js": "^1.9.3"
   },
