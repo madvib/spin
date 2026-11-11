@@ -171,8 +171,8 @@ export default function StylingColor(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Color"
-        lede="Name the role an element plays on the page and let your brand supply the palette. Write role utilities once for light and dark mode, pair every painted fill with its readable ink, and thin any theme color toward transparency."
+        title="Surfaces & Alpha"
+        lede="Paint semantic surfaces once for both modes, and thin any brand color toward transparency without minting values."
       />
 
       <Section id="roles" title="Roles, not colors">

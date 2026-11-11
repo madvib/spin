@@ -50,8 +50,8 @@ export default function ThemesValidation(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Validation"
-        lede="Spin validates every theme automatically — in spin lint alongside your source files, live inside the Studio, and from the CLI — across six checks: schema completeness, WCAG contrast floors, monotonic scales, motion safety, mode consistency, and layout invariance."
+        title="Theme Checks"
+        lede="Contrast floors and completeness checks that run while you edit, at build time, and in CI."
       />
 
       <Section id="cli" title="Lint and CLI analysis">

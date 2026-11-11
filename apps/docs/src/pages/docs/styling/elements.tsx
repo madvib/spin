@@ -361,8 +361,8 @@ export default function StylingElements(): JSX.Element {
   return (
     <main class="flex min-w-0 flex-col">
       <PageHeader
-        title="Elements"
-        lede="Write semantic HTML tags and Spin custom elements — <button>, <card>, <input> — and get finished controls that agree across your page. Ship only the rules your markup uses, adjust emphasis with variants or customize element tokens in your brand, and adopt one element at a time."
+        title="HTML Elements & Surfaces"
+        lede="Write plain buttons, cards, and inputs that arrive styled. Reach for a variant when one control plays a different role."
       />
 
       <Section id="tags-arrive-finished" title="Tags arrive finished">

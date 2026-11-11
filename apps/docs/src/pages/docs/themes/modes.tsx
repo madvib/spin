@@ -47,8 +47,8 @@ export default function ThemesModes(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Modes"
-        lede="Light and dark are modes on your brand, not separate themes and not dark: utility classes scattered across templates. Declare dark overrides in $modes.dark, and Spin emits [data-mode] blocks that work on <html> or any nested DOM subtree."
+        title="Light & Dark Modes"
+        lede="Design one palette with two answers. Switch modes on the page or a subtree without touching markup."
       />
 
       <Section id="modes" title="How modes work">
@@ -133,9 +133,9 @@ export default function ThemesModes(): JSX.Element {
           Need to swap the entire color palette (<code>data-palette</code>) or
           tighten spatial density (<code>data-spacing</code>) alongside{" "}
           <code>data-mode</code>? See{" "}
-          <A href="/docs/themes/facets">Facets: Palettes &amp; Density</A> for
-          how <code>*.palette.json</code> and <code>*.spacing.json</code> layer
-          over your brand on <code>&lt;html&gt;</code> or inside nested subtrees.
+          <A href="/docs/themes/facets">Palettes &amp; Density</A> for
+          how palette and spacing overlays layer
+          over your brand on the page or inside nested sections.
         </p>
       </Section>
 

@@ -191,8 +191,8 @@ export default function StylingTailwind(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Tailwind"
-        lede="Use the Tailwind utility and variant grammar you already know over a brand your project owns. Every utility reads a declared token, unknown classes fail the build instead of disappearing, and elements arrive styled by their HTML tags."
+        title="Utility Syntax"
+        lede="The utility grammar you already know, verified against your brand at build time — no silent no-ops."
       />
 
       <Section id="what-transfers" title="What transfers">
@@ -270,7 +270,7 @@ export default function StylingTailwind(): JSX.Element {
           silently is a footgun, a class your theme cannot produce renders
           nothing and fails your build with the file, the unknown class, and the
           nearest valid replacement (see{" "}
-          <A href="/docs/tooling/lints">Lints &amp; Diagnostics</A>).
+          <A href="/docs/tooling/lints">Lints &amp; Guardrails</A>).
         </p>
 
         <div class="my-2">

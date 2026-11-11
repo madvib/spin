@@ -7,70 +7,66 @@ import { Code, PageHeader, PropList, Section, type PropEntry } from "../../../ui
 
 const layerItems = (): readonly PropEntry[] => [
   {
-    name: "1. Brand & Theme (spin/<brand>/)",
-    badge: "themeGates",
+    name: "1. Your Brand (spin/<brand>/)",
+    badge: "colors & type",
     description: (
       <>
-        Owns every visual value: starting design language (<code>$extends</code>),
-        palette roles and paired <code>on-*</code> inks, 13 named{" "}
-        <code>font.style.*</code> tuples, spacing steps, radii, shadows, and
-        motion curves. Verified at build time by the contract gates in{" "}
-        <A href="/docs/themes/validation">Validation</A>.
+        Owns every visual value: your palette with readable inks, your type
+        voices, spacing steps, corner radii, shadows, and motion. Shape it in
+        the Studio; theme checks keep it complete and legible in both modes.
+        See <A href="/docs/themes/overview">Your Brand &amp; Studio</A>.
       </>
     ),
   },
   {
-    name: "2. Primitives (Intrinsic HTML & Spin Elements)",
-    badge: "spin/prefer-theme-value",
+    name: "2. Finished HTML Elements",
+    badge: "buttons & cards",
     description: (
       <>
-        Claims native HTML tags (<code>&lt;button&gt;</code>,{" "}
-        <code>&lt;input&gt;</code>, <code>&lt;select&gt;</code>,{" "}
-        <code>&lt;dialog&gt;</code>, <code>&lt;table&gt;</code>,{" "}
-        <code>&lt;h1&gt;</code>–<code>&lt;p&gt;</code>) and Spin elements (
+        Native tags (<code>&lt;button&gt;</code>, <code>&lt;input&gt;</code>,{" "}
+        <code>&lt;table&gt;</code>, headings) and Spin surfaces (
         <code>&lt;card&gt;</code>, <code>&lt;badge&gt;</code>,{" "}
-        <code>&lt;alert&gt;</code>). Elements own their skin and typography —
-        write <code>&lt;button class="primary"&gt;</code> and get a finished
-        control. Explore <A href="/docs/styling/elements">Primitives</A>.
+        <code>&lt;alert&gt;</code>) arrive styled by your brand. Write{" "}
+        <code>&lt;button class="primary"&gt;</code> and get a finished control.
+        Explore <A href="/docs/styling/elements">HTML Elements &amp; Surfaces</A>.
       </>
     ),
   },
   {
-    name: "3. Closed-Scale Utilities & Shortcuts (spin/styles.css)",
-    badge: "spin/closed-vocabulary",
+    name: "3. Layout Utilities & Project Shortcuts",
+    badge: "arrangement",
     description: (
       <>
-        Arranges layout and placement between elements (<code>flex</code>,{" "}
-        <code>grid</code>, <code>gap-4</code>, <code>p-6</code>) and styles
-        unowned <code>&lt;div&gt;</code> or <code>&lt;span&gt;</code> containers
-        using only steps declared in your theme. Repeated compositions live in{" "}
-        <code>spin.vite({"{"} shortcuts {"}"})</code>. See{" "}
-        <A href="/docs/styling/tailwind">Spin vs Tailwind</A> and{" "}
-        <A href="/docs/styling/utilities">Shortcuts &amp; Compositions</A>.
+        Arrange elements with <code>flex</code>, <code>grid</code>,{" "}
+        <code>gap-4</code>, and <code>p-6</code>, reading only steps your brand
+        declares. Name the arrangements your app repeats once, and spell them
+        the same way everywhere. See{" "}
+        <A href="/docs/styling/tailwind">Utility Syntax</A> and{" "}
+        <A href="/docs/styling/utilities">Project Shortcuts</A>.
       </>
     ),
   },
   {
-    name: "4. Machine Components (@spinjs/components)",
-    badge: "src/lib/components/",
+    name: "4. Interactive Components",
+    badge: "widgets",
     description: (
       <>
-        Headless finite-state machines paired with copyable <code>.html</code>{" "}
-        templates that compile into custom elements with ARIA attributes,
-        keyboard navigation, and focus management. Browse{" "}
-        <A href="/docs/authoring/machines">Machines</A> and the{" "}
+        Copy tested templates for selects, dialogs, menus, and date pickers
+        into your repo — keyboard navigation, focus management, and state
+        included. Browse{" "}
+        <A href="/docs/authoring/machines">Statechart Machines</A> and the{" "}
         <A href="/components">Components catalog</A>.
       </>
     ),
   },
   {
-    name: "5. Verification (spin lint)",
-    badge: "CI & MCP",
+    name: "5. Verification",
+    badge: "editor & CI",
     description: (
       <>
-        <code>spin lint</code> verifies templates and theme layers statically:
-        closed vocabulary, theme-value ownership, and paired inks. See{" "}
-        <A href="/docs/tooling/lints">Lints &amp; Diagnostics</A>.
+        Lints check templates against your live brand while you edit, the
+        build refuses what cannot render, and the same guards run in CI. See{" "}
+        <A href="/docs/tooling/lints">Lints &amp; Guardrails</A>.
       </>
     ),
   },
@@ -78,54 +74,47 @@ const layerItems = (): readonly PropEntry[] => [
 
 const ownershipStaircase = (): readonly PropEntry[] => [
   {
-    name: "Step 1 — Pick a variant (.primary, .secondary, .outline, .ghost, .danger, .s-sm, .s-lg)",
-    badge: "Callsite",
+    name: "Step 1 — Pick a variant (.primary, .secondary, .ghost, .danger)",
+    badge: "One control",
     description: (
       <>
-        Change emphasis or size on <code>&lt;button&gt;</code>,{" "}
-        <code>&lt;badge&gt;</code>, <code>&lt;alert&gt;</code>, or{" "}
-        <code>&lt;card&gt;</code> with the element's built-in variants instead
-        of utility overrides.
+        Change emphasis on a <code>&lt;button&gt;</code>,{" "}
+        <code>&lt;badge&gt;</code>, or <code>&lt;alert&gt;</code> with the
+        element's built-in variants instead of re-styling it by hand.
       </>
     ),
   },
   {
-    name: "Step 2 — Clear the skin with .bare (or .ghost / .card-ghost)",
-    badge: "Unstyled semantics",
+    name: "Step 2 — Clear the skin with .bare",
+    badge: "Custom chrome",
     description: (
       <>
-        Need <code>&lt;button&gt;</code> or <code>&lt;input&gt;</code> semantics
-        and keyboard behavior for a custom swatch tile, combobox input, or
-        navigation row without default control chrome? Add{" "}
-        <code>class="bare"</code>. The element's visual skin clears to zero and{" "}
-        <code>spin/prefer-theme-value</code> stands down so you can compose
-        utilities freely.
+        Need <code>&lt;button&gt;</code> semantics and keyboard behavior for a
+        custom swatch tile or navigation row, without default control chrome?
+        Add <code>class="bare"</code> and compose utilities freely on the
+        cleared surface.
       </>
     ),
   },
   {
-    name: "Step 3 — Change the token in spin/<brand>/ (elements.json & primitives/*.json)",
-    badge: "System-wide",
+    name: "Step 3 — Change it once, in the Studio or your brand files",
+    badge: "Every screen",
     description: (
       <>
-        Want every <code>&lt;button&gt;</code> to wear pill corners or{" "}
-        <code>&lt;h1&gt;</code> to use a different type style? Edit{" "}
-        <code>button.radius</code> in{" "}
-        <code>spin/&lt;brand&gt;/primitives/button.json</code> or{" "}
-        <code>element.h1.type</code> in{" "}
-        <code>spin/&lt;brand&gt;/elements.json</code> (or tune them live in the
-        Studio). See <A href="/docs/themes/customization">Layers &amp; Overrides</A>.
+        Want every <code>&lt;button&gt;</code> to wear pill corners, or every{" "}
+        <code>&lt;h1&gt;</code> to speak a different type voice? Make the change
+        once in the Studio and every screen updates together. See{" "}
+        <A href="/docs/themes/customization">Brand Files</A>.
       </>
     ),
   },
   {
-    name: "Step 4 — Adopt incrementally (primitives: [\"button\", \"card\"])",
+    name: "Step 4 — Adopt one element at a time",
     badge: "Migration",
     description: (
       <>
-        Migrating an existing app that already styles bare HTML tags? Pass{" "}
-        <code>primitives: ["button", "card"]</code> to <code>spin.vite()</code>{" "}
-        so Spin only claims and lints the elements you have opted into so far.
+        Migrating an app that already styles bare HTML tags? Tell the plugin
+        which elements Spin owns so far, and claim the rest as you go.
       </>
     ),
   },
@@ -134,29 +123,27 @@ export default function Architecture(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Ownership"
-        lede="Which layer owns each visual or behavioral change, why the lints refuse callsite overrides, and the four-step customization staircase."
+        title="How Spin Works"
+        lede="Your brand tokens, finished HTML elements, layout utilities, and interactive components — and which layer to change when the design moves."
       />
 
-      <Section id="layers" title="Ownership by layer">
+      <Section id="layers" title="The five layers">
         <PropList items={layerItems()} />
       </Section>
 
       <Section
         id="ownership"
-        title="Why Spin claims HTML elements (and how to customize them)"
+        title="Why elements arrive styled (and how to change them)"
       >
         <p class="max-w-prose">
           When a framework leaves <code>&lt;button&gt;</code> or{" "}
           <code>&lt;h2&gt;</code> unstyled, every template has to carry the
           control's padding, border, radius, focus ring, and typography inline.
-          In Spin, the element rule owns the control's appearance and utilities
-          own placement around it (<code>mt-4</code>, <code>w-full</code>,{" "}
-          <code>self-end</code>). Putting <code>px-4 rounded-lg type-display</code>{" "}
-          on a styled <code>&lt;button&gt;</code> triggers{" "}
-          <code>spin/prefer-theme-value</code> because restyling one button at a
-          callsite silently forks your design system. Follow the four-step
-          staircase whenever an element needs a different look:
+          In Spin, the element owns its appearance and utilities own placement
+          around it (<code>mt-4</code>, <code>w-full</code>). Restyling one
+          button at its callsite forks your design system silently — so the
+          lints refuse, and the staircase below shows the honest path whenever
+          an element needs a different look:
         </p>
         <div class="mt-3">
           <PropList items={ownershipStaircase()} />
@@ -179,13 +166,12 @@ export default function Architecture(): JSX.Element {
 
       <Section id="flow" title="How a change flows through Spin">
         <p class="max-w-prose">
-          Your brand directory (<code>spin/&lt;brand&gt;/</code>) is the single
-          source of truth. Utilities and intrinsic HTML elements read it through
-          CSS custom properties; a class outside the vocabulary emits no CSS.
-          Machine components read the same tokens while adding keyboard, focus,
-          and statechart behavior. Theme contract gates verify contrast and
-          scales, and source lints verify your templates against the active
-          theme.
+          Your brand directory is the single source of truth. Elements and
+          utilities read it as CSS variables; a class your brand cannot produce
+          emits nothing. Components read the same brand while adding keyboard,
+          focus, and interaction behavior. Checks verify the brand stays
+          complete and legible, and lints verify your templates against the
+          brand you shaped.
         </p>
       </Section>
     </main>

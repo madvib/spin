@@ -102,8 +102,8 @@ export default function ThemesCustomization(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Layers"
-        lede="How spin/<brand>/ splits brand identity, reference scales, HTML element typography, and per-primitive slot tokens into clean DTCG layers — and how every token path maps to a CSS variable and utility."
+        title="Brand Files"
+        lede="How spin/<brand>/ splits identity, scales, element voices, and per-component overrides — and how each file becomes CSS variables."
       />
 
       <Section id="layers" title="Files inside spin/<brand>/">
@@ -138,7 +138,7 @@ export default function ThemesCustomization(): JSX.Element {
           <code>color.on-semantic-success</code>), neutral ramps (
           <code>color.neutral.50</code>–<code>900</code>), and WCAG contrast
           floors live in the dedicated{" "}
-          <A href="/docs/themes/palettes">Palettes &amp; Paired Inks</A> guide.
+          <A href="/docs/themes/palettes">Color &amp; Contrast</A> guide.
         </p>
       </Section>
 

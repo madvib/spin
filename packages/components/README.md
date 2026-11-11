@@ -2,7 +2,7 @@
 
 Thirty-six headless statechart machines and the platform controllers —
 comboboxes, date pickers, carousels, menus, dialogs, and the rest — each with
-copyable `.html` templates you own and restyle through the theme. The client
+copyable `.html` templates you own and restyle through your brand. The client
 runtime (signals, elements, directives, machines) ships in this package too,
 under `@spinjs/components/runtime`.
 

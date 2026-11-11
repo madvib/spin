@@ -50,8 +50,8 @@ export default function StylingAnimation(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Motion"
-        lede="Add a transition or an entrance to an element and let your brand set the pace. Every hover state, dialog entrance, and loading indicator moves at the duration and curve your theme sets once — and stills automatically under prefers-reduced-motion."
+        title="Motion & Transitions"
+        lede="Brand-governed timing and easing for state changes, named entrances for arrivals — and stillness for readers who ask."
       />
 
       <Section id="theme-motion" title="Motion comes from the theme">

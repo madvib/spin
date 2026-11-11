@@ -92,8 +92,8 @@ export default function AuthoringComponents(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Components"
-        lede="Author interactive components once in HTML + TypeScript, compile them into standard custom elements, and drive them from React, Solid, Vue, or Svelte."
+        title="Interactive Components"
+        lede="Copy a tested select, dialog, or date picker into your repo and drive it from any framework."
         playgroundExample="components-select"
       />
       <Markdown text={componentsMd} />

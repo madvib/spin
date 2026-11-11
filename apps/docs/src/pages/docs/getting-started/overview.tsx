@@ -14,9 +14,9 @@ const NEXT: readonly {
   readonly blurb: string;
 }[] = [
   {
-    title: "Architecture & Ownership",
+    title: "How Spin Works",
     href: "/docs/getting-started/architecture",
-    blurb: "Why Spin claims HTML tags, how elements and utilities divide work, and the 4-step customization staircase.",
+    blurb: "Your brand, finished elements, layout utilities, and components — and which layer to change.",
   },
   {
     title: "Quickstart",
@@ -24,14 +24,14 @@ const NEXT: readonly {
     blurb: "Install the packages, create your brand in spin/<brand>/, and open the Studio.",
   },
   {
-    title: "Installation & Bundlers",
+    title: "Bundler Setup",
     href: "/docs/getting-started/install",
-    blurb: "The devDependency split, every bundler's config, and the project layout.",
+    blurb: "The two-package install, every bundler's config, and the project layout.",
   },
   {
-    title: "Adoption Paths",
+    title: "Incremental Adoption",
     href: "/docs/getting-started/paths",
-    blurb: "The full plugin, shared brand packages, incremental primitives migration, or standalone Studio.",
+    blurb: "The full plugin, shared brand packages, the preset-only path, or standalone Studio.",
   },
 ];
 
@@ -39,8 +39,8 @@ export default function GettingStartedOverview(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Overview"
-        lede="Brand tokens, intrinsic HTML primitives, closed-scale utilities, and statechart machines in one verifiable system — so humans and coding agents ship UI with zero CSS drift."
+        title="Why Spin"
+        lede="Stop rewriting button styles on every page. Your brand lives in one place, every tag and utility reads it, and lints catch drift before it ships."
         playgroundExample="elements-form"
       />
       <Markdown text={startMd} />

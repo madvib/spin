@@ -267,8 +267,8 @@ export default function Install(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Installation"
-        lede="Package setup, spin init flags, bundler adapters, plugin configuration reference, and project layout."
+        title="Bundler Setup"
+        lede="Project layout, the init command and its flags, and configurations for all seven bundlers."
       />
 
       <Section id="packages" title="Install the packages">

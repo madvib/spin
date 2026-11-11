@@ -39,8 +39,8 @@ export default function StylingProse(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Prose"
-        lede="Write semantic HTML and get finished document typography: every element arrives carrying a named style, and one type-<name> class switches the whole tuple at once."
+        title="Text & Prose"
+        lede="Headings and paragraphs that read right out of the box, named type styles for UI, and document versus interface lists."
       />
 
       <Section id="scales" title="Scales are the building blocks">

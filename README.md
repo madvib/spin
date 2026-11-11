@@ -1,43 +1,43 @@
 # spin
 
-One theme, every stack. Spin keeps your interface decisions in a DTCG JSON
-theme and makes the whole web surface obey it — React, Solid, Vue, Svelte,
-Astro, or plain HTML, across Vite, Rspack, webpack, Rollup, Rolldown, esbuild,
-Bun, and UnoCSS.
-
-You write the decisions once — color, type, spacing, radius, motion — as a
-theme. Spin turns that theme into the CSS, the styled HTML elements, the
-utilities, and the compiled interactive components your interfaces are built
-from. Change the theme and everything follows.
+One brand, every stack. Shape your brand's colors, type, spacing, and modes
+once in the Studio, and Spin turns it into the CSS, the styled HTML elements,
+the utilities, and the interactive components your interfaces are built from —
+across Solid, React, Vue, Svelte, or plain HTML, and Vite, Rspack, webpack,
+Rollup, Rolldown, esbuild, Bun, and UnoCSS.
 
 ```sh
-npm install -D @spinjs/spin
-npm install @spinjs/components @spinjs/runtime
+npm install -D @spinjs/dev
+npm install @spinjs/components
 ```
 
 ```ts
-import { spin } from "@spinjs/spin/vite";
+import { spin } from "@spinjs/dev/vite";
 
 export default {
   plugins: [spin.vite()],
 };
 ```
 
-## The three packages
+Run `npx spin init`, pick one of six design languages as your starting point,
+and tune until the preview reads like your product. What you save becomes the
+`spin/<brand>/` directory your build serves — never locked to a canned theme.
 
-| Package               | Install as     | What it is                                                                                          |
-| --------------------- | -------------- | --------------------------------------------------------------------------------------------------- |
-| `@spinjs/spin`        | devDependency  | The toolchain: bundler plugins, UnoCSS preset, `.html` component compiler, theme engine, Studio, CLI, lint plugins, MCP server. |
-| `@spinjs/components`  | dependency     | The 37 statechart machines and platform controllers, with React, Solid, and DOM adapters.           |
-| `@spinjs/runtime`     | dependency     | The signals, template directives, element actions, and finite-state machine interpreter.            |
+## The two packages
 
-Public subpaths: `@spinjs/spin/vite` (the plugin in all seven bundler shapes),
-`@spinjs/spin/preset` (the stylesheet-only `spinPreset`), `@spinjs/spin/cli`
-(the `spin` bin), `@spinjs/spin/mcp`, `@spinjs/spin/api` (including
-`mountSpinApp`), plus the toolchain areas (`theme`, `project`, `diagnostics`,
-`kit`, `animation`, `skill`). `@spinjs/components` publishes one subpath per
-component plus `/react`, `/solid`, `/controller`. `@spinjs/runtime` publishes
-`/fsm`, `/actions`, `/props`, `/load`, `/testing`.
+| Package              | Install as    | What it is                                                                                        |
+| -------------------- | ------------- | ------------------------------------------------------------------------------------------------- |
+| `@spinjs/dev`        | devDependency | The toolchain: bundler plugins, theme engine, Studio, CLI, LSP, lints, and MCP server.            |
+| `@spinjs/components` | dependency    | The statechart machines and client runtime, with React, Solid, Vue, and Svelte adapters.           |
+
+Public subpaths: `@spinjs/dev/vite` (the plugin in all seven bundler shapes),
+`@spinjs/dev/preset` (the stylesheet-only preset), `@spinjs/dev/theme` (the
+token parser, design languages, and facets), `@spinjs/dev/diagnostics` and
+`@spinjs/dev/eslint` (the lint rules), `@spinjs/dev/cli` (the `spin` bin),
+`@spinjs/dev/mcp`, `@spinjs/dev/lsp`, `@spinjs/dev/api` (including
+`mountSpinApp`), plus `/skill`, `/compositions`, and `/examples`.
+`@spinjs/components` publishes one subpath per component plus `/react`,
+`/solid`, `/controller`, and `/runtime`.
 
 ## The repository
 
@@ -45,20 +45,21 @@ component plus `/react`, `/solid`, `/controller`. `@spinjs/runtime` publishes
 
 | App              | What it is                                                                   |
 | ---------------- | ---------------------------------------------------------------------------- |
-| `apps/studio`    | The theme editor: it edits a project's theme and repaints the app beside it. |
+| `apps/studio`    | The brand editor: it shapes a project's brand and repaints the app beside it. |
 | `apps/reference` | The reference app: every element and every utility, exercised.               |
-| `apps/docs`      | The documentation site.                                                      |
+| `apps/docs`      | The documentation site, including the 5-runtime Playground.                  |
 
 ### Examples
 
 | Example                | What it is                                                      |
 | ---------------------- | --------------------------------------------------------------- |
-| `examples/coffee`      | A small coffee-shop app, built on the preset and its own theme. |
-| `examples/fixture-app` | A bare project carrying `spin/*.json`, used by the daemon.      |
+| `examples/coffee`      | A small coffee-shop app, built on the preset and its own brand. |
+| `examples/fixture-app` | A bare project carrying `spin/<brand>/`, used by the daemon.    |
 
-`internal/check` holds the visual-check harness: the browser probes and the
-runner every app's configuration feeds. It is internal tooling, and nothing in
-it is published.
+`internal/kit` holds the shared docs/reference UI kit (theme state, pickers,
+specimens). `internal/check` holds the visual-check harness: the browser
+probes and the runner every app's configuration feeds. Both are internal
+tooling; nothing in them is published.
 
 ## Commands
 
@@ -91,12 +92,11 @@ bun run pack         # pack every tarball the release ships
 
 ## Where to read more
 
-- [`packages/spin/README.md`](packages/spin/README.md) — the toolchain.
+- [`packages/dev/README.md`](packages/dev/README.md) — the toolchain.
 - [`packages/components/README.md`](packages/components/README.md) — the component library.
-- [`packages/runtime/README.md`](packages/runtime/README.md) — the reactive runtime.
 - [`apps/docs`](apps/docs) — the documentation site; `bun run dev:docs` runs
-  it, and its install page carries the per-bundler recipes.
+  it, and Bundler Setup carries the per-bundler recipes.
 
 ## Status
 
-0.1.x. MIT licensed; see [LICENSE](LICENSE).
+0.2.0-preview.1. MIT licensed; see [LICENSE](LICENSE).

@@ -13,27 +13,27 @@ import { THEMES_SNIPPETS } from "./themes.snippets.ts";
 const VOCABULARY_ITEMS: readonly PropEntry[] = [
   {
     name: "Design Language",
-    badge: "$extends",
+    badge: "starting point",
     description:
-      "One of the six built-in starting physics shipped in @spinjs/theme (minimal, editorial, material, neobrutalist, neumorphic, glassmorphic). A design language supplies the baseline scales and element rules that your brand extends.",
+      "One of six built-in looks — quiet minimal, printed editorial, tonal material, loud neobrutalist, soft neumorphic, frosted glassmorphic. Supplies the baseline your brand builds on; never a theme you ship as-is.",
   },
   {
     name: "Brand",
     badge: "spin/<brand>/",
     description:
-      "Your project's authored design system identity on disk (tokens.json plus optional reference.json, elements.json, and primitives/*.json layers). Owns both light and dark modes directly.",
+      "Your project's own design identity on disk — your palette, type voices, spacing, and modes, shaped in the Studio or an editor.",
   },
   {
     name: "Facet",
-    badge: "*.palette.json · *.spacing.json",
+    badge: "optional overlay",
     description:
-      "Optional overlays in spin/<brand>/themes/ that swap only color/elevation (data-palette) or spatial density (data-spacing) without duplicating your brand's typography or radii.",
+      "A palette or density variation that layers over your brand at runtime: a seasonal palette, a compact sidebar — without duplicating the brand.",
   },
   {
     name: "Resolved Theme",
-    badge: "data-theme · data-palette · data-spacing · data-mode",
+    badge: "what the browser wears",
     description:
-      "The compiled CSS custom-property sheet produced at runtime when the browser combines your Brand, any active Facets, and the active Mode (light or dark).",
+      "What the page actually paints: your brand plus any active palette, density, and light-or-dark choice, resolved into CSS variables.",
   },
 ];
 
@@ -42,25 +42,25 @@ const STUDIO_STEPS: readonly PropEntry[] = [
     name: "1. Open the Studio",
     badge: "/__spin/studio/",
     description:
-      "With a Spin bundler plugin running (spin.vite(), spin.rspack(), spin.webpack(), spin.bun(), or any of the seven adapters), open /__spin/studio/ in your browser — or run npx spin studio standalone.",
+      "With your dev server running, open /__spin/studio/ in the browser — or run the standalone editor when you have no app server yet.",
   },
   {
     name: "2. Create your brand in 4 steps (/init)",
     badge: "Brand → Language → Color → Type",
     description:
-      "Name your brand, choose one of the six starting design languages (minimal, editorial, material, neobrutalist, neumorphic, glassmorphic), seed your palette from a primary hex color, and pick a curated font pairing and icon pack.",
+      "Name your brand, pick one of the six starting looks, seed your palette from one primary color, and choose a font pairing and icons.",
   },
   {
-    name: "3. Tune workbenches with live WCAG & scale gates",
-    badge: "Themes ▾ & Components ▾",
+    name: "3. Tune with live contrast and scale feedback",
+    badge: "workbenches",
     description:
-      "Step through Color, Type (Styles, Faces, Ramps), Spacing, Style, Motion, Icons, and per-component token tables. Every fill-and-ink pair displays its live WCAG contrast ratio with a one-click Fix button.",
+      "Step through Color, Type, Spacing, Style, Motion, and Icons. Every fill-and-ink pair shows its live contrast ratio with a one-click Fix button.",
   },
   {
     name: "4. Save to spin/<brand>/",
     badge: "git-diffable",
     description:
-      "Edits preview live in memory first. Pressing Save writes clean DTCG JSON into spin/<brand>/ and updates spin/config.json.",
+      "Edits preview live first. Pressing Save writes clean files into spin/<brand>/ that diff, review, and merge like code.",
   },
 ];
 
@@ -69,19 +69,19 @@ const CLI_STEPS: readonly PropEntry[] = [
     name: "1. Scaffold a project",
     badge: "npx spin init",
     description:
-      "From an empty folder, npx spin init detects your bundler, writes the plugin wiring, and creates spin/default/tokens.json — a single brand theme serving light and dark modes.",
+      "From an empty folder, answer two prompts and get a wired project with your first brand serving light and dark modes.",
   },
   {
-    name: "2. Edit the JSON directly",
-    badge: "spin/default/tokens.json",
+    name: "2. Edit the files directly",
+    badge: "spin/<brand>/",
     description:
-      "Prefer an editor to the visual Studio? Theme documents are plain DTCG JSON: change a $value, save, and the dev server rebuilds. Run npx spin lint . to catch contrast or schema mistakes.",
+      "Prefer an editor to the visual Studio? Change a value, save, and the dev server rebuilds. Run the linter to catch mistakes.",
   },
   {
-    name: "3. Analyze before shipping",
-    badge: "npx spin brand analyze",
+    name: "3. Check before shipping",
+    badge: "lint & analyze",
     description:
-      "The same six validation checks the Studio runs live are available from the CLI, so CI can gate on npx spin brand analyze or npx spin lint .",
+      "The same checks the Studio runs live are available from the terminal, so CI can gate on them.",
   },
 ];
 
@@ -136,8 +136,8 @@ export default function ThemesOverview(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Brands"
-        lede="A Spin project authors its brand in spin/<brand>/ over a starting design language and serves both light and dark modes. Edit visually in the Studio, commit clean DTCG JSON, and layer optional palette or spacing facets at runtime."
+        title="Your Brand & Studio"
+        lede="Shape your brand visually in the Studio, seeded from a design language. What you save becomes the spin/<brand>/ directory your build serves."
       />
 
       <Section id="vocabulary" title="Design Language, Brand, Facet, and Theme">
@@ -172,10 +172,9 @@ export default function ThemesOverview(): JSX.Element {
 
       <Section id="languages" title="Six starting design languages">
         <p class="max-w-prose">
-          Spin includes six foundational design languages in{" "}
-          <code>@spinjs/theme</code>. Select a design language below to
-          inspect its baseline palette and signature tokens, or preview it across
-          this documentation site.
+          Spin ships six starting looks. Select one below to inspect its
+          palette and character, or preview it across this documentation site.
+          Your brand starts from the one you pick — then becomes its own thing.
         </p>
 
         <div class="my-4 flex flex-col gap-4 rounded-lg border bg-surface-raised p-4">
@@ -272,11 +271,9 @@ export default function ThemesOverview(): JSX.Element {
         </div>
 
         <p class="max-w-prose">
-          Languages are starting points, not copies to vendor. New projects
-          write a sparse document that names its language in{" "}
-          <code>"$extends"</code> and states only their own overrides — the
-          language stays shipped, so a language fix reaches every theme that
-          layers over it:
+          Languages are starting points, not copies to keep. Your brand names
+          its language and states only its own decisions — the language stays
+          shipped, so an improvement to it reaches every brand built on it:
         </p>
         <div class="my-3">
           <Code
@@ -289,18 +286,16 @@ export default function ThemesOverview(): JSX.Element {
           Pass <code>--vendor</code> to <code>npx spin init</code> only when
           you need a standalone snapshot you can edit in full. When you fork
           a language in the Studio and hit <strong>Save</strong>, it writes a
-          copy into <code>spin/&lt;brand&gt;/tokens.json</code> that your project
-          owns.
+          copy into your brand directory that your project owns.
         </p>
       </Section>
 
       <Section id="project" title="Project files and seating order">
         <p class="max-w-prose">
-          A Spin project stores its themes in the <code>spin/</code> directory
-          at the project root. Each <code>spin/&lt;brand&gt;/tokens.json</code> file
-          defines one named theme (<code>spin/acme/tokens.json</code> registers <code>data-theme="acme"</code>), and <code>spin/config.json</code>{" "}
-          controls which theme is seated by default and the order themes appear
-          in pickers:
+          A Spin project stores its brand in the <code>spin/</code> directory
+          at the project root. Each brand directory registers one theme, and
+          the project config controls which theme paints the page by default
+          and the order themes appear in pickers:
         </p>
         <div class="my-3">
           <Code
@@ -315,14 +310,10 @@ export default function ThemesOverview(): JSX.Element {
       <Section id="axes" title="Four axes that compose">
         <p class="max-w-prose">
           A Spin page wears four independent decisions, each set with its own
-          attribute on <code>&lt;html&gt;</code> or on any nested subtree.
-          The base theme decides the whole look (<code>data-theme</code>: <code>spin/acme/tokens.json</code> registers <code>data-theme="acme"</code>), a palette facet swaps only the ink
-          (<code>data-palette</code>, from{" "}
-          <code>catppuccin.palette.json</code>), a spacing facet swaps only
-          the rhythm (<code>data-spacing</code>, from{" "}
-          <code>compact.spacing.json</code>), and the mode picks the light or
-          dark answer for the ink (<code>data-mode="light|dark"</code>).
-          Because each axis writes its own CSS variables, they layer without
+          attribute on the page or on any nested section. The brand decides the
+          whole look, a palette swaps only the ink, a density swaps only the
+          rhythm, and the mode picks the light or dark answer for the ink.
+          Because each axis writes its own variables, they layer without
           clashing — set all four on the page root:
         </p>
         <div class="my-3">
@@ -346,31 +337,28 @@ export default function ThemesOverview(): JSX.Element {
         </div>
         <p class="max-w-prose">
           Next, see{" "}
-          <A href="/docs/themes/customization">Layers &amp; Overrides</A> for
-          the files inside <code>spin/&lt;brand&gt;/</code>,{" "}
-          <A href="/docs/themes/palettes">Palettes &amp; Paired Inks</A> for
+          <A href="/docs/themes/customization">Brand Files</A> for
+          the files inside your brand directory,{" "}
+          <A href="/docs/themes/palettes">Color &amp; Contrast</A> for
           fill/ink pairs and contrast floors,{" "}
           <A href="/docs/themes/modes">Light &amp; Dark Modes</A> for{" "}
-          <code>$modes</code> and subtree scoping,{" "}
-          <A href="/docs/themes/facets">Facets: Palettes &amp; Density</A> for{" "}
-          <code>data-palette</code> and <code>data-spacing</code>, or{" "}
-          <A href="/docs/themes/fonts">Fonts &amp; Type Styles</A>.
+          per-mode ink and subtree scoping,{" "}
+          <A href="/docs/themes/facets">Palettes &amp; Density</A> for{" "}
+          subtree palette and density overlays, or{" "}
+          <A href="/docs/themes/fonts">Typography &amp; Voices</A>.
         </p>
       </Section>
 
       <Section id="extends" title="Optional skins and shared brands">
         <p class="max-w-prose">
-          One theme with two modes covers most applications. When your app
+          One brand with two modes covers most applications. When your app
           offers user-selectable color skins — seasonal palettes, team colors,
-          white-label variants — add more files to <code>spin/&lt;brand&gt;/</code>{" "}
-          and list them in <code>themeOrder</code>. Multi-app teams can also
-          publish a shared brand package exporting{" "}
-          <code>{"{ themes: { ... } }"}</code> and pass it to any bundler
-          adapter (<code>spin.vite()</code>, <code>spin.rspack()</code>,{" "}
-          <code>spin.webpack()</code>, <code>spin.bun()</code>). Local files in{" "}
-          <code>spin/&lt;brand&gt;/</code> layer on top of <code>extends</code>: a
-          local theme with the same name overrides the shared one, and saving
-          a shared theme in the Studio forks it into <code>spin/</code>.
+          white-label variants — add more themes and list them in the project
+          config. Multi-app teams can also publish a shared brand package and
+          pass it to any bundler adapter. Local brand files layer on top of a
+          shared package: a local theme with the same name overrides the shared
+          one, and saving a shared theme in the Studio forks it into{" "}
+          <code>spin/</code>.
         </p>
         <div class="my-3">
           <Code

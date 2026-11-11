@@ -170,8 +170,8 @@ export default function StylingSpace(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Layout"
-        lede="Pad, gap, and size elements from your brand's spacing scale, reflow across theme breakpoints, pin floating panels to triggers in the top layer, and strip default control chrome with .bare."
+        title="Spacing & Layout"
+        lede="Pad, gap, and size from your brand's spacing scale, reflow across breakpoints, and pin floating panels with CSS anchors."
       />
 
       <Section id="scale" title="Space comes from the scale">

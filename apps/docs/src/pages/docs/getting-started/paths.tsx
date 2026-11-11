@@ -45,8 +45,8 @@ export default function Paths(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Adoption"
-        lede="Spin is one token contract with five entry points. Choose the full bundler plugin for single apps, layer a shared brand package across a monorepo, or adopt individual layers in existing projects."
+        title="Incremental Adoption"
+        lede="Bring Spin into an existing app piecemeal: the full plugin, shared brands, the preset-only path, or the standalone Studio."
       />
 
       <Section id="matrix" title="Entry points at a glance">

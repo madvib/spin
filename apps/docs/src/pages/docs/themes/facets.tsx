@@ -48,8 +48,8 @@ export default function ThemesFacets(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Facets"
-        lede="Keep one brand while offering alternative color palettes or spatial densities. Palette facets (*.palette.json) swap ink and elevation; spacing facets (*.spacing.json) swap rhythm — and both nest cleanly inside any DOM subtree."
+        title="Palettes & Density"
+        lede="Swap a subtree's ink or rhythm independently of the brand: seasonal palettes, compact sidebars, generous marketing pages."
       />
 
       <Section id="four-axes" title="Four orthogonal runtime axes">

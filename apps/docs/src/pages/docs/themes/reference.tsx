@@ -243,8 +243,8 @@ export default function ThemesReference(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Reference"
-        lede="Switch design languages and every table below updates to show the groups, roles, contrast floors, and element tokens declared by the active theme."
+        title="Token Reference"
+        lede="Every token group your brand can declare: color roles, type scales, spacing, radii, shadows, motion, and per-element voices."
       />
 
       <Section id="grammar" title="Document keys and token types">

@@ -31,8 +31,8 @@ export default function Lints(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Lints"
-        lede="Six theme-aware rules that run across oxlint, ESLint, and the standalone spin lint CLI, reading your project's live brand tokens and shortcuts."
+        title="Lints & Guardrails"
+        lede="Six theme-aware rules that catch unknown classes, broken overrides, and unreadable pairings — with autofixes."
       />
       <Markdown text={principlesMd} />
       <Markdown text={lintsMd} />

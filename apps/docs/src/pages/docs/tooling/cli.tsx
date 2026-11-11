@@ -218,8 +218,8 @@ export default function ToolingCli(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="CLI"
-        lede="Complete reference for the spin CLI subcommands, SpinPluginOptions fields, and published package subpaths."
+        title="CLI & Build Options"
+        lede="Every spin command and plugin option: scaffold, serve Studio, lint, inspect brands, and copy components."
       />
 
       <Section id="commands" title="Commands and flags">

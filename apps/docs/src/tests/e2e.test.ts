@@ -143,7 +143,7 @@ describe("docs routes", () => {
     expect(md.headers.get("content-type")).toContain("text/markdown");
     expect(md.headers.get("content-signal")).toContain("ai-input=yes");
     const mdText = await md.text();
-    expect(mdText).toContain("title: \"Overview · Spin Docs\"");
+    expect(mdText).toContain("title: \"Your Brand & Studio · Spin Docs\"");
   }, 30000);
 });
 

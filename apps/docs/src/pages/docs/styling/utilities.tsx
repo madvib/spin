@@ -104,8 +104,8 @@ export default function StylingUtilities(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Shortcuts"
-        lede="Declare the layout compositions your project repeats in spin.vite({ shortcuts }), verify every expanded utility against your brand, and let spin lint spot repeated utility strings for you."
+        title="Project Shortcuts"
+        lede="Name the layouts your app repeats so every page spells them the same way, checked at build time."
       />
       <Markdown text={cssMd} />
 

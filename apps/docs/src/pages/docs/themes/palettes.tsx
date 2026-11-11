@@ -108,8 +108,8 @@ export default function ThemesPalettes(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Palettes"
-        lede="Every painted fill in Spin owns a paired foreground ink verified against WCAG contrast floors in both light and dark modes — so changing a brand color or flipping modes never breaks legibility."
+        title="Color & Contrast"
+        lede="Name colors by their job — primary, surface, ink — and let paired foregrounds keep every fill legible in light and dark."
       />
 
       <Section id="paired-inks" title="Why fills and inks travel in pairs">

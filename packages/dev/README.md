@@ -1,33 +1,31 @@
-# @spinjs/spin
+# @spinjs/dev
 
-The Spin toolchain: the bundler plugin, the CLI, the daemon API, the Studio
-server, the lint front ends, the LSP, and the MCP server. A devDependency —
-it builds your app but never ships in it.
+The Spin toolchain: the bundler plugin, the theme engine, the Studio, the
+CLI, the daemon API, the lint front ends, the LSP, and the MCP server. A
+devDependency — it builds your app but never ships in it.
 
 ```sh
-npm install -D @spinjs/spin
+npm install -D @spinjs/dev
 npm install @spinjs/components
 ```
 
 ```ts
-import { spin } from "@spinjs/spin/vite";
+import { spin } from "@spinjs/dev/vite";
 
 export default {
   plugins: [spin.vite()],
 };
 ```
 
-One `spin.vite()` call wires the whole chain: the `uno.css` stylesheet, the
-`src/lib/components/*.html` transform into custom elements, the generated
-`src/spin-components.d.ts`, theme discovery from `spin/`, and the
+One `spin.vite()` call wires the whole chain: the `spin/styles.css`
+stylesheet, the `src/lib/components/*.html` transform into custom elements,
+the generated component types, theme discovery from `spin/<brand>/`, and the
 Studio beside your dev server. The same options work in all seven shapes:
 `spin.vite()`, `spin.rspack()`, `spin.webpack()`, `spin.rollup()`,
 `spin.rolldown()`, `spin.esbuild()`, and `spin.bun()`.
 
-The two supported entries are `@spinjs/spin/vite` — the unplugin for every
-bundler shape — and `@spinjs/preset` — `spinPreset`, the stylesheet-only
-path for an existing `uno.config.ts`. Standalone theme editing is
-`npx spin studio`.
+Shape your brand visually with `npx spin studio`, or scaffold from the
+terminal with `npx spin init --language editorial`.
 
 ## The CLI
 
@@ -35,28 +33,23 @@ path for an existing `uno.config.ts`. Standalone theme editing is
 spin init        make a project: a brand, and a build config that wires spin
 spin studio      open the standalone theme editor
 spin lint        the rules, over a path
-spin theme       read the themes: list or analyze
+spin brand       read the brands: list, analyze, or rename
 spin component   read the components: list, contract, or copy an example
 spin mcp         run the agent server over stdio
 spin lsp         run the language server over stdio
-spin check       the rendered checks, over a running app
 ```
 
 ## Subpaths
 
-- `@spinjs/spin/vite` — the unplugin, in all seven bundler shapes.
-- `@spinjs/spin/plugin` — the plugin barrel: `spin` plus the build stages.
-- `@spinjs/spin/cli` — the `spin` command.
-- `@spinjs/spin/api` — the daemon API, including `mountSpinApp`.
-- `@spinjs/spin/mcp` — the agent server entry.
-- `@spinjs/spin/lsp` — the language server surface.
-- `@spinjs/spin/skill` — the house skill assembly.
-- `@spinjs/spin/examples` — the component onload examples.
-- `@spinjs/spin/compositions` — shared composition shapes.
-
-The toolchain's siblings carry the rest: `@spinjs/theme` (parsing,
-validation, gates, design languages), `@spinjs/preset` (the UnoCSS preset,
-primitives), `@spinjs/server` (project reads/writes, procedures, daemon),
-`@spinjs/diagnostics` (the lint rules, service, and editor plugins), and
-`@spinjs/build` (the components stage, strict gate, content scan,
-cross-theme report).
+- `@spinjs/dev/vite` — the unplugin, in all seven bundler shapes.
+- `@spinjs/dev/preset` — the UnoCSS preset, `spinPreset`.
+- `@spinjs/dev/theme` — the theme engine: parsing, validation, design languages, facets.
+- `@spinjs/dev/diagnostics` — the lint rules over project facts.
+- `@spinjs/dev/eslint` — the ESLint flat-config plugin.
+- `@spinjs/dev/cli` — the `spin` command.
+- `@spinjs/dev/api` — the daemon API, including `mountSpinApp`.
+- `@spinjs/dev/mcp` — the agent server entry.
+- `@spinjs/dev/lsp` — the language server surface.
+- `@spinjs/dev/skill` — the house skill assembly.
+- `@spinjs/dev/examples` — the component onload examples.
+- `@spinjs/dev/compositions` — shared composition shapes.

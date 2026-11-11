@@ -64,8 +64,8 @@ export default function AuthoringMachines(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Machines"
-        lede="Every interactive widget in Spin is a headless statechart over fine-grained signals: @spinjs/runtime provides signals, finite-state machines, component synthesis, and DOM directives."
+        title="Statechart Machines"
+        lede="How the components think: explicit states, guarded transitions, and reactive signals you can read."
       />
       <Markdown text={machinesMd} />
 

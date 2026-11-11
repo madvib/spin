@@ -10,8 +10,8 @@ export default function ThemesFonts(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Typography"
-        lede="Declare font sources in $extensions.spin.fonts, assign font.family roles, and bind the 13 named font.style.* tuples across your brand — with automatic @font-face generation."
+        title="Typography & Voices"
+        lede="Load web fonts and spend complete type styles — display, body, caption — with one class each."
       />
 
       <Section id="loading" title="Automatic @font-face generation">
