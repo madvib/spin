@@ -31,9 +31,6 @@
       "@spinjs/theme": [
         "../../packages/theme/src/index.ts"
       ],
-      "@spinjs/theme/themes": [
-        "../../packages/theme/src/themes/index.ts"
-      ],
       "@spinjs/kit": [
         "../../internal/kit/src/index.ts"
       ],

@@ -1,4 +1,4 @@
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 import type {
   AncestorFacts,
   ClassFacts,
@@ -11,7 +11,7 @@ import { checkPreferThemeValue } from "../src/prefer-theme-value.ts";
 import { engineAnswers } from "@spinjs/preset";
 import { factsFor } from "../src/project-vocabulary.ts";
 
-const documents = Object.values(starterThemes);
+const documents = Object.values(designLanguages);
 export const facts: Facts = factsFor(documents, engineAnswers(documents));
 
 /** The classes of an element, as the core reads them. */

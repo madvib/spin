@@ -1,6 +1,6 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 import { createThemeState } from "./theme-state.ts";
 
 /**
@@ -19,7 +19,7 @@ function storage(name: string) {
 
 test("a stored theme the app does not hold falls back to one it does", () => {
   const state = createThemeState({
-    documents: { neumorphic: starterThemes.neumorphic, minimal: starterThemes.minimal },
+    documents: { neumorphic: designLanguages.neumorphic, minimal: designLanguages.minimal },
     initialTheme: "minimal",
     storage: storage("unknown"),
     followSystem: false,
@@ -32,7 +32,7 @@ test("a stored theme the app does not hold falls back to one it does", () => {
 test("a mode the theme does not serve is clamped to one it does", () => {
   // Console's own face is dark and it serves no light rendering; a reader
   // arriving from a light theme must not be shown a mode it does not have.
-  const darkOnly = { ...starterThemes.neumorphic, modes: ["dark"] };
+  const darkOnly = { ...designLanguages.neumorphic, modes: ["dark"] };
   const state = createThemeState({
     documents: { neumorphic: darkOnly },
     initialTheme: "neumorphic",
@@ -47,7 +47,7 @@ test("a mode the theme does not serve is clamped to one it does", () => {
 
 test("the system request resolves to the platform's mode when served", () => {
   const state = createThemeState({
-    documents: { minimal: starterThemes.minimal },
+    documents: { minimal: designLanguages.minimal },
     initialTheme: "minimal",
     initialMode: "system",
     storage: storage("system"),
@@ -60,7 +60,7 @@ test("the system request resolves to the platform's mode when served", () => {
 
 test("a two-mode theme keeps the mode the reader asked for", () => {
   const state = createThemeState({
-    documents: { minimal: starterThemes.minimal },
+    documents: { minimal: designLanguages.minimal },
     initialTheme: "minimal",
     initialMode: "dark",
     storage: storage("two-mode"),

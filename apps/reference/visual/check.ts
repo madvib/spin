@@ -21,9 +21,9 @@ import {
 } from "@spin/check";
 import { SECTIONS } from "@spinjs/preset";
 import {
-  starterThemes,
+  designLanguages,
   themeModes,
-} from "@spinjs/theme/themes";
+} from "@spinjs/theme";
 import { PRIMITIVES } from "../src/primitives.ts";
 import { APP_ROUTES } from "../src/routes.ts";
 import { geometryAudit, geometryClaimsFor } from "./geometry.ts";
@@ -95,7 +95,7 @@ function routes(): readonly Route[] {
   ];
 }
 
-const THEMES: Record<string, Parameters<typeof themeModes>[0]> = starterThemes;
+const THEMES: Record<string, Parameters<typeof themeModes>[0]> = designLanguages;
 
 /**
  * The project's own themes: the files in `spin/`, read from disk.

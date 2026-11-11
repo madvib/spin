@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import { shortcutsIn } from "@spinjs/server/project";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 import {
   checkClosedVocabulary,
   type ClassFacts,
@@ -63,8 +63,8 @@ export default {
 
 test("a class the project declares is not reported", () => {
   const facts = factsFor(
-    Object.values(starterThemes),
-    engineAnswers(Object.values(starterThemes)),
+    Object.values(designLanguages),
+    engineAnswers(Object.values(designLanguages)),
     new Set(),
     shortcutsIn(CONFIG),
   );
@@ -73,8 +73,8 @@ test("a class the project declares is not reported", () => {
 
 test("a class the project does not declare is still reported", () => {
   const facts = factsFor(
-    Object.values(starterThemes),
-    engineAnswers(Object.values(starterThemes)),
+    Object.values(designLanguages),
+    engineAnswers(Object.values(designLanguages)),
     new Set(),
     shortcutsIn(CONFIG),
   );
@@ -86,8 +86,8 @@ test("a bare composition name the project does not declare is unknown", () => {
   // shortcuts is an unknown class, and the rule carries the removal edit
   // when the adapter supplies token offsets.
   const facts = factsFor(
-    Object.values(starterThemes),
-    engineAnswers(Object.values(starterThemes)),
+    Object.values(designLanguages),
+    engineAnswers(Object.values(designLanguages)),
     new Set(),
     shortcutsIn(`export default { plugins: [] };`),
   );
@@ -110,8 +110,8 @@ test("a shortcut that spends a class the theme cannot make is reported", () => {
   // `gap-72` is a step no theme carries: the shortcut would style nothing,
   // and that is worth saying where the shortcut is used.
   const facts = factsFor(
-    Object.values(starterThemes),
-    engineAnswers(Object.values(starterThemes)),
+    Object.values(designLanguages),
+    engineAnswers(Object.values(designLanguages)),
     new Set(),
     shortcutsIn(`spin.vite({ shortcuts: { stack: "flex flex-col gap-72" } })`),
   );
@@ -122,8 +122,8 @@ test("a project that declares shortcuts the lint cannot read says nothing", () =
   // The vocabulary cannot be read in full, so the rule that asks "can this
   // be produced?" stands down — and only that rule.
   const facts = factsFor(
-    Object.values(starterThemes),
-    engineAnswers(Object.values(starterThemes)),
+    Object.values(designLanguages),
+    engineAnswers(Object.values(designLanguages)),
     new Set(),
     shortcutsIn(`spin.vite({ shortcuts: studioShortcuts })`),
   );

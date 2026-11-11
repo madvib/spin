@@ -10,7 +10,7 @@
 
 import type { ThemeDocument } from "../pipeline/types.ts";
 import { asRecord } from "../json.ts";
-import { starterThemes } from "../themes/index.ts";
+import { designLanguages } from "../languages/index.ts";
 
 /** One curated pairing: the faces a design language suggests. */
 export interface TypeSuggestion {
@@ -63,7 +63,7 @@ function ratioOf(language: string): number {
  * voice names it.
  */
 export function typeSuggestions(): readonly TypeSuggestion[] {
-  return Object.entries(starterThemes).map(([language, document]) => ({
+  return Object.entries(designLanguages).map(([language, document]) => ({
     language,
     display: displayOf(language, document),
     body: bodyOf(document),

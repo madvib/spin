@@ -5,7 +5,7 @@ import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import plugin from "../src/index.ts";
 import { engineAnswers } from "@spinjs/preset";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 import { type GateNode, renderMessage } from "../src/rules.ts";
 import { lint, type LintOptions } from "../src/service.ts";
 
@@ -76,7 +76,7 @@ function reportsFor(node: GateNode): Report[] {
   const rule = plugin.rules["no-handwritten-tokens"];
   const reports: Report[] = [];
   const visit = rule.create({
-    answers: engineAnswers(Object.values(starterThemes)),
+    answers: engineAnswers(Object.values(designLanguages)),
     report(descriptor) {
       reports.push({ messageId: descriptor.messageId, data: descriptor.data });
     },
@@ -108,7 +108,7 @@ test("the message names the token, not the variable", () => {
   const rule = plugin.rules["no-handwritten-tokens"];
   const seen: string[] = [];
   const visit = rule.create({
-    answers: engineAnswers(Object.values(starterThemes)),
+    answers: engineAnswers(Object.values(designLanguages)),
     report(descriptor) {
       seen.push(
         renderMessage(rule.meta, {

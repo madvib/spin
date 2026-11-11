@@ -9,7 +9,7 @@ import {
   resolveAliases,
   validateTokens,
 } from "../index.ts";
-import { starterThemes } from "../themes/index.ts";
+import { designLanguages } from "../languages/index.ts";
 import type { ThemeDocument, TokenLeaf } from "../pipeline/types.ts";
 
 /**
@@ -53,7 +53,7 @@ test("every starter implements the owned names", () => {
   // The owned set is the styles a theme must declare: every starter implements
   // every name, and the names are the contract's own list rather than a
   // roster written down here.
-  for (const [theme, doc] of Object.entries(starterThemes)) {
+  for (const [theme, doc] of Object.entries(designLanguages)) {
     const font = doc["font"] as Record<string, unknown>;
     const style = font["style"] as Record<string, unknown>;
     for (const name of ownedStyleNames()) {
@@ -68,7 +68,7 @@ test("every starter implements the owned names", () => {
 test("trimming below the owned set fails completeness", () => {
   // The names are stable API: a theme that drops one breaks every consumer
   // of that name, so the gate reports the missing tuple at its own leaves.
-  const doc = structuredClone(starterThemes.minimal) as Record<string, unknown>;
+  const doc = structuredClone(designLanguages.minimal) as Record<string, unknown>;
   const style = (doc["font"] as Record<string, unknown>)[
     "style"
   ] as Record<string, unknown>;
@@ -92,7 +92,7 @@ test("literal-valued styles with no type scales are complete", () => {
   // Scales are the style author's library, not a spend path: the type
   // scales stay out of the required paths, so a theme whose styles carry
   // literals and that states no type scale groups is complete.
-  const doc = structuredClone(starterThemes.minimal) as Record<string, unknown>;
+  const doc = structuredClone(designLanguages.minimal) as Record<string, unknown>;
   inlineStyleLiterals(doc);
   const parsed = parseTokens(doc);
   if (!parsed.ok) throw new Error(parsed.error);
@@ -149,7 +149,7 @@ function resolvedStyleTuples(doc: ThemeDocument): Map<string, string> {
 }
 
 test("no two styles share a tuple", () => {
-  for (const [theme, doc] of Object.entries(starterThemes)) {
+  for (const [theme, doc] of Object.entries(designLanguages)) {
     const seen = new Map<string, string>();
     for (const [name, tuple] of resolvedStyleTuples(doc)) {
       const other = seen.get(tuple);
@@ -168,7 +168,7 @@ test("starters disagree: at least two themes differ per style", () => {
   // per style keeps the set honest without pinning which theme differs.
   for (const name of ownedStyleNames()) {
     const tuples = new Set(
-      Object.values(starterThemes).map((doc) => resolvedStyleTuples(doc).get(name)),
+      Object.values(designLanguages).map((doc) => resolvedStyleTuples(doc).get(name)),
     );
     assert(
       tuples.size >= 2,

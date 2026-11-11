@@ -7,7 +7,7 @@
  * are asks this package; it does not keep its own copy of the answer.
  */
 
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages, isDesignLanguage } from "@spinjs/theme";
 import { configScaffoldText } from "./config-text.ts";
 
 /**
@@ -144,11 +144,10 @@ export function initFiles(
  * document it does not know.
  */
 function themeText(starter: string): string {
-  const document = starterThemes[starter];
-  if (document === undefined) {
+  if (!isDesignLanguage(starter)) {
     throw new Error(
-      `unknown starter "${starter}" — expected one of ${Object.keys(starterThemes).join(", ")}`,
+      `unknown design language "${starter}" — expected one of ${Object.keys(designLanguages).join(", ")}`,
     );
   }
-  return JSON.stringify(document, null, 2) + "\n";
+  return JSON.stringify(designLanguages[starter], null, 2) + "\n";
 }

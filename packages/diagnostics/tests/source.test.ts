@@ -16,7 +16,7 @@ import { test } from "bun:test";
  * The sheet the order is read from is the project's own.
  */
 
-import spinStarter from "../../theme/src/themes/editorial.json" with {
+import spinStarter from "../../theme/src/languages/editorial.json" with {
   type: "json",
 };
 

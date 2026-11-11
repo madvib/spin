@@ -1,0 +1,207 @@
+{
+  "color": {
+    "$type": "color",
+    "$description": "Sun-washed plaster and kiln terracotta by day, roasted espresso and sunlit clay by night: a warm palette facet that composes over any design language without touching its space or type.",
+    "surface": {
+      "$value": "#faf5ef",
+      "$description": "Sun-washed plaster: the page.",
+      "$modes": {
+        "dark": "#17110e"
+      }
+    },
+    "surface-raised": {
+      "$value": "#fffcf8",
+      "$description": "Chalk glaze: the sheet above the page.",
+      "$modes": {
+        "dark": "#221915"
+      }
+    },
+    "surface-sunken": {
+      "$value": "#f0e7dc",
+      "$description": "Sandstone trough below the page.",
+      "$modes": {
+        "dark": "#110c0a"
+      }
+    },
+    "text": {
+      "$value": "#2b1d16",
+      "$description": "Roasted espresso: the primary reading ink.",
+      "$modes": {
+        "dark": "#f5ebe2"
+      }
+    },
+    "text-muted": {
+      "$value": "#6b5346",
+      "$description": "Aged umber: the secondary voice.",
+      "$modes": {
+        "dark": "#c4afa0"
+      }
+    },
+    "border": {
+      "$value": "#dfd1c3",
+      "$description": "Kiln dust hairlines and dividers.",
+      "$modes": {
+        "dark": "#382a23"
+      }
+    },
+    "border-strong": {
+      "$value": "#bfa894",
+      "$description": "Glazed rim: a control's own edge.",
+      "$modes": {
+        "dark": "#544036"
+      }
+    },
+    "primary": {
+      "$value": "#a83b1e",
+      "$description": "Kiln terracotta: primary actions, readable as text on plaster and behind white ink as a fill.",
+      "$modes": {
+        "dark": "#f09375"
+      }
+    },
+    "on-primary": {
+      "$value": "#ffffff",
+      "$description": "The ink on the primary fill.",
+      "$modes": {
+        "dark": "#17110e"
+      }
+    },
+    "secondary": {
+      "$value": "#4a372b",
+      "$description": "Charred walnut: secondary actions.",
+      "$modes": {
+        "dark": "#dcc2b0"
+      }
+    },
+    "on-secondary": {
+      "$value": "#ffffff",
+      "$description": "The ink on the secondary fill.",
+      "$modes": {
+        "dark": "#17110e"
+      }
+    },
+    "accent": {
+      "$value": "#285d4d",
+      "$description": "Oxidized verdigris: supporting emphasis.",
+      "$modes": {
+        "dark": "#85ccb4"
+      }
+    },
+    "on-accent": {
+      "$value": "#ffffff",
+      "$description": "The ink on the accent fill.",
+      "$modes": {
+        "dark": "#17110e"
+      }
+    },
+    "semantic": {
+      "$description": "Status colors, named by meaning.",
+      "success": {
+        "$value": "#266b38",
+        "$description": "Herb green: readable as status text on plaster.",
+        "$modes": {
+          "dark": "#8fd69e"
+        }
+      },
+      "warning": {
+        "$value": "#875400",
+        "$description": "Ochre amber: readable as status text on plaster.",
+        "$modes": {
+          "dark": "#f2c97d"
+        }
+      },
+      "error": {
+        "$value": "#b82025",
+        "$description": "Cinnabar red: readable as status text on plaster.",
+        "$modes": {
+          "dark": "#f58c8a"
+        }
+      },
+      "info": {
+        "$value": "#1b5e7a",
+        "$description": "Cobalt glaze: readable as status text on plaster.",
+        "$modes": {
+          "dark": "#7cc6e8"
+        }
+      }
+    },
+    "on-semantic-success": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "The ink on the success fill.",
+      "$modes": {
+        "dark": "#17110e"
+      }
+    },
+    "on-semantic-warning": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "The ink on the warning fill.",
+      "$modes": {
+        "dark": "#17110e"
+      }
+    },
+    "on-semantic-error": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "The ink on the error fill.",
+      "$modes": {
+        "dark": "#17110e"
+      }
+    },
+    "on-semantic-info": {
+      "$type": "color",
+      "$value": "#ffffff",
+      "$description": "The ink on the info fill.",
+      "$modes": {
+        "dark": "#17110e"
+      }
+    },
+    "selected": {
+      "$type": "color",
+      "$value": "#2b1d16",
+      "$description": "Espresso ink: the selected state fill.",
+      "$modes": {
+        "dark": "#f5ebe2"
+      }
+    },
+    "on-selected": {
+      "$type": "color",
+      "$value": "#faf5ef",
+      "$description": "Plaster base: the ink on the selected fill.",
+      "$modes": {
+        "dark": "#17110e"
+      }
+    },
+    "disabled": {
+      "$type": "color",
+      "$value": "#dfd1c3",
+      "$description": "Kiln dust: the fill a disabled control wears.",
+      "$modes": {
+        "dark": "#332620"
+      }
+    },
+    "on-disabled": {
+      "$type": "color",
+      "$value": "#4a372b",
+      "$description": "Walnut ink on a disabled control's fill.",
+      "$modes": {
+        "dark": "#c4afa0"
+      }
+    },
+    "focus-ring": {
+      "$value": "#a83b1e",
+      "$description": "Focus indicator follows the primary terracotta.",
+      "$modes": {
+        "dark": "#f09375"
+      }
+    },
+    "link": {
+      "$value": "#a83b1e",
+      "$description": "Prose links follow the primary terracotta.",
+      "$modes": {
+        "dark": "#f09375"
+      }
+    }
+  },
+  "modes": ["light", "dark"]
+}

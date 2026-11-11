@@ -17,7 +17,7 @@ import { readFileSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import type { SpinRule } from "../../utils/lookup.ts";
-import { cssVarName, indexTree, parseTokens, resolveAliases } from "@spinjs/theme";
+import { cssVarName, indexTree, minimalLanguage, parseTokens, resolveAliases } from "@spinjs/theme";
 import type { ThemeCssVar } from "@spinjs/theme/theme-types";
 import type { ThemeDocument } from "@spinjs/theme";
 import { a11yRules } from "./a11y.ts";
@@ -623,15 +623,7 @@ const RULE_SOURCES: Record<string, () => SpinRule[]> = {
 /** The custom properties the baseline theme actually declares. */
 export const declaredVars: ReadonlySet<string> = (() => {
   try {
-    const doc = JSON.parse(
-      readFileSync(
-        fileURLToPath(
-          new URL("../../../../theme/src/themes/minimal.json", import.meta.url),
-        ),
-        "utf8",
-      ),
-    ) as ThemeDocument;
-    const parsed = parseTokens(doc);
+    const parsed = parseTokens(minimalLanguage);
     if (!parsed.ok) throw new Error(parsed.error);
     const vars = indexTree(resolveAliases(parsed.tree).tree).vars;
     return new Set(Object.values(vars).map((leaf) => cssVarName(leaf.path)));

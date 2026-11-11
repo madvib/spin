@@ -2,7 +2,7 @@ import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import { spinPreset } from "@spinjs/preset";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 import { factsFor } from "../src/project-vocabulary.ts";
 import { engineAnswers } from "@spinjs/preset";
 import { canonicalMap } from "@spinjs/preset/css";
@@ -17,7 +17,7 @@ import { canonicalMap } from "@spinjs/preset/css";
  * rules the stylesheet comes from, and this holds the two to each other.
  */
 
-const facts = factsFor(Object.values(starterThemes), engineAnswers(Object.values(starterThemes)));
+const facts = factsFor(Object.values(designLanguages), engineAnswers(Object.values(designLanguages)));
 
 /**
  * The declarations a stylesheet carries for a tag.
@@ -49,7 +49,7 @@ function declarationsOf(css: string, tag: string): Map<string, string> {
 
 test("the surfaces agree with the stylesheet the theme ships", async () => {
   const uno = await createGenerator({
-    presets: [spinPreset({ themes: starterThemes })],
+    presets: [spinPreset({ themes: designLanguages })],
   });
   for (const tag of ["h1", "h3", "h6", "p", "li", "code", "button", "kbd"]) {
     const { css } = await uno.generate(tag, { preflights: false });
@@ -67,7 +67,7 @@ test("the surfaces agree with the stylesheet the theme ships", async () => {
 
 test("a class declares what the stylesheet declares for it", async () => {
   const uno = await createGenerator({
-    presets: [spinPreset({ themes: starterThemes })],
+    presets: [spinPreset({ themes: designLanguages })],
   });
   for (const cls of ["text-xl", "bg-primary", "p-4", "rounded-md"]) {
     const { css } = await uno.generate(cls, { preflights: false });

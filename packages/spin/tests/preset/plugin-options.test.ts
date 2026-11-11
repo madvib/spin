@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { test } from "bun:test";
 import assert from "node:assert/strict";
 import { spin } from "../../src/plugin/plugin.ts";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 
 type ViteOptions = {
   configResolved?: (config: { root: string; command: string }) => void;
@@ -32,7 +32,7 @@ test("classless: false is a loud error, not a silent option", async () => {
       "utf8",
     );
     const stages = spin.vite({
-      themes: { brand: starterThemes.editorial },
+      themes: { brand: designLanguages.editorial },
       classless: false,
       content: { filesystem: [`${root}/src/**/*.html`] },
     } as never) as unknown as ViteOptions[];
@@ -64,11 +64,11 @@ test("verbatim themes replace the whole stack, disk included", async () => {
     );
     await writeFile(
       join(root, "spin", "disk.json"),
-      JSON.stringify(starterThemes.minimal),
+      JSON.stringify(designLanguages.minimal),
       "utf8",
     );
     const stages = spin.vite({
-      themes: { brand: starterThemes.editorial },
+      themes: { brand: designLanguages.editorial },
       content: { filesystem: [`${root}/src/**/*.html`] },
     }) as unknown as ViteOptions[];
     const plugin = await stylesheetStage(stages);
@@ -99,7 +99,7 @@ test("extends layers the brand under the local disk, fork by name", async () => 
       '<div class="flex">hi</div>\n',
       "utf8",
     );
-    const fork = JSON.parse(JSON.stringify(starterThemes.editorial)) as Record<
+    const fork = JSON.parse(JSON.stringify(designLanguages.editorial)) as Record<
       string,
       unknown
     >;
@@ -107,11 +107,11 @@ test("extends layers the brand under the local disk, fork by name", async () => 
     await writeFile(join(root, "spin", "brand.json"), JSON.stringify(fork), "utf8");
     await writeFile(
       join(root, "spin", "local.json"),
-      JSON.stringify(starterThemes.minimal),
+      JSON.stringify(designLanguages.minimal),
       "utf8",
     );
     const stages = spin.vite({
-      extends: { themes: { brand: starterThemes.editorial } },
+      extends: { themes: { brand: designLanguages.editorial } },
       content: { filesystem: [`${root}/src/**/*.html`] },
     }) as unknown as ViteOptions[];
     const plugin = await stylesheetStage(stages);

@@ -16,8 +16,7 @@ import {
 } from "@jibe/embed/sdk";
 import { spinPreset } from "@spinjs/preset";
 import { mode, theme } from "@spinjs/kit";
-import { resolveTheme, type ThemeDocument } from "@spinjs/theme";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages, isDesignLanguage, resolveTheme, type ThemeDocument } from "@spinjs/theme";
 import { SUBJECT_HTML, type Subject } from "../../examples/shared.ts";
 
 export type PlaygroundFramework =
@@ -275,9 +274,9 @@ function hostSeedFiles(): Record<string, string> {
 }
 
 export function resolveSpinJibeTheme(activeTheme: string, activeMode: string) {
-  const doc =
-    starterThemes[activeTheme as keyof typeof starterThemes] ??
-    starterThemes.editorial;
+  const doc = isDesignLanguage(activeTheme)
+    ? designLanguages[activeTheme]
+    : designLanguages.editorial;
   const resolved = resolveTheme(doc, activeMode);
   const str = (key: string, fallback: string): string => {
     const val = resolved.values[key];
@@ -377,7 +376,7 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
       themes.push({
         name,
         text: JSON.stringify(
-          starterThemes[name as keyof typeof starterThemes],
+          isDesignLanguage(name) ? designLanguages[name] : designLanguages.editorial,
           null,
           2,
         ),
@@ -493,7 +492,7 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
   ): Record<string, string> => {
     const wiring = FRAMEWORK_WIRING[framework];
     const themeJson = JSON.stringify(
-      starterThemes[themeName as keyof typeof starterThemes],
+      isDesignLanguage(themeName) ? designLanguages[themeName] : designLanguages.editorial,
       null,
       2,
     );

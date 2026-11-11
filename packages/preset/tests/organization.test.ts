@@ -44,7 +44,7 @@ import { readFileSync } from "node:fs";
 
 const theme = JSON.parse(
   readFileSync(
-    new URL("../../theme/src/themes/minimal.json", import.meta.url),
+    new URL("../../theme/src/languages/minimal.json", import.meta.url),
     "utf8",
   ),
 );

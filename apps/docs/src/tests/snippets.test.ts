@@ -8,7 +8,7 @@ import {
   ownedStyleNames,
   parseTokens,
   resolveAliases,
-  starterThemes,
+  designLanguages,
   themeGates,
 } from "../../../../packages/theme/src/index.ts";
 import { parseArgs } from "../../../../packages/spin/src/cli/main.ts";
@@ -128,10 +128,6 @@ describe("Per-subgroup docs snippets", () => {
     expect(config.mcpServers.spin.command).toBe("npx");
     expect(config.mcpServers.spin.args).toEqual(["spin", "mcp"]);
   });
-
-  test("the starter themes are a non-empty document map", () => {
-    expect(Object.keys(starterThemes).length).toBeGreaterThan(0);
-  });
 });
 
 const STYLING_DIR = resolve(import.meta.dir, "../pages/docs/styling");
@@ -200,7 +196,7 @@ describe("docs-to-catalog currency", () => {
     expect(worn.size).toBeGreaterThan(0);
     const owned = new Set(ownedStyleNames());
     const parsed = parseTokens(
-      starterThemes.editorial as unknown as Parameters<typeof parseTokens>[0],
+      designLanguages.editorial as unknown as Parameters<typeof parseTokens>[0],
     );
     if (!parsed.ok) throw new Error(parsed.error);
     const catalog = new Set(
@@ -228,7 +224,7 @@ describe("docs-to-catalog currency", () => {
     const stated = statedTokenPaths(sources);
     expect(stated.size).toBeGreaterThan(0);
     const parsed = parseTokens(
-      starterThemes.editorial as unknown as Parameters<typeof parseTokens>[0],
+      designLanguages.editorial as unknown as Parameters<typeof parseTokens>[0],
     );
     if (!parsed.ok) throw new Error(parsed.error);
     const index = indexTree(resolveAliases(parsed.tree).tree);
@@ -252,10 +248,10 @@ describe("docs-to-catalog currency", () => {
 describe("lints page specimens", () => {
   test("every bad specimen trips its rule and every good specimen is clean", async () => {
     const parsed = parseTokens(
-      starterThemes.editorial as unknown as Parameters<typeof parseTokens>[0],
+      designLanguages.editorial as unknown as Parameters<typeof parseTokens>[0],
     );
     if (!parsed.ok) throw new Error(parsed.error);
-    const answers = engineAnswers([starterThemes.editorial]);
+    const answers = engineAnswers([designLanguages.editorial]);
     const run = {
       rules: RULE_NAMES,
       semantic: DEFAULT_SEMANTIC_OPTIONS,

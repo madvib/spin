@@ -1,31 +1,48 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import { mergeThemeDocuments } from "../extends.ts";
+import { demoPalettes, demoSpacings } from "../facets/index.ts";
+import { designLanguages } from "../languages/index.ts";
+import type { ThemeDocument } from "../pipeline/types.ts";
 import { themeGates } from "./battery.ts";
-import {
-  catppuccinPalette,
-  compactSpacing,
-  starterThemes,
-} from "../themes/index.ts";
+import { validatePaletteFacet, validateSpacingFacet } from "./validate-theme.ts";
 
-// A facet worn over a starter reads as the facet merged over it: at runtime
-// the facet's `[data-palette]` / `[data-spacing]` block wins ties at equal
-// specificity, and on the token side that is `mergeThemeDocuments` — the same
-// helper the facet validators judge with. No single daemon/studio composer
-// exists to call (composition is the cascade), so it stays test-local here.
-const FACETS = { catppuccin: catppuccinPalette, compact: compactSpacing } as const;
+const PALETTE_AXIS: Readonly<Record<string, ThemeDocument | undefined>> = {
+  none: undefined,
+  ...demoPalettes,
+};
 
-for (const [starterName, starter] of Object.entries(starterThemes)) {
-  for (const [facetName, facet] of Object.entries(FACETS)) {
-    test(`${starterName} + ${facetName} holds every legibility floor in base and dark`, () => {
-      const composed = mergeThemeDocuments(starter, facet);
-      // The served-dark claim judges the dark rendering too; the base is
-      // always judged. The battery folds the state pairs into legibility.
-      const report = themeGates(JSON.stringify(composed), { modes: ["dark"] });
-      deepStrictEqual(
-        report.gates.find((gate) => gate.gate === "legibility")?.issues,
-        [],
-      );
-    });
+const SPACING_AXIS: Readonly<Record<string, ThemeDocument | undefined>> = {
+  none: undefined,
+  ...demoSpacings,
+};
+
+for (const [paletteName, paletteDoc] of Object.entries(demoPalettes)) {
+  test(`palette facet ${paletteName} passes standalone facet validation`, () => {
+    const report = validatePaletteFacet(paletteDoc);
+    deepStrictEqual(report.issues, []);
+  });
+}
+
+for (const [spacingName, spacingDoc] of Object.entries(demoSpacings)) {
+  test(`spacing facet ${spacingName} passes standalone facet validation`, () => {
+    const report = validateSpacingFacet(spacingDoc);
+    deepStrictEqual(report.issues, []);
+  });
+}
+
+for (const [languageName, languageDoc] of Object.entries(designLanguages)) {
+  for (const [paletteName, paletteDoc] of Object.entries(PALETTE_AXIS)) {
+    for (const [spacingName, spacingDoc] of Object.entries(SPACING_AXIS)) {
+      if (paletteDoc === undefined && spacingDoc === undefined) continue;
+      test(`${languageName} × palette:${paletteName} × spacing:${spacingName} passes every gate in light and dark`, () => {
+        let composed = languageDoc;
+        if (paletteDoc !== undefined) composed = mergeThemeDocuments(composed, paletteDoc);
+        if (spacingDoc !== undefined) composed = mergeThemeDocuments(composed, spacingDoc);
+        const report = themeGates(JSON.stringify(composed), { modes: ["dark"] });
+        const issues = report.gates.flatMap((gate) => gate.issues);
+        deepStrictEqual(issues, []);
+      });
+    }
   }
 }

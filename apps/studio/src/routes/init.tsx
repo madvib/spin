@@ -15,8 +15,7 @@ import {
   For,
   Show,
 } from "solid-js";
-import { starterThemes } from "@spinjs/theme/themes";
-import { typeSuggestions } from "@spinjs/theme";
+import { designLanguages, type DesignLanguageName, typeSuggestions } from "@spinjs/theme";
 import { A, useNavigate } from "@solidjs/router";
 import { inDrawer } from "../lib/host.ts";
 import {
@@ -81,9 +80,9 @@ export default function InitPage() {
   });
 
   const starters = createMemo(() =>
-    Object.keys(starterThemes).map((key) => ({
+    (Object.keys(designLanguages) as DesignLanguageName[]).map((key) => ({
       name: key,
-      text: JSON.stringify(starterThemes[key]),
+      text: JSON.stringify(designLanguages[key]),
       caption: LANGUAGE_CAPTIONS[key] ?? "",
     }))
   );

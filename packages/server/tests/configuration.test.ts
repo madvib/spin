@@ -191,15 +191,15 @@ test("an aliased brand resolves to the export it names", () => {
 
 test("an inline themes record resolves to the import it names", () => {
   const declared = extendsIn(
-    `import { starterThemes } from "@spinjs/theme/themes";\nspin.vite({ extends: { themes: starterThemes } })`,
+    `import { designLanguages } from "@spinjs/theme";\nspin.vite({ extends: { themes: designLanguages } })`,
   );
   deepStrictEqual(declared, {
     kind: "inline",
     record: {
       kind: "record",
       value: {
-        source: "@spinjs/theme/themes",
-        exportName: "starterThemes",
+        source: "@spinjs/theme",
+        exportName: "designLanguages",
       },
     },
   });

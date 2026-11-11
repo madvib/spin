@@ -123,7 +123,7 @@ export default function ThemesValidation(): JSX.Element {
           <code>var(--color-primary)</code>). When you need resolved hex or
           pixel values in JavaScript — for <code>&lt;canvas&gt;</code>, WebGL,
           charting libraries, or <code>&lt;meta name="theme-color"&gt;</code>{" "}
-          — use <code>resolveTheme(editorialTheme, "dark")</code> from{" "}
+          — use <code>resolveTheme(editorialLanguage, "dark")</code> from{" "}
           <code>@spinjs/theme</code>:
         </p>
         <div class="my-3">

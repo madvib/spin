@@ -39,7 +39,7 @@ function expandGroups(text: string, runtime: RuntimeSyntax | undefined): string[
   }
   return runtime.expandVariantGroups(text).split(/\s+/).filter((token) => token.length > 0);
 }
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 
 /**
  * A component parse that outran its budget.
@@ -243,7 +243,7 @@ async function resolve(
     const { spinPreset } = await import("@spinjs/preset");
     const generator = await createGenerator({
       presets: [
-        spinPreset({ themes: { ...starterThemes } }),
+        spinPreset({ themes: { ...designLanguages } }),
       ],
     });
     const { matched, css } = await generator.generate(new Set(candidates));

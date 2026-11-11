@@ -17,7 +17,8 @@ import {
   compose,
   mergeThemeDocuments,
   seedPalette,
-  starterThemes,
+  designLanguages,
+  isDesignLanguage,
   suggestionFaces,
   typeSuggestions,
   validateTheme,
@@ -113,9 +114,8 @@ function parentOf(tagged: readonly { layer: ThemeDocument }[]): { name: string; 
   const tokens = tagged[0]?.layer;
   const parentName = tokens?.["$extends"];
   if (typeof parentName !== "string") return { name: undefined, document: undefined };
-  const parent = starterThemes[parentName];
-  if (parent === undefined) return { name: parentName, document: undefined };
-  return { name: parentName, document: parent };
+  if (!isDesignLanguage(parentName)) return { name: parentName, document: undefined };
+  return { name: parentName, document: designLanguages[parentName] };
 }
 
 /**
@@ -275,12 +275,12 @@ export async function setBrandDesignLanguage(
 ): Promise<BrandWriteResult> {
   const { readFile, writeFile } = await import("node:fs/promises");
   const { join } = await import("node:path");
-  if (starterThemes[language] === undefined) {
+  if (!isDesignLanguage(language)) {
     return {
       error: brandError(
         brand,
         `${brand}/tokens.json`,
-        `unknown design language "${language}" — expected one of ${Object.keys(starterThemes).join(", ")}`,
+        `unknown design language "${language}" — expected one of ${Object.keys(designLanguages).join(", ")}`,
       ),
     };
   }
@@ -394,13 +394,13 @@ export async function setBrandPalette(
       };
     }
     const parentName = tokens["$extends"];
-    if (typeof parentName !== "string" || starterThemes[parentName] === undefined) {
+    if (typeof parentName !== "string" || !isDesignLanguage(parentName)) {
       return {
         error: brandError(
           brand,
           `${brand}/tokens.json`,
           typeof parentName === "string"
-            ? `unknown design language "${parentName}" — expected one of ${Object.keys(starterThemes).join(", ")}`
+            ? `unknown design language "${parentName}" — expected one of ${Object.keys(designLanguages).join(", ")}`
             : `no design language set — set one before seeding a palette`,
         ),
       };
@@ -475,7 +475,7 @@ export async function setBrandType(
       };
     }
     const parentName = tokens["$extends"];
-    const parent = typeof parentName === "string" ? starterThemes[parentName] : undefined;
+    const parent = typeof parentName === "string" && isDesignLanguage(parentName) ? designLanguages[parentName] : undefined;
     const pairing = choice.suggestion !== undefined
       ? suggestions.find((entry) => entry.language === choice.suggestion)
       : parent !== undefined && typeof parentName === "string"
@@ -573,7 +573,7 @@ export async function getBrand(
       issues: [{
         layer: "layer[0]",
         path: "$extends",
-        message: `unknown design language "${parent.name}" — expected one of ${Object.keys(starterThemes).join(", ")}`,
+        message: `unknown design language "${parent.name}" — expected one of ${Object.keys(designLanguages).join(", ")}`,
       }],
     };
   }

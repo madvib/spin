@@ -23,7 +23,7 @@ import { applyFixes, type Diagnostic } from "../src/engine.ts";
 import { run } from "@spinjs/spin/cli";
 import eslintPlugin from "../src/eslint.ts";
 import { engineAnswers } from "@spinjs/preset";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 import { factsForFile } from "../src/provider.ts";
 import { readProjectThemes } from "../src/project.ts";
 import { rootOf } from "../src/provider.ts";
@@ -250,7 +250,7 @@ function canonical(
  */
 function coreFindings(file: string, semantic: SemanticOptions): Canonical[] {
   const root = rootOf(file) ?? "";
-  const facts = factsForFile(file, engineAnswers([...Object.values(starterThemes), ...Object.values(readProjectThemes(root))]));
+  const facts = factsForFile(file, engineAnswers([...Object.values(designLanguages), ...Object.values(readProjectThemes(root))]));
   const out: Canonical[] = [];
   for (const element of elementsOf(FIXTURE)) {
     const node: ClassFacts = {
@@ -299,7 +299,7 @@ interface Edit {
  */
 function coreEdits(file: string): Edit[] {
   const root = rootOf(file) ?? "";
-  const facts = factsForFile(file, engineAnswers([...Object.values(starterThemes), ...Object.values(readProjectThemes(root))]));
+  const facts = factsForFile(file, engineAnswers([...Object.values(designLanguages), ...Object.values(readProjectThemes(root))]));
   const out: Edit[] = [];
   for (const element of elementsOf(FIXTURE)) {
     const node: ClassFacts = {

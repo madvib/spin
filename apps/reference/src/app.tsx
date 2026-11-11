@@ -5,8 +5,7 @@ import {
   SECTIONS,
   utilitiesFor,
 } from "@spinjs/preset";
-import { parseTokens } from "@spinjs/theme";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages, parseTokens } from "@spinjs/theme";
 import {
   createThemeState,
   Logo,
@@ -45,7 +44,7 @@ let themeTree: TokenTree | undefined;
 function themeTreeOrParse(): TokenTree {
   if (themeTree === undefined) {
     const parsed = parseTokens(
-      starterThemes.minimal,
+      designLanguages.minimal,
     );
     if (!parsed.ok) throw new Error(parsed.error);
     themeTree = parsed.tree;

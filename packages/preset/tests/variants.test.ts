@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createGenerator } from "@unocss/core";
 import { spinPreset } from "../src/index.ts";
 import { readFile } from "node:fs/promises";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 
 /**
  * What a variant utility has to do.
@@ -31,7 +31,7 @@ const IMPLEMENTED = ["hover", "focus"] as const;
 async function theme() {
   return JSON.parse(
     await readFile(
-      new URL("../../theme/src/themes/minimal.json", import.meta.url),
+      new URL("../../theme/src/languages/minimal.json", import.meta.url),
       "utf8",
     ),
   );
@@ -91,7 +91,7 @@ test("a responsive prefix emits the theme's width as a media query", async () =>
   // produced `(min-width: var(--breakpoint-md))`, which never matches, and
   // every responsive rule in the product was silently dead. The width must
   // arrive as the literal the theme declared.
-  const theme = starterThemes.minimal;
+  const theme = designLanguages.minimal;
   const gen = await createGenerator({
     presets: [spinPreset({ themes: { default: theme } })],
   });

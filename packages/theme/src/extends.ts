@@ -15,7 +15,7 @@
 import type { ThemeDocument } from "./pipeline/types.ts";
 import { baseDocument } from "./base-document.ts";
 import { mergeThemeDocuments } from "./merge.ts";
-import { starterThemes } from "./themes/index.ts";
+import { designLanguages } from "./languages/index.ts";
 
 export { mergeThemeDocuments } from "./merge.ts";
 
@@ -34,7 +34,7 @@ export { mergeThemeDocuments } from "./merge.ts";
 export function expandExtends(
   doc: ThemeDocument,
   builtins: Readonly<Record<string, ThemeDocument>> = {
-    ...starterThemes,
+    ...designLanguages,
     base: baseDocument,
   },
 ): ThemeDocument {
@@ -45,7 +45,7 @@ export function expandExtends(
     const base = builtins[name];
     if (base === undefined) {
       throw new Error(
-        `unknown starter "${name}" in $extends — expected one of ${
+        `unknown design language "${name}" in $extends — expected one of ${
           Object.keys(builtins).join(", ")
         }`,
       );

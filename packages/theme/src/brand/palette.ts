@@ -27,7 +27,7 @@ import { legibilityFloors } from "../contract/roles.ts";
 import { parseTokens } from "../pipeline/parse.ts";
 import { indexTree, resolveAliases } from "../pipeline/resolve.ts";
 import { mergeThemeDocuments } from "../merge.ts";
-import { starterThemes } from "../themes/index.ts";
+import { designLanguages, isDesignLanguage } from "../languages/index.ts";
 import { treeInMode } from "../modes.ts";
 import type { ThemeDocument } from "../pipeline/types.ts";
 import { sparseLayer } from "./sparse.ts";
@@ -146,15 +146,15 @@ export function seedPalette(
   language: string,
   seed: PaletteSeed,
 ): SeededPalette {
-  const parent = starterThemes[language];
-  if (parent === undefined) {
+  if (!isDesignLanguage(language)) {
     return {
       layer: undefined,
       issues: [
-        `unknown design language "${language}" — expected one of ${Object.keys(starterThemes).join(", ")}`,
+        `unknown design language "${language}" — expected one of ${Object.keys(designLanguages).join(", ")}`,
       ],
     };
   }
+  const parent = designLanguages[language];
   let primary: string;
   try {
     primary = hexOf(parseColor(seed.primary));

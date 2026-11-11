@@ -14,7 +14,7 @@
  * disagree, because the list in the file is the contract's list.
  */
 
-import { starterGroups } from "@spinjs/theme/themes";
+import { designLanguageGroups } from "@spinjs/theme";
 
 /** The heading the checklist lives under. */
 const CHECKLIST = "## The checklist";
@@ -50,7 +50,7 @@ export function renderSkill(template: string): string {
     firstGroup === -1 ? [] : section.slice(firstGroup),
   );
   const checklist: string[] = [...intro, ""];
-  for (const group of starterGroups()) {
+  for (const group of designLanguageGroups()) {
     checklist.push(`### ${group}`, "");
     checklist.push(...trimBlanks(guidance.get(group) ?? [UNDESCRIBED]));
     checklist.push("");

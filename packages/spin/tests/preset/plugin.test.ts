@@ -50,14 +50,14 @@ test("prefix entries own subpaths and return the matcher's tail", async () => {
   );
   assert(prefixes.length > 0, "at least one prefix entry exists");
   const spinPrefix = prefixes.find((entry) =>
-    (entry.find as RegExp).test("@spinjs/spin/theme/themes")
+    (entry.find as RegExp).test("@spinjs/spin/theme/base")
   )!;
   assert(
-    (spinPrefix.find as RegExp).test("@spinjs/spin/theme/themes"),
+    (spinPrefix.find as RegExp).test("@spinjs/spin/theme/base"),
     "the spin prefix matches subpaths",
   );
   const themePrefix = prefixes.find((entry) =>
-    (entry.find as RegExp).test("@spinjs/theme/themes")
+    (entry.find as RegExp).test("@spinjs/theme/base")
   )!;
   assert(themePrefix, "the legacy theme prefix still matches subpaths");
   // The replacement carries the capture through: `@spinjs/spin/a/b` is
@@ -77,7 +77,7 @@ test("longest match rides first: base, then prefix, then exact", async () => {
   const spinPrefix = indexOf(
     (entry) =>
       entry.find instanceof RegExp &&
-      (entry.find as RegExp).test("@spinjs/spin/theme/themes"),
+      (entry.find as RegExp).test("@spinjs/spin/theme/base"),
   );
   const exact = indexOf((entry) => entry.find === "@spinjs/spin");
   assert(vite > -1);

@@ -12,8 +12,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { type Daemon, startDaemon } from "@spinjs/server/daemon";
 import { createSpinClient, type SpinClient, createSpinApp } from "../../src/api/index.ts";
-import { parseTokens, setToken, treeToJson } from "@spinjs/theme";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages, parseTokens, setToken, treeToJson } from "@spinjs/theme";
 import { Client } from "@modelcontextprotocol/client";
 import { InMemoryTransport } from "@modelcontextprotocol/server";
 import { buildSpinMcpServer } from "../../src/mcp/server.ts";
@@ -53,7 +52,7 @@ describe("the spin MCP server", () => {
     // The fixture theme: the scaffold, with one dark override so the
     // round-trip has a $modes slot to lose. It serves both modes, so the
     // override it carries is one a reader will see.
-    const silkParsed = parseTokens(JSON.stringify(starterThemes.minimal));
+    const silkParsed = parseTokens(JSON.stringify(designLanguages.minimal));
     if (!silkParsed.ok) throw new Error(silkParsed.error);
     const moded = setToken(
       silkParsed.tree,
@@ -254,7 +253,7 @@ describe("the spin MCP server", () => {
   });
 
   it("writes a whole document and reports its validation", async () => {
-    const text = JSON.stringify(starterThemes.minimal, null, 2);
+    const text = JSON.stringify(designLanguages.minimal, null, 2);
     const written = await mcp.callTool({
       name: "theme",
       arguments: { action: "write", name: "whole", text },

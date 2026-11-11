@@ -17,9 +17,9 @@ import {
   runCheck,
 } from "@spin/check";
 import {
-  starterThemes,
+  designLanguages,
   themeModes,
-} from "@spinjs/theme/themes";
+} from "@spinjs/theme";
 import {
   geometryAudit,
   geometryClaimsFor,
@@ -61,7 +61,7 @@ function routes(query?: string): readonly Route[] {
   }));
 }
 
-const THEMES: Record<string, Parameters<typeof themeModes>[0]> = starterThemes;
+const THEMES: Record<string, Parameters<typeof themeModes>[0]> = designLanguages;
 
 /**
  * The mounted project's own themes: the files in the reference's `spin/`,

@@ -3,10 +3,10 @@ import assert, { deepStrictEqual } from "node:assert/strict";
 import type { MutationResult } from "./mutate.ts";
 import { parseTokens } from "../pipeline/parse.ts";
 import { validateTokens } from "../pipeline/validate.ts";
-import { starterThemes } from "../themes/index.ts";
+import { designLanguages } from "../languages/index.ts";
 
 function minimalTree() {
-  const parsed = parseTokens(JSON.stringify(starterThemes.minimal));
+  const parsed = parseTokens(JSON.stringify(designLanguages.minimal));
   if (!parsed.ok) throw new Error(parsed.error);
   return parsed.tree;
 }

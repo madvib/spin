@@ -1,4 +1,4 @@
-import { starterThemes } from "@spinjs/theme";
+import { designLanguages } from "@spinjs/theme";
 import { elementGroups, elementTokens, FLOORS, ROLES, schemaFacts, themeSummaries, TYPES } from "../../src/markdown/theme-docs.ts";
 import { THEMES_SNIPPETS } from "../../src/pages/docs/themes/themes.snippets.ts";
 
@@ -207,7 +207,7 @@ export function buildThemeMarkdown(routePath: string): string | undefined {
               .join(", ")}`,
         )
         .join("\n");
-      const editorialDoc = starterThemes.editorial as unknown as Record<string, unknown>;
+      const editorialDoc = designLanguages.editorial as unknown as Record<string, unknown>;
       const fontGroup = editorialDoc["font"] as Record<string, unknown> | undefined;
       const styleGroup = fontGroup?.["style"] as
         | Record<string, unknown>

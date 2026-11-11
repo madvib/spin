@@ -2,13 +2,12 @@ import { readFileSync } from "node:fs";
 import { test } from "bun:test";
 import assert from "node:assert/strict";
 import { deepStrictEqual } from "node:assert/strict";
-import { indexTree, parseTokens, resolveAliases } from "@spinjs/theme";
+import { designLanguages, indexTree, parseTokens, resolveAliases } from "@spinjs/theme";
 import {
   primitiveComponents,
   primitiveContracts,
   primitiveVariants,
 } from "../src/index.ts";
-import { starterThemes } from "@spinjs/theme/themes";
 import {
   deriveRuleContract,
   deriveScope,
@@ -25,10 +24,10 @@ import {
  * every filled button rendered with invisible text.
  */
 
-const THEMES_DIR = new URL("../../theme/src/themes/", import.meta.url);
-// The registry, not a list: a starter added to the package is silently
+const THEMES_DIR = new URL("../../theme/src/languages/", import.meta.url);
+// The registry, not a list: a design language added to the package is silently
 // subject to every gate below, the day it is added.
-const THEMES = Object.keys(starterThemes).map((name) => `${name}.json`);
+const THEMES = Object.keys(designLanguages).map((name) => `${name}.json`);
 
 function varsOf(name: string): Set<string> {
   const text = readFileSync(new URL(name, THEMES_DIR), "utf8");

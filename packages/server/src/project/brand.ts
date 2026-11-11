@@ -19,10 +19,11 @@
 import { compose } from "@spinjs/theme";
 import type { ThemeDocument } from "@spinjs/theme";
 import {
+  designLanguages,
+  isDesignLanguage,
   validatePaletteFacet,
   validateSpacingFacet,
 } from "@spinjs/theme";
-import { starterThemes } from "@spinjs/theme/themes";
 import { CONFIG_FILENAME } from "./facts.ts";
 import { resolveProjectDir } from "./resolve-dir.ts";
 
@@ -97,13 +98,13 @@ async function composeBrand(dir: string): Promise<ThemeDocument | undefined> {
   }
   if (tagged.length === 0) return undefined;
   const parentName = tokens?.["$extends"] ?? reference?.["$extends"];
-  const parent = typeof parentName === "string"
-    ? starterThemes[parentName as keyof typeof starterThemes]
+  const parent = typeof parentName === "string" && isDesignLanguage(parentName)
+    ? designLanguages[parentName]
     : undefined;
   if (typeof parentName === "string" && parent === undefined) {
     throw new Error(
-      `spin: brand "${dir}" is invalid: unknown starter "${parentName}" in $extends — expected one of ${
-        Object.keys(starterThemes).join(", ")
+      `spin: brand "${dir}" is invalid: unknown design language "${parentName}" in $extends — expected one of ${
+        Object.keys(designLanguages).join(", ")
       }`,
     );
   }

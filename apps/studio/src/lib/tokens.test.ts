@@ -5,8 +5,8 @@ import {
   indexTree,
   parseTokens,
   type TokenTree,
+  minimalLanguage,
 } from "@spinjs/theme";
-import { minimalTheme } from "@spinjs/theme/themes";
 import {
   attachedStyle,
   declaredStyles,
@@ -111,7 +111,7 @@ test("tokenRowAt does not read a token under a path as the path itself", () => {
 test("every token in the reference theme links to a route that exists", () => {
   // The reference app serves the shipped default as its own theme: the
   // document is the package's, not a file anyone maintains a copy of.
-  const parsed = parseTokens(minimalTheme);
+  const parsed = parseTokens(minimalLanguage);
   if (!parsed.ok) {
     throw new Error(`reference theme does not parse: ${parsed.error}`);
   }
@@ -248,7 +248,7 @@ test("a type the studio has no parts for is not a composite", () => {
 });
 
 test("the ladders a composite offers are the theme's own steps", () => {
-  const parsed = parseTokens(minimalTheme);
+  const parsed = parseTokens(minimalLanguage);
   if (!parsed.ok) {
     throw new Error(`the shipped theme does not parse: ${parsed.error}`);
   }
@@ -352,7 +352,7 @@ function repointAlias(text: string, dotted: string, style: string): string {
 }
 
 test("styleGroups lists the owned set before the user extension, in the theme's words", () => {
-  const parsed = parseTokens(minimalTheme);
+  const parsed = parseTokens(minimalLanguage);
   if (!parsed.ok) {
     throw new Error(`the shipped theme does not parse: ${parsed.error}`);
   }

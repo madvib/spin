@@ -20,7 +20,7 @@ import {
   handleMessage,
   readableLanguage,
 } from "../../src/lsp/index.ts";
-import spinStarter from "../../../theme/src/themes/editorial.json" with {
+import spinStarter from "../../../theme/src/languages/editorial.json" with {
   type: "json",
 };
 

@@ -19,7 +19,7 @@ import { parseTokens } from "../pipeline/parse.ts";
 import { asRecord } from "../json.ts";
 import { ELEMENT_ROLES } from "./elements.ts";
 import { ownedStyleFields, ownedStyleNames } from "./typography.ts";
-import { minimalTheme } from "../themes/index.ts";
+import { minimalLanguage } from "../languages/index.ts";
 import rolesDoc from "../base/roles.json" with { type: "json" };
 
 /** A contrast requirement between two roles, in WCAG terms. */
@@ -264,7 +264,7 @@ export interface BaselineScale {
  * is excluded here, so the two cannot disagree about what a theme owes.
  */
 export function baselineScales(): readonly BaselineScale[] {
-  const parsed = parseTokens(minimalTheme);
+  const parsed = parseTokens(minimalLanguage);
   if (!parsed.ok) {
     throw new Error(
       `contract: baseline theme does not parse: ${parsed.error}`,

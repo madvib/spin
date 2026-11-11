@@ -6,8 +6,8 @@ import {
   indexTree,
   parseTokens,
   resolveAliases,
+  designLanguages,
 } from "@spinjs/theme";
-import { starterThemes } from "@spinjs/theme/themes";
 import { shortcutsIn } from "@spinjs/server/project";
 import {
   checkClosedVocabulary,
@@ -47,7 +47,7 @@ function reported(facts: Facts, classes: string): string[] {
 
 /** A theme that carries a scale step the starters do not. */
 function projectTheme(): ThemeDocument {
-  const minimal = starterThemes.minimal as Record<string, unknown>;
+  const minimal = designLanguages.minimal as Record<string, unknown>;
   return {
     ...minimal,
     spacing: {
@@ -67,14 +67,14 @@ test("a class the project's theme produces is not reported", () => {
 test("a class no theme produces is reported", () => {
   // The same class, against a vocabulary whose themes do not declare the
   // step: nothing generates it, so the rule has to say so.
-  const facts = factsFor(Object.values(starterThemes), engineAnswers(Object.values(starterThemes)));
+  const facts = factsFor(Object.values(designLanguages), engineAnswers(Object.values(designLanguages)));
   deepStrictEqual(reported(facts, "p-72"), ["p-72"]);
 });
 
 test("a class nothing produces carries the edit that drops it", () => {
   // The class generates no CSS, so it styles nothing: dropping it changes
   // nothing, and the finding says so with the edit that does it.
-  const facts = factsFor(Object.values(starterThemes), engineAnswers(Object.values(starterThemes)));
+  const facts = factsFor(Object.values(designLanguages), engineAnswers(Object.values(designLanguages)));
   const node: ClassFacts = {
     tag: "div",
     classes: ["p-72"],
@@ -95,7 +95,7 @@ test("a scale step the starters declare is part of the vocabulary", () => {
   // scales at all, so a vocabulary built from it calls every step unknown.
   // TYPE-b: raw type utilities are no longer vocabulary — the named styles
   // are — so the fixture wears `type-body` where it once wore `text-xs`.
-  const facts = factsFor(Object.values(starterThemes), engineAnswers(Object.values(starterThemes)));
+  const facts = factsFor(Object.values(designLanguages), engineAnswers(Object.values(designLanguages)));
   deepStrictEqual(
     reported(facts, "type-body type-caption gap-2 rounded-md p-3"),
     [],
@@ -109,12 +109,12 @@ test("a composition the project does not declare is unknown", () => {
   // utility (Tailwind vocabulary), not a composition.
   const declared = projectFacts(
     { acme: projectTheme() },
-    engineAnswers([...Object.values(starterThemes), projectTheme()]),
+    engineAnswers([...Object.values(designLanguages), projectTheme()]),
     new Set(),
     shortcutsIn(`spin.vite({ shortcuts: { stack: "flex flex-col gap-4" } })`),
   );
   deepStrictEqual(reported(declared, "stack"), []);
-  const bare = projectFacts({ acme: projectTheme() }, engineAnswers([...Object.values(starterThemes), projectTheme()]), new Set());
+  const bare = projectFacts({ acme: projectTheme() }, engineAnswers([...Object.values(designLanguages), projectTheme()]), new Set());
   deepStrictEqual(reported(bare, "stack row split cluster"), [
     "stack",
     "row",
@@ -127,7 +127,7 @@ test("a composition the project does not declare is unknown", () => {
 test("with no project theme, the starters' vocabulary applies", () => {
   // A project that has not forked a theme still renders: it serves the
   // starters. The vocabulary is theirs, and only theirs.
-  const facts = projectFacts({}, engineAnswers(Object.values(starterThemes)), new Set());
+  const facts = projectFacts({}, engineAnswers(Object.values(designLanguages)), new Set());
   deepStrictEqual(reported(facts, "type-body gap-2 rounded-md"), []);
   deepStrictEqual(reported(facts, "my-stack"), ["my-stack"]);
 });
@@ -135,7 +135,7 @@ test("with no project theme, the starters' vocabulary applies", () => {
 test("a class the animation layer defines is part of the vocabulary", () => {
   // `animate-spin` is a real class — the animation package defines it — and
   // a lint that called it unknown would be wrong.
-  const facts = factsFor(Object.values(starterThemes), engineAnswers(Object.values(starterThemes)));
+  const facts = factsFor(Object.values(designLanguages), engineAnswers(Object.values(designLanguages)));
   deepStrictEqual(reported(facts, "animate-spin animate-fade-in"), []);
 });
 
@@ -152,7 +152,7 @@ test("a class the project declares is known beside the starters", () => {
   // serves the starters it has not forked, so both are in play.
   const facts = projectFacts(
     { acme: projectTheme() },
-    engineAnswers([...Object.values(starterThemes), projectTheme()]),
+    engineAnswers([...Object.values(designLanguages), projectTheme()]),
     new Set(),
   );
   deepStrictEqual(reported(facts, "p-72 type-body"), []);
@@ -164,7 +164,7 @@ test("text-text is unknown and carries the edit that drops it", () => {
   // emits it, so the closed vocabulary reports it like any dead class —
   // and the stuttered `text-text-muted` and `border-border` spellings are
   // dead with it — while `text-muted` and `border-strong` stay known.
-  const facts = factsFor(Object.values(starterThemes), engineAnswers(Object.values(starterThemes)));
+  const facts = factsFor(Object.values(designLanguages), engineAnswers(Object.values(designLanguages)));
   deepStrictEqual(reported(facts, "text-text"), ["text-text"]);
   deepStrictEqual(reported(facts, "text-text-muted"), ["text-text-muted"]);
   deepStrictEqual(reported(facts, "border-border"), ["border-border"]);
@@ -189,7 +189,7 @@ test("a removed raw size is unknown while the named style stays known", () => {
   // catalog never names it, so the closed vocabulary reports it like any
   // dead class — while the named styles stay known. The arbitrary hatch
   // (`text-[14px]`) reads the same way it always did.
-  const facts = factsFor(Object.values(starterThemes), engineAnswers(Object.values(starterThemes)));
+  const facts = factsFor(Object.values(designLanguages), engineAnswers(Object.values(designLanguages)));
   deepStrictEqual(reported(facts, "text-[14px] text-[15px]"), [
     "text-[14px]",
     "text-[15px]",
@@ -208,7 +208,7 @@ test("the oracle derives what both surfaces used to derive by hand", async () =>
   // and what `deadClasses` derived (variant prefixes, the same breakpoint
   // read, the same values map, catalog/primitive/animation membership) —
   // if the sets differ on move day, the move is wrong, not the test.
-  const documents = Object.values(starterThemes);
+  const documents = Object.values(designLanguages);
   const answers = engineAnswers(documents);
   const trees = documents.flatMap((document) => {
     const parsed = parseTokens(document);

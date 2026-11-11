@@ -24,8 +24,7 @@ import type { ModeChoice } from "../lib/store.ts";
 import { ROUTES } from "../lib/routes.ts";
 import { GROUPS } from "../routes/themes.tsx";
 import { editorRouteFor } from "../lib/tokens.ts";
-import { indexTree } from "@spinjs/theme";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages, indexTree } from "@spinjs/theme";
 import { COMPONENT_GROUPS } from "@spinjs/components";
 
 interface PaletteRow {
@@ -99,7 +98,7 @@ export default function CommandPalette() {
     );
     const allThemes = registry() ?? [];
     const localThemes = allThemes.filter(
-      (t) => t.file !== null || !(t.name in starterThemes),
+      (t) => t.file !== null || !(t.name in designLanguages),
     );
     const shownThemes = localThemes.length > 0 ? localThemes : allThemes;
     for (const theme of shownThemes) {

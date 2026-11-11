@@ -4,8 +4,8 @@ import {
   parseTokens,
   setToken,
   treeToJson,
+  designLanguages,
 } from "@spinjs/theme";
-import { starterThemes } from "@spinjs/theme/themes";
 import { describeCatalog } from "@spinjs/preset";
 import {
   createSpinClient,
@@ -123,7 +123,7 @@ test("the composed router carries every module's procedures", () => {
 test("typed client talks to the router over serve", async () => {
   const { server, client } = serve();
   try {
-    const text = JSON.stringify(starterThemes.minimal, null, 2);
+    const text = JSON.stringify(designLanguages.minimal, null, 2);
 
     const analysis = await client.theme.analyze({ text });
     deepStrictEqual(analysis.error, null);
@@ -143,7 +143,7 @@ test("typed client talks to the router over serve", async () => {
     });
     assert(refused.error !== null, "expected a group refusal");
 
-    const copied = parseTokens(JSON.stringify(starterThemes.minimal, null, 2));
+    const copied = parseTokens(JSON.stringify(designLanguages.minimal, null, 2));
     assert(copied.ok, "starter text must parse");
   } finally {
     await server.stop();
@@ -174,7 +174,7 @@ test("preset organization reports unparseable input", async () => {
 test("a mode override lands in $modes and leaves the base value", async () => {
   const { server, client } = serve();
   try {
-    const text = JSON.stringify(starterThemes.minimal, null, 2);
+    const text = JSON.stringify(designLanguages.minimal, null, 2);
     const before = JSON.parse(text) as {
       color: { primary: { $value: unknown } };
     };
@@ -199,7 +199,7 @@ test("a mutation refusal carries its code over the wire", async () => {
   const { server, client } = serve();
   try {
     const refused = await client.theme.tokens.remove({
-      text: JSON.stringify(starterThemes.minimal, null, 2),
+      text: JSON.stringify(designLanguages.minimal, null, 2),
       path: ["color", "primary"],
     });
     assert(refused.error !== null, "expected a required-token refusal");
@@ -217,7 +217,7 @@ test("analyze reports a value written for a mode the theme does not serve", asyn
     // shown, and the analyzer says so. The other direction is fine — a theme
     // that serves a mode it does not override simply renders its base values
     // there.
-    const silkParsed = parseTokens(JSON.stringify(starterThemes.minimal));
+    const silkParsed = parseTokens(JSON.stringify(designLanguages.minimal));
     if (!silkParsed.ok) throw new Error(silkParsed.error);
     const moded = setToken(
       silkParsed.tree,
@@ -247,7 +247,7 @@ test("analyze reports a value written for a mode the theme does not serve", asyn
 test("the organization lists the catalog under reader intent", async () => {
   const { server, client } = serve();
   try {
-    const text = JSON.stringify(starterThemes.minimal, null, 2);
+    const text = JSON.stringify(designLanguages.minimal, null, 2);
     const parsed = parseTokens(text);
     assert(parsed.ok, "starter text must parse");
     const catalog = describeCatalog(parsed.tree);

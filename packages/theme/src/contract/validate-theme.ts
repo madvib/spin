@@ -31,7 +31,7 @@ import { type Mode, treeInMode } from "../modes.ts";
 import { themeGates } from "./battery.ts";
 import { isPaletteTokenPath, requiredPaths } from "./roles.ts";
 import { validateLegibility } from "./schema.ts";
-import { minimalTheme } from "../themes/index.ts";
+import { minimalLanguage } from "../languages/index.ts";
 
 /** What a caller may state about the document it is judging. */
 export interface ValidateThemeOptions {
@@ -159,7 +159,7 @@ export function validateTheme(
  */
 export function validatePaletteFacet(
   input: string | unknown,
-  baseDoc: ThemeDocument = minimalTheme,
+  baseDoc: ThemeDocument = minimalLanguage,
 ): ThemeReport {
   const decoded = decodeFacet(input);
   if (!decoded.ok) {
@@ -205,7 +205,7 @@ export function validatePaletteFacet(
  */
 export function validateSpacingFacet(
   input: string | unknown,
-  baseDoc: ThemeDocument = minimalTheme,
+  baseDoc: ThemeDocument = minimalLanguage,
 ): ThemeReport {
   const decoded = decodeFacet(input);
   if (!decoded.ok) {

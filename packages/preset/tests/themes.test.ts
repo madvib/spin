@@ -1,8 +1,7 @@
 import { readFileSync } from "node:fs";
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { parseTokens, requiredPaths, validateTokens } from "@spinjs/theme";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages, parseTokens, requiredPaths, validateTokens } from "@spinjs/theme";
 import type { TokenLeaf, TokenNode } from "@spinjs/theme";
 
 /**
@@ -15,14 +14,14 @@ import type { TokenLeaf, TokenNode } from "@spinjs/theme";
 function example(name: string): unknown {
   return JSON.parse(
     readFileSync(
-      new URL(`../../theme/src/themes/${name}`, import.meta.url),
+      new URL(`../../theme/src/languages/${name}`, import.meta.url),
       "utf8",
     ),
   );
 }
 
 /** A base document: the whole surface, nothing layered over it. */
-for (const name of Object.keys(starterThemes).map((stem) => `${stem}.json`)) {
+for (const name of Object.keys(designLanguages).map((stem) => `${stem}.json`)) {
   test(`${name} satisfies every required role`, () => {
     const parsed = parseTokens(example(name));
     if (!parsed.ok) throw new Error(parsed.error);

@@ -19,7 +19,7 @@ import {
  */
 
 const MINIMAL = new URL(
-  "../../../../theme/src/themes/minimal.json",
+  "../../../../theme/src/languages/minimal.json",
   import.meta.url,
 );
 const minimalThemeDoc = (): Record<string, unknown> =>
@@ -468,8 +468,7 @@ test("one worked per-variant case: a danger button re-points on its own", async 
 test("a variant with no tuple of its own reads the base button's tuple", async () => {
   // Self-contained: expanded silk minus the danger group, so no layer
   // inherits the tuple back. The variant falls through to button.type.
-  const { expandExtends } = await import("@spinjs/theme");
-  const { baseDocument } = await import("@spinjs/theme/themes");
+  const { baseDocument, expandExtends } = await import("@spinjs/theme");
   const doc = expandExtends(structuredClone(minimalThemeDoc()), { base: baseDocument });
   delete (doc["button"] as Record<string, unknown>)["danger"];
   const css = (await sheetFor("<button class=\"danger\">a</button>", doc)).css;
@@ -481,8 +480,7 @@ test("a variant with no tuple of its own reads the base button's tuple", async (
 });
 
 test("a variant with no tuple anywhere states no type and inherits", async () => {
-  const { expandExtends } = await import("@spinjs/theme");
-  const { baseDocument } = await import("@spinjs/theme/themes");
+  const { baseDocument, expandExtends } = await import("@spinjs/theme");
   const doc = expandExtends(structuredClone(minimalThemeDoc()), { base: baseDocument });
   const button = doc["button"] as Record<string, unknown>;
   delete button["danger"];

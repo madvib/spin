@@ -10,8 +10,9 @@
  * facts from the same place.
  */
 
-import { createRequire } from "node:module";
 import { dirname } from "node:path";
+import { engineAnswers } from "@spinjs/preset";
+import { designLanguages } from "@spinjs/theme";
 import type { Facts } from "./core.ts";
 import { projectFacts } from "./project-vocabulary.ts";
 import { generatedClassesNow, generatedClassesReady, vocabularyOf } from "./generated.ts";
@@ -122,15 +123,8 @@ export function factsForFile(filename: string, answers?: EngineAnswers): Facts {
  * answers as input either way; only the filling moves.
  */
 function selfAnswers(root: string): EngineAnswers {
-  // Static import would edge diagnostics into the preset at module load;
-  // the lazy load keeps the fill on first use and the direction
-  // documented: the provider orchestrates, the checks consume.
-  // createRequire (not bare require): the oxlint host loads this as ESM.
-  const localRequire = createRequire(import.meta.url);
-  const { engineAnswers } = localRequire("@spinjs/preset") as typeof import("@spinjs/preset");
-  const { starterThemes } = localRequire("@spinjs/theme/themes") as typeof import("@spinjs/theme/themes");
   return engineAnswers([
-    ...Object.values(starterThemes),
+    ...Object.values(designLanguages),
     ...Object.values(readProjectThemes(root)),
   ]);
 }

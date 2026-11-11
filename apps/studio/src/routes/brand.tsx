@@ -14,7 +14,7 @@ import {
 import { A } from "@solidjs/router";
 import { createSpinComponent } from "@spinjs/components/solid";
 import { menu } from "@spinjs/components/menu";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 import {
   activeBrand,
   activeName,
@@ -407,7 +407,7 @@ export default function BrandPage() {
         note="The built-in starting physics ($extends) your brand layers over. Tokens omitted by your brand inherit from this design language."
       >
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <For each={Object.keys(starterThemes)}>
+          <For each={Object.keys(designLanguages)}>
             {(lang) => {
               const selected = () => currentExtends() === lang;
               return (

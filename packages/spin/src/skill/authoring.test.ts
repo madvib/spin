@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { authoringStyles, renderAuthoringSkill } from "./authoring.ts";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 
 /**
  * The skill is the named-type vocabulary's manual, and the file an agent
@@ -99,7 +99,7 @@ test("the skill's style list is the starters' style list", async () => {
   const template = await readFile(TEMPLATE, "utf8");
   const rendered = renderAuthoringSkill(template);
   const styles = rendered.slice(rendered.indexOf("## The styles"));
-  for (const document of Object.values(starterThemes)) {
+  for (const document of Object.values(designLanguages)) {
     const font = document["font"] as Record<string, unknown>;
     const style = font["style"] as Record<string, unknown>;
     for (const name of Object.keys(style)) {

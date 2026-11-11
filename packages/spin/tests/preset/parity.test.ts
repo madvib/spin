@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { spin } from "../../src/plugin/plugin.ts";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 import presetIcons from "@unocss/preset-icons";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 
@@ -48,7 +48,7 @@ const PLUGIN_INCLUDE = [
 async function referencePlugin(): Promise<ViteOptions> {
   // The test drives the stage that owns the sheet.
   const stages = spin.vite({
-    themes: starterThemes,
+    themes: designLanguages,
     presets: [presetIcons({ collections: { lucide } } as never)],
     content: {
       filesystem: [
@@ -80,7 +80,7 @@ test("a project without themes in config reads spin/*.json from disk", async () 
   // config, which is the shape a real app has.
   const root = await mkdtemp(join(tmpdir(), "spin-"));
   await mkdir(`${root}/spin`);
-  const doc = structuredClone(starterThemes.minimal) as Record<
+  const doc = structuredClone(designLanguages.minimal) as Record<
     string,
     Record<string, Record<string, string>>
   >;

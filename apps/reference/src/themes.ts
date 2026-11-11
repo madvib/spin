@@ -15,7 +15,7 @@
  * project serves under them.
  */
 
-import { starterThemes, themeModes } from "@spinjs/theme/themes";
+import { designLanguages, themeModes } from "@spinjs/theme";
 
 /**
  * The project's own theme documents, read at build time.
@@ -67,7 +67,7 @@ const PROJECT_THEMES: Record<string, Record<string, unknown>> = Object
  * carries.
  */
 const SERVED: Record<string, Record<string, unknown>> = {
-  ...starterThemes,
+  ...designLanguages,
   ...PROJECT_THEMES,
 };
 

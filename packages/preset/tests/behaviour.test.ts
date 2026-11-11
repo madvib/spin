@@ -6,8 +6,7 @@ import {
   type GenerateResult,
 } from "@unocss/core";
 import { readFileSync } from "node:fs";
-import { parseTokens } from "@spinjs/theme";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages, parseTokens } from "@spinjs/theme";
 import { spinPreset } from "../src/index.ts";
 import { splitTopLevel } from "../src/rules/primitives/derive.ts";
 import { primitiveContracts } from "../src/rules/primitives/manifest.ts";
@@ -31,11 +30,11 @@ import { primitiveContracts } from "../src/rules/primitives/manifest.ts";
 // complete document, so the fixture is the resolved theme rather than the
 // sparse file — deleting from the sparse file would inherit the group back
 // from the base it layers over.
-const theme = starterThemes.minimal as Record<string, unknown>;
+const theme = designLanguages.minimal as Record<string, unknown>;
 
 /** A theme that states a hover lift, for the decisions about movement. */
 const LIFTED = new URL(
-  "../../theme/src/themes/neobrutalist.json",
+  "../../theme/src/languages/neobrutalist.json",
   import.meta.url,
 );
 

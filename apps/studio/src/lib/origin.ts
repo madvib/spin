@@ -9,7 +9,7 @@
  * composite's origin — the expansion is the parse's, not a layer's.
  */
 
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages, isDesignLanguage } from "@spinjs/theme";
 
 /** Where a leaf's value comes from. */
 export type LeafOrigin =
@@ -73,9 +73,8 @@ function states(doc: Record<string, unknown> | undefined, path: readonly string[
 
 /** The starter document behind a brand, by its `$extends` name. */
 function starterDoc(name: string): Record<string, unknown> | undefined {
-  const found: unknown = starterThemes[name];
-  if (found === undefined || typeof found !== "object" || found === null) return undefined;
-  return found as Record<string, unknown>;
+  if (!isDesignLanguage(name)) return undefined;
+  return designLanguages[name] as Record<string, unknown>;
 }
 
 /**

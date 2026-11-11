@@ -26,7 +26,7 @@ This file is the method. It is written to be followed.
 ## What you are making
 
 One document, at `spin/<name>.json` in the project, or
-`packages/theme/src/themes/<name>.json` if it is a starter the package ships.
+`packages/theme/src/languages/<name>.json` if it is a design language the package ships.
 The document declares groups of tokens; each token is a value and, where the
 group does not already say it, a type.
 

@@ -376,10 +376,10 @@ test("parseTokens resolves $extends to the complete starter document", () => {
   deepStrictEqual([...styles].sort(), [...ownedStyleNames()].sort());
 });
 
-test("expandExtends throws on an unknown starter", () => {
+test("expandExtends throws on an unknown design language", () => {
   assert.throws(
     () => expandExtends({ $extends: "nope" }),
-    /unknown starter "nope"/,
+    /unknown design language "nope"/,
   );
   // Through the parser the same mistake is reported, not thrown: the
   // studio's job is to say what is wrong.

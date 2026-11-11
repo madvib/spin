@@ -20,7 +20,7 @@ import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 import { readdir, readFile } from "node:fs/promises";
 import { classTokens, expandVariantGroups, parse } from "../packages/components/src/runtime/syntax/index.ts";
 import { spinPreset } from "@spinjs/preset";
-import { starterThemes } from "../packages/theme/src/themes/index.ts";
+import { designLanguages } from "@spinjs/theme";
 import { spinCompositions } from "../packages/spin/src/compositions.ts";
 
 /** Where the classes live: the recipes (markup) and the specimens (Solid). */
@@ -89,7 +89,7 @@ const ANIMATED = animationVariants();
 const SCOPED = new Set(["spin-preview"]);
 const uno = await createGenerator({
   presets: [
-    spinPreset({ themes: starterThemes, shortcuts: { ...spinCompositions } }),
+    spinPreset({ themes: designLanguages, shortcuts: { ...spinCompositions } }),
     presetIcons({ collections: { lucide } as never }),
   ],
 });
@@ -111,7 +111,7 @@ if (dead.length > 0) {
 // declares it. Every `var()` a matched rule reads without a fallback must
 // be declared by EVERY starter theme.
 const declaredBy = new Map<string, Set<string>>();
-for (const [name, doc] of Object.entries(starterThemes)) {
+for (const [name, doc] of Object.entries(designLanguages)) {
   const scoped = await createGenerator({
     presets: [spinPreset({ themes: { [name]: doc } })],
   });
@@ -122,7 +122,7 @@ for (const [name, doc] of Object.entries(starterThemes)) {
     declaredBy.set(match[1], set);
   }
 }
-const names = new Set(Object.keys(starterThemes));
+const names = new Set(Object.keys(designLanguages));
 const undeclared = new Set<string>();
 for (const match of generated.css.matchAll(/var\((--[\w-]+)\)/g)) {
   const owners = declaredBy.get(match[1]);

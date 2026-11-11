@@ -10,7 +10,7 @@ import { spinPreset } from "../src/index.ts";
 import { splitTopLevel } from "../src/rules/primitives/derive.ts";
 
 const DEFAULT = new URL(
-  "../../theme/src/themes/minimal.json",
+  "../../theme/src/languages/minimal.json",
   import.meta.url,
 );
 const theme = JSON.parse(readFileSync(DEFAULT, "utf8")) as Record<

@@ -2,8 +2,7 @@
  * The authoring skill's style list, emitted from the starters' style set.
  */
 
-import { starterThemes } from "@spinjs/theme/themes";
-import type { ThemeDocument } from "@spinjs/theme";
+import { designLanguages, type ThemeDocument } from "@spinjs/theme";
 
 /** The heading the style list lives under. */
 const CHECKLIST = "## The styles";
@@ -20,7 +19,7 @@ const UNDESCRIBED =
 export function authoringStyles(): readonly string[] {
   const styles: string[] = [];
   const seen = new Set<string>();
-  for (const document of Object.values(starterThemes)) {
+  for (const document of Object.values(designLanguages)) {
     for (const name of documentStyles(document)) {
       if (seen.has(name)) continue;
       seen.add(name);

@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { test } from "bun:test";
 import assert, { deepStrictEqual, match, ok } from "node:assert/strict";
 import { spin } from "../../src/plugin/plugin.ts";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 
 type ViteOptions = {
   configResolved?: (config: { root: string; command: string }) => void;
@@ -58,7 +58,7 @@ async function buildMessage(
 }
 
 const RAW_TYPE = {
-  "spin/local.json": JSON.stringify(starterThemes.minimal),
+  "spin/local.json": JSON.stringify(designLanguages.minimal),
   "src/index.html": '<p class="text-sm">hi</p>\n',
 };
 
@@ -141,7 +141,7 @@ test("an unrelated dead class still throws on the warn side", async () => {
   // The window covers removed type utilities only: a genuine typo is still
   // a build error while the migration runs.
   const root = await fixture({
-    "spin/local.json": JSON.stringify(starterThemes.minimal),
+    "spin/local.json": JSON.stringify(designLanguages.minimal),
     "src/index.html": '<div class="bg-primry">hi</div>\n',
   });
   try {

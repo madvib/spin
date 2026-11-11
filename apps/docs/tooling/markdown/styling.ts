@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { parseTokens, starterThemes } from "@spinjs/theme";
+import { designLanguages, parseTokens } from "@spinjs/theme";
 import { describeCatalog, SECTIONS, utilitiesFor } from "@spinjs/preset";
 import { configurationIn } from "../../../../packages/server/src/project/index.ts";
 import { animationContract } from "@spinjs/preset";
@@ -422,7 +422,7 @@ export function buildStylingMarkdown(routePath: string): string | undefined {
   }
   if (routePath !== "/docs/styling/catalog") return undefined;
   const parsed = parseTokens(
-    starterThemes.editorial as unknown as Parameters<typeof parseTokens>[0],
+    designLanguages.editorial as unknown as Parameters<typeof parseTokens>[0],
   );
   if (!parsed.ok) return undefined;
   const catalog = describeCatalog(parsed.tree);

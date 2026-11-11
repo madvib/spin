@@ -1,7 +1,6 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { indexTree, parseTokens } from "@spinjs/theme";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages, type DesignLanguageName, indexTree, parseTokens } from "@spinjs/theme";
 import { themeKey, themeRef } from "@spinjs/preset";
 
 /**
@@ -13,8 +12,8 @@ import { themeKey, themeRef } from "@spinjs/preset";
  * have — the DTCG path and the dashes — address the same entry.
  */
 
-function refOf(name: keyof typeof starterThemes) {
-  const parsed = parseTokens(starterThemes[name]);
+function refOf(name: DesignLanguageName) {
+  const parsed = parseTokens(designLanguages[name]);
   if (!parsed.ok) throw new Error(`${name}: ${parsed.error}`);
   return { tree: parsed.tree, ref: themeRef(parsed.tree) };
 }

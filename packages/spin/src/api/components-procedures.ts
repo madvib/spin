@@ -263,9 +263,9 @@ const machineReads = async (name: string): Promise<string[]> => {
   }
   const { createGenerator } = await import("@unocss/core");
   const { spinPreset } = await import("@spinjs/preset");
-  const { starterThemes } = await import("@spinjs/theme/themes");
+  const { designLanguages } = await import("@spinjs/theme");
   const generator = await createGenerator({
-    presets: [spinPreset({ themes: starterThemes })],
+    presets: [spinPreset({ themes: designLanguages })],
   });
   const { css } = await generator.generate(classes, { preflights: false });
   const vars = new Set<string>();

@@ -7,7 +7,7 @@ import { createSignal, onCleanup, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import { docsPageContext } from "../shell/nav.ts";
 import { mode, Section as SharedSection, theme } from "@spinjs/kit";
-import { starterThemes } from "@spinjs/theme";
+import { designLanguages, isDesignLanguage } from "@spinjs/theme";
 
 export function serializeMainToMarkdown(
   main: HTMLElement,
@@ -196,7 +196,6 @@ export interface ThemeDocument {
 }
 
 export function starterDoc(): ThemeDocument {
-  return starterThemes[
-    theme() as keyof typeof starterThemes
-  ] as ThemeDocument;
+  const name = theme();
+  return (isDesignLanguage(name) ? designLanguages[name] : designLanguages.editorial) as ThemeDocument;
 }

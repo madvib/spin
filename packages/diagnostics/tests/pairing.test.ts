@@ -2,7 +2,7 @@ import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import plugin from "../src/index.ts";
 import { engineAnswers } from "@spinjs/preset";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 
 /**
  * The rules are the product, so the tests drive them the way oxlint does:
@@ -25,7 +25,7 @@ function reportsFor(cls: string): Report[] {
   const rule = plugin.rules["no-unpaired-ink"];
   const reports: Report[] = [];
   const visit = rule.create({
-    answers: engineAnswers(Object.values(starterThemes)),
+    answers: engineAnswers(Object.values(designLanguages)),
     report(descriptor) {
       reports.push({ messageId: descriptor.messageId, data: descriptor.data });
     },
@@ -138,7 +138,7 @@ test("a fill and its ink arriving in the same conditional branch pair", () => {
   const rule = plugin.rules["no-unpaired-ink"];
   const reports: { messageId: string }[] = [];
   const visit = rule.create({
-    answers: engineAnswers(Object.values(starterThemes)),
+    answers: engineAnswers(Object.values(designLanguages)),
     report(descriptor) {
       reports.push({ messageId: descriptor.messageId });
     },
@@ -172,7 +172,7 @@ test("co-guarded object keys pair together without crossing distinct guards", ()
   const rule = plugin.rules["no-unpaired-ink"];
   const reports: Report[] = [];
   const visit = rule.create({
-    answers: engineAnswers(Object.values(starterThemes)),
+    answers: engineAnswers(Object.values(designLanguages)),
     report(descriptor) {
       reports.push({ messageId: descriptor.messageId, data: descriptor.data });
     },

@@ -17,16 +17,15 @@ import { test } from "bun:test";
 import { deepStrictEqual, ok } from "node:assert/strict";
 import { engineAnswers } from "@spinjs/preset";
 import { readProjectThemes } from "@spinjs/diagnostics";
-import { starterThemes } from "../../../theme/src/themes/index.ts";
+import { designLanguages, editorialLanguage } from "@spinjs/theme";
 import { completionsAt, hoverAt } from "../../src/lsp/features.ts";
 import type { EngineAnswers } from "@spinjs/diagnostics";
-import { editorialTheme } from "../../../theme/src/themes/index.ts";
 
 /** A project with a theme, holding one document under each spelling. */
 async function project(): Promise<{ root: string; uri: string; vueUri: string; text: string; vueText: string }> {
   const root = await mkdtemp(join(tmpdir(), "spin-lsp-"));
   await mkdir(`${root}/spin`);
-  await writeFile(`${root}/spin/spin.json`, JSON.stringify(editorialTheme));
+  await writeFile(`${root}/spin/spin.json`, JSON.stringify(editorialLanguage));
   await mkdir(`${root}/src`);
   const text = `export const App = (active: boolean) => (
   <p class="bg-primary">plain</p>
@@ -48,7 +47,7 @@ async function project(): Promise<{ root: string; uri: string; vueUri: string; t
 /** What the style engine answers for the fixture project, as the server fills them. */
 function answersFor(root: string): EngineAnswers {
   return engineAnswers([
-    ...Object.values(starterThemes),
+    ...Object.values(designLanguages),
     ...Object.values(readProjectThemes(root)),
   ]);
 }

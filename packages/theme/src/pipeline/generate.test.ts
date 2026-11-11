@@ -2,7 +2,8 @@ import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { generateCss, generateThemeCss, generateTypes } from "./generate.ts";
 import { parseTokens } from "./parse.ts";
-import { catppuccinPalette, compactSpacing, minimalTheme, starterThemes } from "../themes/index.ts";
+import { catppuccinPalette, compactSpacing } from "../facets/index.ts";
+import { designLanguages, minimalLanguage } from "../languages/index.ts";
 import type { TokenTree } from "./types.ts";
 
 interface CssBlock {
@@ -539,7 +540,7 @@ test("every shipped theme declares the whole spacing scale", () => {
     "20",
     "24",
   ];
-  for (const [name, theme] of Object.entries(starterThemes)) {
+  for (const [name, theme] of Object.entries(designLanguages)) {
     const scale = theme.spacing as Record<string, unknown>;
     const declared = Object.keys(scale).filter((key) => !key.startsWith("$"));
     const missing = REQUIRED.filter((step) => !declared.includes(step));
@@ -553,7 +554,7 @@ test("a theme in force beats the root theme's dark block", () => {
   // `[data-theme="x"]`. The dark block won, so a project theme rendered the
   // starter's palette in dark mode, and the rule "a mode you serve but do not
   // override falls back to your base" was false for every theme but the first.
-  const starter = parseTokens(minimalTheme);
+  const starter = parseTokens(minimalLanguage);
   assert(starter.ok);
   const css = generateThemeCss(
     { starter: starter.tree, project: starter.tree },
@@ -601,7 +602,7 @@ test("a palette facet emits after its theme carrying only its own ink", () => {
   // space. The facet block must come later at equal specificity (so it wins
   // ties) and must carry only the leaves the facet states (so it never
   // clobbers the theme's spacing or type along with its ink).
-  const minimal = treeOf(parseTokens(minimalTheme));
+  const minimal = treeOf(parseTokens(minimalLanguage));
   const palette = treeOf(parseTokens(catppuccinPalette));
   const css = generateThemeCss(
     { minimal },
@@ -631,7 +632,7 @@ test("a spacing facet emits last carrying only its own space, never modes", () =
   // The composition this covers: `<div data-spacing="compact">` tightens
   // gaps without touching ink or type. Spacing is mode-invariant, so the
   // facet ships one block and no `[data-mode]` companion.
-  const minimal = treeOf(parseTokens(minimalTheme));
+  const minimal = treeOf(parseTokens(minimalLanguage));
   const palette = treeOf(parseTokens(catppuccinPalette));
   const spacing = treeOf(parseTokens(compactSpacing));
   const css = generateThemeCss(
@@ -662,7 +663,7 @@ test("a palette block and a spacing block compose without clobbering", () => {
   // data-spacing="compact"><aside data-palette="catppuccin"
   // data-mode="dark">` resolves compact's space and catppuccin's dark ink
   // at once. Each block must lack the other's axis entirely.
-  const minimal = treeOf(parseTokens(minimalTheme));
+  const minimal = treeOf(parseTokens(minimalLanguage));
   const palette = treeOf(parseTokens(catppuccinPalette));
   const spacing = treeOf(parseTokens(compactSpacing));
   const css = generateThemeCss(

@@ -1,6 +1,6 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
-import { minimalTheme } from "../themes/index.ts";
+import { minimalLanguage } from "../languages/index.ts";
 import {
   validatePaletteFacet,
   validateSpacingFacet,
@@ -18,7 +18,7 @@ import type { ThemeReport } from "./validate-theme.ts";
 
 /** A document that owes nothing, as text: minimal, vendored whole. */
 function complete(): string {
-  return JSON.stringify(minimalTheme, null, 2);
+  return JSON.stringify(minimalLanguage, null, 2);
 }
 
 /** The document as text, with the token at a path taken out of it. */

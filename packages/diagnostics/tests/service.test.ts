@@ -139,11 +139,11 @@ test("a broken spin theme is reported gate by gate", async () => {
   // The lint reads the themes beside the sources: a `spin/*.json` document
   // that fails the battery lands as `spin/theme-*` findings.
   const { mkdir, writeFile } = await import("node:fs/promises");
-  const { starterThemes } = await import("@spinjs/theme/themes");
+  const { designLanguages } = await import("@spinjs/theme");
   const directory = await mkdtemp(join(tmpdir(), "spin-"));
   try {
     await mkdir(join(directory, "spin"), { recursive: true });
-    const doc = structuredClone(starterThemes.minimal) as unknown as Record<string, unknown>;
+    const doc = structuredClone(designLanguages.minimal) as unknown as Record<string, unknown>;
     const spacing = doc["spacing"] as Record<string, unknown>;
     spacing["4"] = { $type: "dimension", $value: "0.125rem" };
     await writeFile(join(directory, "spin", "acme.json"), JSON.stringify(doc, null, 2));

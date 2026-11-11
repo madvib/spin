@@ -2,7 +2,7 @@ import { test } from "bun:test";
 import assert from "node:assert/strict";
 import { lintMarkup } from "../src/engine.ts";
 import { engineAnswers } from "@spinjs/preset";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 
 /**
  * A document the component parser rejects still gets findings.
@@ -17,7 +17,7 @@ test("a fragment the parser rejects falls back to the text walk", async () => {
   const run = {
     rules: ["closed-vocabulary"] as const,
     semantic: { strictness: "strict", semanticTags: "all" } as const,
-    answers: engineAnswers(Object.values(starterThemes)),
+    answers: engineAnswers(Object.values(designLanguages)),
   };
   const findings = await lintMarkup(
     "panel.html",

@@ -36,7 +36,7 @@ import {
   type MarkPluckEvent,
   mode,
   setTheme,
-  starterList,
+  languageList,
   theme,
 } from "@spinjs/kit";
 const STAGE_COUNT = 7;
@@ -616,7 +616,7 @@ export default function Home(): JSX.Element {
                 <span class="pr-1 type-code text-muted">
                   Theme:
                 </span>
-                <For each={starterList}>
+                <For each={languageList}>
                   {(name) => (
                     <button
                       type="button"

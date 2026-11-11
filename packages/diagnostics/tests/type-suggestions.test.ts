@@ -1,6 +1,6 @@
 import { test } from "bun:test";
 import { deepStrictEqual, match, ok } from "node:assert/strict";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 import {
   checkClosedVocabulary,
   type ClassFacts,
@@ -32,7 +32,7 @@ function element(classes: string, tag = "div"): ClassFacts {
 }
 
 function starterFacts(): Facts {
-  return factsFor(Object.values(starterThemes), engineAnswers(Object.values(starterThemes)));
+  return factsFor(Object.values(designLanguages), engineAnswers(Object.values(designLanguages)));
 }
 
 test("a removed size utility is unknown with a type-<style> suggestion", () => {

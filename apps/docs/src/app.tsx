@@ -12,8 +12,15 @@ import type { RouteDefinition, RouteSectionProps } from "@solidjs/router";
 import type { JSX } from "solid-js";
 import { createEffect, createSignal, For, lazy, onCleanup, Show } from "solid-js";
 import { BrandFavicon, Logo, theme, ThemePicker } from "@spinjs/kit";
-import { starterThemes } from "@spinjs/theme/themes";
-import { aliasTarget, themeModes, validateTheme, valuesInMode } from "@spinjs/theme";
+import {
+  aliasTarget,
+  designLanguages,
+  isDesignLanguage,
+  resolveTheme,
+  themeModes,
+  validateTheme,
+  valuesInMode,
+} from "@spinjs/theme";
 import {
   ComponentsRail,
   type ComponentKindFilter,
@@ -144,11 +151,10 @@ function buildRoutes(): RouteDefinition[] {
 const ROUTES: RouteDefinition[] = buildRoutes();
 
 function activePrimary(): string {
-  const doc = starterThemes[theme() as string] as
-    | { color?: { primary?: { $value?: unknown } } }
-    | undefined;
-  const value = doc?.color?.primary?.$value;
-  return typeof value === "string" ? value : "#c8102e";
+  const name = theme();
+  const doc = isDesignLanguage(name) ? designLanguages[name] : designLanguages.editorial;
+  const value = resolveTheme(doc, "light").values["color.primary"];
+  return typeof value === "string" ? value : "";
 }
 
 function TopNav(props: {
@@ -283,7 +289,7 @@ function Layout(props: RouteSectionProps): JSX.Element {
       document.head.appendChild(style);
     }
     const rules: string[] = [];
-    for (const [name, doc] of Object.entries(starterThemes)) {
+    for (const [name, doc] of Object.entries(designLanguages)) {
       const { tree } = validateTheme(JSON.stringify(doc));
       if (tree === undefined) continue;
       const modes = themeModes(doc as never);

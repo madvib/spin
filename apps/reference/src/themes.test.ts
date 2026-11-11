@@ -7,14 +7,12 @@ import { deepStrictEqual } from "node:assert/strict";
  * named after, in the renderings that theme actually serves. These are the
  * rules that decide which renderings those are.
  */
-import { starterThemes, themeModes } from "@spinjs/theme/themes";
+import { designLanguages, themeModes } from "@spinjs/theme";
 import { renderingsFor } from "./themes.ts";
 
 test("a theme renders its own face, and its dark restatement when it has one", () => {
-  for (const name of Object.keys(starterThemes)) {
-    const serves = themeModes(
-      starterThemes[name as keyof typeof starterThemes],
-    );
+  for (const [name, doc] of Object.entries(designLanguages)) {
+    const serves = themeModes(doc);
     const both = serves.includes("light") && serves.includes("dark");
     const renderings = renderingsFor(name);
     deepStrictEqual(renderings.length, both ? 2 : 1, `${name} rendering count`);

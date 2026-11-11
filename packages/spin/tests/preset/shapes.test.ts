@@ -1,7 +1,6 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import type { ThemeDocument } from "@spinjs/theme";
-import { minimalTheme } from "@spinjs/theme/themes";
+import { minimalLanguage, type ThemeDocument } from "@spinjs/theme";
 import { spin, type SpinPluginOptions } from "../../src/plugin/plugin.ts";
 
 /**
@@ -19,7 +18,7 @@ import { spin, type SpinPluginOptions } from "../../src/plugin/plugin.ts";
  * deliberately absent: it is the stylesheet alone, takes explicit
  * `themes`, and has no `extends` to plumb.)
  */
-const brandDoc = JSON.parse(JSON.stringify(minimalTheme)) as Record<
+const brandDoc = JSON.parse(JSON.stringify(minimalLanguage)) as Record<
   string,
   Record<string, unknown>
 >;

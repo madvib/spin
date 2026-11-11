@@ -157,17 +157,24 @@ export {
 } from "./modes.ts";
 export type { Mode } from "./modes.ts";
 
-// Shipped starter themes.
 export {
   baseDocument,
+  designLanguageGroups,
+  type DesignLanguageName,
+  designLanguages,
+  editorialLanguage,
+  glassmorphicLanguage,
+  isDesignLanguage,
+  materialLanguage,
+  minimalLanguage,
+  neobrutalistLanguage,
+  neumorphicLanguage,
+} from "./languages/index.ts";
+export {
   catppuccinPalette,
   compactSpacing,
-  editorialTheme,
-  glassmorphicTheme,
-  materialTheme,
-  minimalTheme,
-  neobrutalistTheme,
-  neumorphicTheme,
-  starterGroups,
-  starterThemes,
-} from "./themes/index.ts";
+  demoPalettes,
+  demoSpacings,
+  spaciousSpacing,
+  terracottaPalette,
+} from "./facets/index.ts";

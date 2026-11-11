@@ -13,7 +13,7 @@
 import { createEffect, createResource, createSignal } from "solid-js";
 import { createSpinComponent } from "@spinjs/components/solid";
 import { modePicker, themePicker, toggleGroup } from "@spinjs/components";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 import {
   activeBrand,
   activeModes,
@@ -48,7 +48,7 @@ export { refetchProjectThemes };
 export function themeOffered(): readonly { value: string; label: string; modes: string[] }[] {
   const all = projectThemes() ?? [];
   const locals = all.filter(
-    (theme) => theme.file !== null || !(theme.name in starterThemes),
+    (theme) => theme.file !== null || !(theme.name in designLanguages),
   );
   const shown = activeBrand() !== undefined && locals.length > 0 ? locals : all;
   return shown.map((theme) => ({

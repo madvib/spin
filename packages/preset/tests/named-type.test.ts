@@ -7,7 +7,7 @@ import { describeCatalog } from "../src/catalog.ts";
 import { parseTokens } from "@spinjs/theme";
 
 const theme = JSON.parse(
-  readFileSync(new URL("../../theme/src/themes/minimal.json", import.meta.url), "utf8"),
+  readFileSync(new URL("../../theme/src/languages/minimal.json", import.meta.url), "utf8"),
 ) as Record<string, unknown>;
 
 test("a declared style emits its full tuple as one utility", async () => {

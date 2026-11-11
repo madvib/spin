@@ -22,7 +22,7 @@ import type { TokenLeaf, TokenNode, TokenTree } from "@spinjs/theme";
  * brief decided — a flat depth ladder, a hard cut-out, a didone display step.
  */
 
-const SPIN = new URL("../../../theme/src/themes/editorial.json", import.meta.url);
+const SPIN = new URL("../../../theme/src/languages/editorial.json", import.meta.url);
 
 /** The editorial document, parsed. */
 function editorialTree(): TokenTree {

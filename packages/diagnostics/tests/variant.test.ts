@@ -1,6 +1,6 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 import {
   type AncestorFacts,
   type ClassFacts,
@@ -28,7 +28,7 @@ import { renderMessage, RULES } from "../src/rules.ts";
  * this, or they report the variant's own answer as a fight.
  */
 
-const facts: Facts = factsFor(Object.values(starterThemes), engineAnswers(Object.values(starterThemes)));
+const facts: Facts = factsFor(Object.values(designLanguages), engineAnswers(Object.values(designLanguages)));
 
 /**
  * Spin\'s own elements are not the browser\'s, so a project reads them with

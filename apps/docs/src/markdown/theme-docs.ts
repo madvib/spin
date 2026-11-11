@@ -2,7 +2,7 @@
  * The themes section's reading of the theme documents.
  *
  * Every list these pages show is derived: the catalogue from the documents in
- * `@spinjs/theme/themes`, the schema page from the contract in `@spinjs/theme` and
+ * `@spinjs/theme`, the schema page from the contract in `@spinjs/theme` and
  * the JSON Schema it writes. A page that spelled them out by hand would be a
  * second source of truth, and the first theme to gain a token would leave the
  * site describing a system that no longer exists.
@@ -20,7 +20,8 @@ import {
   parseTokens,
   resolveAliases,
   spinThemeJsonSchema,
-  starterThemes,
+  designLanguages,
+  isDesignLanguage,
   themeModes,
   TOKEN_TYPES,
 } from "@spinjs/theme";
@@ -176,7 +177,7 @@ function summarize(name: string, doc: Record<string, unknown>): ThemeSummary {
 
 /** Every starter, read. The order is the package's. */
 export function themeSummaries(): readonly ThemeSummary[] {
-  return Object.entries(starterThemes).map(([name, doc]) =>
+  return Object.entries(designLanguages).map(([name, doc]) =>
     summarize(name, doc as Record<string, unknown>)
   );
 }
@@ -185,7 +186,7 @@ export function themeSummaries(): readonly ThemeSummary[] {
 export function starterDocument(
   name: string,
 ): Record<string, unknown> | undefined {
-  return starterThemes[name];
+  return isDesignLanguage(name) ? (designLanguages[name] as Record<string, unknown>) : undefined;
 }
 
 /** The value a document states at a path, with aliases followed. */
@@ -233,7 +234,7 @@ export function thesisOf(doc: Record<string, unknown>): string | undefined {
  */
 export function groupTypes(group: string): readonly string[] {
   const types = new Set<string>();
-  for (const doc of Object.values(starterThemes)) {
+  for (const doc of Object.values(designLanguages)) {
     const index = indexOf(doc as Record<string, unknown>);
     for (const [path, leaf] of Object.entries(leavesUnder(index, group))) {
       if (path === group) continue;

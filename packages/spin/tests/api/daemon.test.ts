@@ -23,7 +23,7 @@ import { createSpinApp, createSpinClient, type SpinClient } from "../../src/api/
  * does what the contract advertises, through the transport it will ship on.
  *
  * The fixture is a COPY, never the product's own themes: a test that writes
- * to `packages/theme/src/themes` would pass by corrupting the thing it is
+ * to `packages/theme/src/languages` would pass by corrupting the thing it is
  * meant to protect.
  */
 describe("daemon project.themes over HTTP", () => {

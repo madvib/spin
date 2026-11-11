@@ -239,13 +239,13 @@ export async function lint(
  */
 async function serviceAnswers(files: readonly string[]): Promise<EngineAnswers> {
   const { engineAnswers } = await import("@spinjs/preset");
-  const { starterThemes } = await import("@spinjs/theme/themes");
+  const { designLanguages } = await import("@spinjs/theme");
   const { findProjectRootIn, readProjectThemes } = await import("./project.ts");
   const first = files[0];
   const root = first === undefined ? "" : (findProjectRootIn(first) ?? "");
   const themes = root === "" ? {} : readProjectThemes(root);
   return engineAnswers([
-    ...Object.values(starterThemes),
+    ...Object.values(designLanguages),
     ...Object.values(themes),
   ]);
 }

@@ -4,7 +4,7 @@ import { createGenerator } from "@unocss/core";
 import { readFileSync } from "node:fs";
 import { spinPreset } from "../src/index.ts";
 import { CONTROL_FIELDS } from "../src/rules/primitives/field.ts";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 
 /**
  * The layout contract: a row that fits, a cell that does not break, a table
@@ -24,7 +24,7 @@ import { starterThemes } from "@spinjs/theme/themes";
  */
 
 const DEFAULT = new URL(
-  "../../theme/src/themes/minimal.json",
+  "../../theme/src/languages/minimal.json",
   import.meta.url,
 );
 const theme = JSON.parse(readFileSync(DEFAULT, "utf8")) as Record<
@@ -400,8 +400,7 @@ test("the layout contract holds in every theme", async () => {
   // is a theme's own. So the contract is read in every starter: a footer
   // that wraps in silk wraps in console, and a table with a minimum in one
   // has it in all of them.
-  for (const name of Object.keys(starterThemes)) {
-    const document = starterThemes[name];
+  for (const [name, document] of Object.entries(designLanguages)) {
     const css = await sheetFor(
       "<card><card-header><card-title>Deploy</card-title></card-header><card-footer><button>Deploy</button></card-footer></card>" +
         '<div class="stat-row"><div class="stat"></div></div>' +

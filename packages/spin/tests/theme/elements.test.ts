@@ -9,7 +9,7 @@ import {
   validateTokens,
 } from "@spinjs/theme";
 import type { TokenNode } from "@spinjs/theme";
-import { starterThemes, themeModes } from "@spinjs/theme/themes";
+import { designLanguages, themeModes } from "@spinjs/theme";
 
 /**
  * The per-element contract, held to the same gates as the base one.
@@ -40,7 +40,7 @@ test("every starter declares every per-element token the contract knows", () => 
   // out is a starter that has not made the decision: the primitive falls
   // back to the shared scale and the theme's voice is missing. The starters
   // are the product, and the product shows what it decided.
-  for (const [name, doc] of Object.entries(starterThemes)) {
+  for (const [name, doc] of Object.entries(designLanguages)) {
     const parsed = parseTokens(doc);
     if (!parsed.ok) throw new Error(`${name}: ${parsed.error}`);
     const declared = pathsOf(parsed.tree);
@@ -58,7 +58,7 @@ test("silk states every per-element token", () => {
   // them when a theme is created. A per-element token missing from silk is
   // a decision the author is never shown — and a rule that falls back to
   // the shared scale because the document was too empty to say otherwise.
-  const parsed = parseTokens(starterThemes.minimal);
+  const parsed = parseTokens(designLanguages.minimal);
   if (!parsed.ok) throw new Error(parsed.error);
   const declared = pathsOf(parsed.tree);
   for (const path of elementPaths()) {
@@ -69,7 +69,7 @@ test("silk states every per-element token", () => {
 test("a silk document validates with every per-element group in it", () => {
   // Silk's values must be sound: a starter that does not validate is a
   // document the studio copies and the validator rejects.
-  const parsed = parseTokens(starterThemes.minimal);
+  const parsed = parseTokens(designLanguages.minimal);
   if (!parsed.ok) throw new Error(parsed.error);
   const report = validateTokens(parsed.tree, { required: requiredPaths() });
   deepStrictEqual(report.issues, []);
@@ -92,7 +92,7 @@ test("the ink the danger surfaces wear is a role the contract asks for", () => {
     bg: "color.semantic.error",
     min: 4.5,
   });
-  for (const [name, doc] of Object.entries(starterThemes)) {
+  for (const [name, doc] of Object.entries(designLanguages)) {
     const parsed = parseTokens(doc);
     if (!parsed.ok) throw new Error(`${name}: ${parsed.error}`);
     assert(
@@ -103,7 +103,7 @@ test("the ink the danger surfaces wear is a role the contract asks for", () => {
 });
 
 test("a theme that serves a mode it does not override is valid", () => {
-  const darkOnly = structuredClone(starterThemes.neumorphic) as Record<string, unknown>;
+  const darkOnly = structuredClone(designLanguages.neumorphic) as Record<string, unknown>;
   for (const group of Object.values(darkOnly)) {
     if (group && typeof group === "object") {
       for (const leaf of Object.values(group as Record<string, unknown>)) {
@@ -125,10 +125,10 @@ test("a theme that serves a mode it does not override is valid", () => {
 
 test("a value written for a mode the theme does not serve is reported", () => {
   const parsed = parseTokens({
-    ...starterThemes.neobrutalist,
+    ...designLanguages.neobrutalist,
     modes: ["light"],
     color: {
-      ...(starterThemes.neobrutalist["color"] as Record<string, unknown>),
+      ...(designLanguages.neobrutalist["color"] as Record<string, unknown>),
       primary: {
         $value: "#2b5fd0",
         $modes: { dark: "#8db9fa" },

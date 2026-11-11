@@ -172,8 +172,8 @@ export default function ThemesOverview(): JSX.Element {
 
       <Section id="starters" title="Six starting design languages">
         <p class="max-w-prose">
-          Spin ships six design languages in{" "}
-          <code>@spinjs/theme/themes</code>. Select a design language below to
+          Spin includes six foundational design languages in{" "}
+          <code>@spinjs/theme</code>. Select a design language below to
           inspect its baseline palette and signature tokens, or preview it across
           this documentation site.
         </p>

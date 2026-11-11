@@ -11,10 +11,16 @@ import {
   SECTIONS,
   utilitiesFor,
 } from "@spinjs/preset";
-import { indexTree, parseTokens, resolveAliases } from "@spinjs/theme";
-import type { TokenTree } from "@spinjs/theme";
-import { inkTokens, LOOP_STEP } from "@spinjs/theme";
-import { starterThemes } from "@spinjs/theme/themes";
+import {
+  designLanguages,
+  indexTree,
+  inkTokens,
+  isDesignLanguage,
+  LOOP_STEP,
+  parseTokens,
+  resolveAliases,
+  type TokenTree,
+} from "@spinjs/theme";
 
 /* ──────────────────────────────────────────────────────────────────────────
  * THE UTILITIES SURFACE.
@@ -35,7 +41,7 @@ let themeTree: TokenTree | undefined;
 function themeTreeOrParse(): TokenTree {
   if (themeTree === undefined) {
     const parsed = parseTokens(
-      starterThemes.minimal,
+      designLanguages.minimal,
     );
     if (!parsed.ok) throw new Error(parsed.error);
     themeTree = parsed.tree;
@@ -60,8 +66,8 @@ function colorValues(
   theme: string,
   mode: string,
 ): Readonly<Record<string, string>> {
-  const doc = starterThemes[theme];
-  if (doc === undefined) return {};
+  if (!isDesignLanguage(theme)) return {};
+  const doc = designLanguages[theme];
   const parsed = parseTokens(doc);
   if (!parsed.ok) throw new Error(parsed.error);
   const index = indexTree(resolveAliases(parsed.tree).tree);

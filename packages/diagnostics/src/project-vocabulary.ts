@@ -15,7 +15,7 @@ import {
   parseTokens,
 } from "@spinjs/theme";
 import type { ThemeDocument, TokenTree } from "@spinjs/theme";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 import type { EngineAnswers } from "./engine-types.ts";
 import { deriveVocabulary } from "./vocabulary.ts";
 import type { Facts } from "./core.ts";
@@ -201,7 +201,7 @@ export function projectFacts(
   components: readonly string[] = [],
 ): Facts {
   return factsFor(
-    [...Object.values(starterThemes), ...Object.values(projectThemes)],
+    [...Object.values(designLanguages), ...Object.values(projectThemes)],
     answers,
     generated,
     shortcuts,

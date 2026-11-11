@@ -116,15 +116,15 @@ function candidates(): string {
 }
 
 async function writeCss(): Promise<void> {
-  const [{ createGenerator }, { spinPreset }, { starterThemes }, list] =
+  const [{ createGenerator }, { spinPreset }, { designLanguages }, list] =
     await Promise.all([
       import("@unocss/core"),
       import("@spinjs/preset"),
-      import("../../packages/theme/src/themes/index.ts"),
+      import("@spinjs/theme"),
       candidates(),
     ]);
   const generator = await createGenerator({
-    presets: [spinPreset({ themes: starterThemes })],
+    presets: [spinPreset({ themes: designLanguages })],
   });
   const generated = await generator.generate(list, {
     preflights: true,

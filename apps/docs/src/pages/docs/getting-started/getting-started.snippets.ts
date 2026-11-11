@@ -63,12 +63,12 @@ export const plugins = [spin.bun()];`,
 import { defineConfig } from "unocss";
 import { spinPreset } from "@spinjs/preset";
 
-const editorialTheme = JSON.parse(
+const brandTheme = JSON.parse(
   readFileSync(new URL("./spin/<brand>/tokens.json", import.meta.url), "utf8"),
 );
 
 export default defineConfig({
-  presets: [spinPreset({ themes: { "<name>": editorialTheme } })],
+  presets: [spinPreset({ themes: { "<name>": brandTheme } })],
 });`,
   studioServe: `npx spin studio`,
   viteOptions: `spin.vite({

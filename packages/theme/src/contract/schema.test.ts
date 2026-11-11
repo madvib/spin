@@ -7,14 +7,14 @@ import { parseTokens } from "../pipeline/parse.ts";
 import { generateCss } from "../pipeline/generate.ts";
 import { validateTokens } from "../pipeline/validate.ts";
 import { themeModes } from "../modes.ts";
-import { starterThemes } from "../themes/index.ts";
+import { designLanguages } from "../languages/index.ts";
 import { BASE_ROLES, requiredPaths } from "./roles.ts";
 import { spinThemeJsonSchema, validateLegibility, validateStateLegibility } from "./schema.ts";
 
 function example(name: string): unknown {
   return JSON.parse(
     readFileSync(
-      new URL(`../themes/${name}`, import.meta.url),
+      new URL(`../languages/${name}`, import.meta.url),
       "utf8",
     ),
   );
@@ -190,7 +190,7 @@ test("every starter declares the dead pair, and it reads in every mode", () => {
   // blue button lands at 1.56:1. The pair is what keeps a dead control
   // legible — so every starter states both halves, and the ink clears the
   // text floor on the fill in every mode the theme serves.
-  for (const [name, doc] of Object.entries(starterThemes)) {
+  for (const [name, doc] of Object.entries(designLanguages)) {
     const parsed = parseTokens(doc);
     if (!parsed.ok) throw new Error(`${name}: ${parsed.error}`);
     const modes = themeModes(doc).includes("dark")

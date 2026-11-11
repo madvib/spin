@@ -5,8 +5,7 @@ import {
   type ExtendedTokenInfo,
   type GenerateResult,
 } from "@unocss/core";
-import { cssVarName, ELEMENT_ROLES } from "@spinjs/theme";
-import { starterThemes } from "@spinjs/theme/themes";
+import { cssVarName, designLanguages, ELEMENT_ROLES } from "@spinjs/theme";
 import { spinPreset } from "../src/index.ts";
 import { deriveRuleContract } from "../src/rules/primitives/derive.ts";
 
@@ -22,7 +21,7 @@ import { deriveRuleContract } from "../src/rules/primitives/derive.ts";
 // The expanded baseline: omission fixtures below delete tokens from a
 // complete document — deleting from the sparse file would inherit the
 // token back from the base it layers over.
-const theme = starterThemes.minimal as unknown as Record<string, unknown>;
+const theme = designLanguages.minimal as unknown as Record<string, unknown>;
 
 type Result = GenerateResult<Map<string, ExtendedTokenInfo>>;
 
@@ -156,7 +155,7 @@ test("a theme that omits icon and badge tokens still dresses them from the share
   // The fallbacks are a contract with the SHARED scales, and the shared scales
   // are every starter's. A fallback that worked in silk and fell through in
   // synthwave would be a component that changes shape with the theme.
-  for (const [name, document] of Object.entries(starterThemes)) {
+  for (const [name, document] of Object.entries(designLanguages)) {
     const without = structuredClone(
       document as Record<string, unknown>,
     );

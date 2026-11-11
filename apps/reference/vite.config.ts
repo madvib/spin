@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 import solid from "vite-plugin-solid";
 import presetIcons from "@unocss/preset-icons";
 import { spin } from "@spinjs/spin/vite";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 import lucide from "@iconify-json/lucide/icons.json" with { type: "json" };
 const here = import.meta.dirname!;
 
@@ -41,7 +41,7 @@ export default defineConfig({
       // this root — the same files the studio edits — so a theme change
       // in the studio re-themes this app. Starters arrive as values
       // through `extends`, never by silent merge.
-      extends: { themes: starterThemes },
+      extends: { themes: designLanguages },
       shortcuts: referenceShortcuts,
       presets: [presetIcons({ collections: { lucide } as never })],
       // Example modules carry the tokens (App → primitives registry →

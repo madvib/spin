@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { contractGroups, documentGroups, themeGroups } from "./groups.ts";
-import { starterThemes } from "../themes/index.ts";
+import { designLanguages } from "../languages/index.ts";
 
 /**
  * The group list is what the house skill's checklist walks and what the
@@ -52,7 +52,7 @@ test("every group the contract declares is one the starters state", () => {
   // have to agree: a group the contract requires that no starter states is a
   // group the product cannot spend.
   const stated = new Set(
-    Object.values(starterThemes).flatMap((doc) => documentGroups(doc)),
+    Object.values(designLanguages).flatMap((doc) => documentGroups(doc)),
   );
   for (const group of contractGroups()) {
     assert(stated.has(group), `no starter states the ${group} group`);

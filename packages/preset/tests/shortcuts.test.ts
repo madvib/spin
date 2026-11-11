@@ -15,7 +15,7 @@ import { spinPreset } from "../src/index.ts";
  */
 
 const THEME = new URL(
-  "../../theme/src/themes/minimal.json",
+  "../../theme/src/languages/minimal.json",
   import.meta.url,
 );
 const theme = JSON.parse(readFileSync(THEME, "utf8")) as Record<

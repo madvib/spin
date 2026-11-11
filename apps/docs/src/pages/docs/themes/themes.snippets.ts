@@ -94,15 +94,15 @@ export const THEMES_SNIPPETS = {
 }`,
   viteSharedBrand: `import { defineConfig } from "vite";
 import { spin } from "@spinjs/spin/vite";
-import { starterThemes } from "@spinjs/theme";
+import { designLanguages } from "@spinjs/theme";
 import { acmeBrand } from "@acme/brand-theme";
 
 export default defineConfig({
   plugins: [
     spin.vite({
-      // Share a company brand package, or mount the six starter palettes:
+      // Share a company brand package, or mount design languages directly:
       extends: acmeBrand,
-      // extends: { themes: starterThemes },
+      // extends: { themes: designLanguages },
     }),
   ],
 });`,
@@ -112,7 +112,7 @@ export default defineConfig({
 
 export const plugins = [
   spin.vite({
-    // extends: { themes: starterThemes },
+    // extends: { themes: designLanguages },
   }),
 ];`,
   modeToken: `{
@@ -215,18 +215,17 @@ if (!report.valid) {
   parseTokens,
   resolveAliases,
   resolveTheme,
-  editorialTheme,
-  starterThemes,
+  editorialLanguage,
+  designLanguages,
 } from "@spinjs/theme";
 
 // 1. Resolve every token to its final string value in a mode:
-const dark = resolveTheme(editorialTheme, "dark");
+const dark = resolveTheme(editorialLanguage, "dark");
 console.log(dark.values["color.primary"]); // "#ff5a63"
 console.log(dark.values["color.surface"]); // "#0c0c0b"
 
 // 2. Non-throwing parse + alias resolution when you need $type or $modes metadata:
-const parsed = parseTokens(starterThemes.minimal);
-if (parsed.ok) {
+const parsed = parseTokens(designLanguages.minimal);
   const index = indexTree(resolveAliases(parsed.tree).tree);
   const primary = index.leaves["color.primary"];
   console.log(primary?.type, primary?.value, primary?.modes);

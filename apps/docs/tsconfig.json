@@ -40,9 +40,6 @@
       "@spinjs/theme": [
         "../../packages/theme/src/index.ts"
       ],
-      "@spinjs/theme/themes": [
-        "../../packages/theme/src/themes/index.ts"
-      ],
       "@spinjs/spin/api": [
         "../../packages/spin/src/api/index.ts"
       ],

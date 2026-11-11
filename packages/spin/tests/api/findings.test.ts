@@ -14,7 +14,7 @@ import { test } from "bun:test";
 
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { createSpinClient, setProjectRoot } from "../../src/api/index.ts";
-import spinStarter from "../../../theme/src/themes/editorial.json" with {
+import spinStarter from "../../../theme/src/languages/editorial.json" with {
   type: "json",
 };
 import { RPCHandler } from "@orpc/server/fetch";

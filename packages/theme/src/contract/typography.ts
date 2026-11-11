@@ -19,7 +19,7 @@
  */
 
 import { parseTokens } from "../pipeline/parse.ts";
-import { minimalTheme } from "../themes/index.ts";
+import { minimalLanguage } from "../languages/index.ts";
 
 
 /**
@@ -52,7 +52,7 @@ let ownedNames: readonly string[] | undefined;
 /** The owned names, in the order the baseline states them. */
 export function ownedStyleNames(): readonly string[] {
   if (ownedNames === undefined) {
-    const parsed = parseTokens(minimalTheme);
+    const parsed = parseTokens(minimalLanguage);
     if (!parsed.ok) throw new Error(`contract: baseline does not parse: ${parsed.error}`);
     const names: string[] = [];
     const visit = (nodes: readonly unknown[]): void => {

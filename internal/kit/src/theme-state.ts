@@ -14,19 +14,22 @@
  */
 import { createEffect, createSignal } from "solid-js";
 import type { Accessor } from "solid-js";
-import { starterThemes, themeModes } from "@spinjs/theme/themes";
-
-export type StarterName = keyof typeof starterThemes;
+import {
+  type DesignLanguageName,
+  designLanguages,
+  isDesignLanguage,
+  themeModes,
+} from "@spinjs/theme";
 
 /** A theme document, by name. The shape is the theme package's business. */
 export type ThemeDocuments = Readonly<Record<string, unknown>>;
 
-/** The starters, derived from the package — no list anyone maintains. */
-export const starterList: readonly string[] = Object.keys(starterThemes).sort();
+export const languageList: readonly DesignLanguageName[] = (
+  Object.keys(designLanguages) as DesignLanguageName[]
+).sort();
 
-/** The modes a starter supports, so the control never offers a lie. */
 export const modesFor = (name: string): readonly string[] => {
-  const doc = starterThemes[name as StarterName];
+  const doc = isDesignLanguage(name) ? designLanguages[name] : undefined;
   return doc ? themeModes(doc) : ["light"];
 };
 
@@ -109,7 +112,7 @@ function servedModes(
 export function createThemeState(
   options: ThemeStateOptions = {},
 ): ThemeState {
-  const documents = options.documents ?? starterThemes;
+  const documents = options.documents ?? designLanguages;
   const names = Object.keys(documents).sort();
   const storage = options.storage ??
     { theme: "spin:theme", mode: "spin:mode" };

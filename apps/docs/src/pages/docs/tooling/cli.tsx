@@ -195,8 +195,7 @@ const SPIN_SUBPATHS: readonly PropEntry[] = [
 ];
 
 const THEME_PRESET_SUBPATHS: readonly PropEntry[] = [
-  { name: "@spinjs/theme", badge: "tokens", description: "DTCG parser, alias resolver, six-gate validator (themeGates), and starterThemes." },
-  { name: "@spinjs/theme/themes", badge: "starters", description: "The six starter design languages (minimal, editorial, material, neobrutalist, neumorphic, glassmorphic)." },
+  { name: "@spinjs/theme", badge: "tokens", description: "Token parser, alias resolver, six-gate validator (themeGates), designLanguages, and facets." },
   { name: "@spinjs/preset", badge: "preset", description: "Standalone UnoCSS preset (spinPreset) and primitive contracts/examples." },
   { name: "@spinjs/server", badge: "project", description: "Project reads and writes: themes, components, config (spin/config.json)." },
   { name: "@spinjs/server/project", badge: "service", description: "Brand service, file discovery, and the RPC procedures the API composes." },

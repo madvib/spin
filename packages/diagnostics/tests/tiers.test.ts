@@ -1,8 +1,7 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import { describeCatalog } from "@spinjs/preset";
-import { parseTokens } from "@spinjs/theme";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages, parseTokens } from "@spinjs/theme";
 import { TIER_BY_GROUP, tierInPlace } from "../src/tiers.ts";
 
 /**
@@ -14,7 +13,7 @@ import { TIER_BY_GROUP, tierInPlace } from "../src/tiers.ts";
  * reads the catalog rather than a list of its own.
  */
 test("every catalog family has a tier", () => {
-  const parsed = parseTokens(starterThemes.minimal);
+  const parsed = parseTokens(designLanguages.minimal);
   if (!parsed.ok) throw new Error("the shipped theme does not parse");
   const families = describeCatalog(parsed.tree).map((section) => section.id);
   for (const family of families) {

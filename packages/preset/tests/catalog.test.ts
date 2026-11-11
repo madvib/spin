@@ -16,7 +16,7 @@ import { claims } from "../src/utils/claimed.ts";
  */
 const THEME = JSON.parse(
   await readFile(
-    new URL("../../theme/src/themes/minimal.json", import.meta.url),
+    new URL("../../theme/src/languages/minimal.json", import.meta.url),
     "utf8",
   ),
 ) as Record<string, unknown>;

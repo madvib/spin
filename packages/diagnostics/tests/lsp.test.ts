@@ -4,7 +4,7 @@ import { test } from "bun:test";
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 import { lint } from "../src/service.ts";
 import { createState, handleMessage, type LspState } from "../../spin/src/lsp/server.ts";
 import { completionsAt, hoverAt } from "../../spin/src/lsp/features.ts";
@@ -49,7 +49,7 @@ function diagnosticsOf(params: Record<string, unknown>): Array<Record<string, un
 async function fixture(): Promise<{ directory: string; uri: string }> {
   const directory = await mkdtemp(join(tmpdir(), "spin-lsp-"));
   await mkdir(join(directory, "spin"), { recursive: true });
-  const doc = structuredClone(starterThemes.minimal) as unknown as Record<string, unknown>;
+  const doc = structuredClone(designLanguages.minimal) as unknown as Record<string, unknown>;
   await writeFile(join(directory, "spin", "acme.json"), JSON.stringify(doc, null, 2));
   const file = join(directory, "app.tsx");
   await writeFile(
@@ -61,7 +61,7 @@ async function fixture(): Promise<{ directory: string; uri: string }> {
 
 /** What the style engine answers for a fixture project. */
 function fixtureAnswers(directory: string) {
-  return engineAnswers([...Object.values(starterThemes), ...Object.values(readProjectThemes(directory))]);
+  return engineAnswers([...Object.values(designLanguages), ...Object.values(readProjectThemes(directory))]);
 }
 
 /** The published diagnostics a message flow ends with. */

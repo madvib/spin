@@ -2,7 +2,7 @@ import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import plugin from "../src/index.ts";
 import { engineAnswers } from "@spinjs/preset";
-import { starterThemes } from "@spinjs/theme/themes";
+import { designLanguages } from "@spinjs/theme";
 
 test("the plugin reads the dial from the linter's context", () => {
   // The option travels through the plugin API the way a linter delivers
@@ -10,7 +10,7 @@ test("the plugin reads the dial from the linter's context", () => {
   const rule = plugin.rules["prefer-theme-value"];
   const seen: { messageId: string; data?: Record<string, string> }[] = [];
   const visit = rule.create({
-    answers: engineAnswers(Object.values(starterThemes)),
+    answers: engineAnswers(Object.values(designLanguages)),
     options: [{ strictness: "balanced" }],
     report(descriptor) {
       seen.push({

@@ -1,0 +1,78 @@
+{
+  "spacing": {
+    "$type": "dimension",
+    "$description": "The spacious density: every step sits one rung more generous than the base scale, so a subtree wearing data-spacing=\"spacious\" opens up without touching ink or type.",
+    "1": {
+      "$value": "0.3125rem"
+    },
+    "2": {
+      "$value": "0.625rem"
+    },
+    "3": {
+      "$value": "0.9375rem"
+    },
+    "4": {
+      "$value": "1.25rem"
+    },
+    "5": {
+      "$value": "1.5625rem"
+    },
+    "6": {
+      "$value": "1.875rem"
+    },
+    "7": {
+      "$value": "2.1875rem"
+    },
+    "8": {
+      "$value": "2.5rem"
+    },
+    "10": {
+      "$value": "3.125rem"
+    },
+    "12": {
+      "$value": "3.75rem"
+    },
+    "14": {
+      "$value": "4.375rem"
+    },
+    "16": {
+      "$value": "5rem"
+    },
+    "20": {
+      "$value": "6.25rem"
+    },
+    "24": {
+      "$value": "7.5rem"
+    },
+    "36": {
+      "$value": "11.25rem"
+    },
+    "40": {
+      "$value": "12.5rem"
+    },
+    "56": {
+      "$value": "17.5rem"
+    },
+    "60": {
+      "$value": "18.75rem"
+    },
+    "64": {
+      "$value": "20rem"
+    }
+  },
+  "card": {
+    "padding": {
+      "$type": "dimension",
+      "$value": "{spacing.6}",
+      "$description": "The spacious card's air: one rung more generous than the base card."
+    }
+  },
+  "alert": {
+    "padding": {
+      "$type": "dimension",
+      "$value": "{spacing.3}",
+      "$description": "The spacious alert's air above and below its message."
+    }
+  },
+  "modes": ["light", "dark"]
+}

@@ -517,8 +517,8 @@ test("the brand analyze judges one theme and fails on an invalid one", async () 
   // issue on stdout as `<path>: <message>`.
   const dir = await mkdtemp(join(tmpdir(), "spin-cli-theme-"));
   try {
-    const { starterThemes } = await import("@spinjs/theme/themes");
-    const doc = structuredClone(starterThemes.minimal) as unknown as Record<string, unknown>;
+    const { designLanguages } = await import("@spinjs/theme");
+    const doc = structuredClone(designLanguages.minimal) as unknown as Record<string, unknown>;
     delete (doc["color"] as Record<string, unknown>)["text"];
     await import("node:fs/promises").then((fs) => fs.mkdir(join(dir, "spin"), { recursive: true }));
     await writeFile(join(dir, "spin", "broken.json"), JSON.stringify(doc, null, 2));
@@ -541,10 +541,10 @@ test("the theme analyze without a name compares the corpus across themes", async
   // every class the project wears. One theme with a missing step fails the
   // run with the class, the wearing file, and the theme that drops it; a
   // project whose themes agree passes with the clean line.
-  const { starterThemes } = await import("@spinjs/theme/themes");
+  const { designLanguages } = await import("@spinjs/theme");
   const split = await mkdtemp(join(tmpdir(), "spin-cli-theme-"));
   try {
-    const full = structuredClone(starterThemes.minimal) as unknown as Record<string, unknown>;
+    const full = structuredClone(designLanguages.minimal) as unknown as Record<string, unknown>;
     const narrow = structuredClone(full) as Record<string, Record<string, unknown>>;
     (full["spacing"] as Record<string, unknown>)["32"] = { $value: "8rem", $type: "dimension" };
     await import("node:fs/promises").then((fs) => fs.mkdir(join(split, "spin"), { recursive: true }));
@@ -585,7 +585,7 @@ test("the theme analyze without a name compares the corpus across themes", async
   }
   const good = await mkdtemp(join(tmpdir(), "spin-cli-theme-"));
   try {
-    const { starterThemes: shipped } = await import("@spinjs/theme/themes");
+    const { designLanguages: shipped } = await import("@spinjs/theme");
     await import("node:fs/promises").then((fs) => fs.mkdir(join(good, "spin"), { recursive: true }));
     await writeFile(join(good, "spin", "fine.json"), JSON.stringify(shipped.minimal, null, 2));
     await writeFile(join(good, "app.tsx"), `export function App() {\n  return <div className="flex gap-2">hi</div>;\n}\n`);

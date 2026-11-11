@@ -22,10 +22,10 @@ import type {
   TokenTree,
 } from "@spinjs/theme";
 import {
-  type StarterThemeName,
-  starterThemes,
+  type DesignLanguageName,
+  designLanguages,
   themeModes,
-} from "@spinjs/theme/themes";
+} from "@spinjs/theme";
 
 /**
  * The battery, run over the themes this package ships — and over a theme a
@@ -46,7 +46,7 @@ import {
 // The SHIPPED starter themes, not fixtures: these are the product, and
 // a consumer picks one and customises it rather than writing a theme
 // from scratch.
-const THEMES_DIR = new URL("../../../theme/src/themes/", import.meta.url);
+const THEMES_DIR = new URL("../../../theme/src/languages/", import.meta.url);
 
 /** Unwraps a successful parse, failing loudly when the file was rejected. */
 function treeOf(result: ParseResult, source: string): TokenTree {
@@ -328,7 +328,7 @@ const DECLARED_MODES = {
   neobrutalist: ["light", "dark"],
   neumorphic: ["light", "dark"],
   glassmorphic: ["light", "dark"],
-} satisfies Record<StarterThemeName, readonly ("light" | "dark")[]>;
+} satisfies Record<DesignLanguageName, readonly ("light" | "dark")[]>;
 
 test("a theme states its modes at the root", async () => {
   // The modes are data, not derived from a group's presence: neobrut and
@@ -338,7 +338,7 @@ test("a theme states its modes at the root", async () => {
   for (const [name, modes] of Object.entries(DECLARED_MODES)) {
     // The served document, not the sparse file: a starter layers over the
     // base, and the modes it serves are what the resolved document states.
-    const doc = starterThemes[name] as Record<string, unknown>;
+    const doc = designLanguages[name as DesignLanguageName] as Record<string, unknown>;
     deepStrictEqual(
       doc["modes"],
       modes,
@@ -388,7 +388,7 @@ test("a theme declares the modes it actually has", async () => {
   // group's presence — and adding a mode is a change to the theme document,
   // which is the one file a theme owns.
   for (const [name, modes] of Object.entries(DECLARED_MODES)) {
-    const doc = starterThemes[name] as ThemeDocument;
+    const doc = designLanguages[name as DesignLanguageName] as ThemeDocument;
     deepStrictEqual(
       [...themeModes(doc)],
       modes,
@@ -680,7 +680,7 @@ test("every tone fill+on pair meets 4.5:1 in every shipped theme and mode", asyn
     ["--color-semantic-error", "--color-on-semantic-error"],
   ] as const;
 
-  for (const name of Object.keys(starterThemes) as StarterThemeName[]) {
+  for (const name of Object.keys(designLanguages) as DesignLanguageName[]) {
     const tree = treeOf(
       parseTokens(await readFile(new URL(`${name}.json`, THEMES_DIR), "utf8")),
       `${name}.json`,
@@ -767,7 +767,7 @@ test("the checked-in token types are what the baseline generates", async () => {
  * every mode it serves, the ladders, the loop, and the modes.
  */
 test("every starter passes the battery", async () => {
-  for (const name of Object.keys(starterThemes) as StarterThemeName[]) {
+  for (const name of Object.keys(designLanguages) as DesignLanguageName[]) {
     const text = await readFile(
       new URL(`${name}.json`, THEMES_DIR),
       "utf8",
@@ -805,7 +805,7 @@ function projectTheme(
     | "none",
 ): string {
   const doc = JSON.parse(
-    JSON.stringify(starterThemes.minimal),
+    JSON.stringify(designLanguages.minimal),
   ) as Record<string, unknown>;
   const color = doc["color"] as Record<string, unknown>;
   const spacing = doc["spacing"] as Record<string, unknown>;
@@ -1029,7 +1029,7 @@ test("the ink on the secondary and the accent fill is a role the contract asks f
     floors.find((floor) => floor.fg === "color.on-accent"),
     { fg: "color.on-accent", bg: "color.accent", min: 4.5 },
   );
-  const parsed = parseTokens(starterThemes.minimal);
+  const parsed = parseTokens(designLanguages.minimal);
   if (!parsed.ok) throw new Error(parsed.error);
   const stated = new Set(
     parsed.tree
@@ -1044,16 +1044,4 @@ test("the ink on the secondary and the accent fill is a role the contract asks f
     stated.has("color.on-accent"),
     "minimal states the ink on the accent fill",
   );
-});
-
-test("@spinjs/spin/theme re-exports starterThemes and individual starters", async () => {
-  const rootExports = await import("@spinjs/theme");
-  const subpathExports = await import("@spinjs/theme/themes");
-  assert.strictEqual(rootExports.starterThemes, subpathExports.starterThemes);
-  assert.strictEqual(rootExports.starterGroups, subpathExports.starterGroups);
-  assert.strictEqual(rootExports.editorialTheme, subpathExports.editorialTheme);
-  assert.strictEqual(rootExports.minimalTheme, subpathExports.minimalTheme);
-  assert.strictEqual(rootExports.materialTheme, subpathExports.materialTheme);
-  assert.strictEqual(rootExports.neobrutalistTheme, subpathExports.neobrutalistTheme);
-  assert.strictEqual(rootExports.neumorphicTheme, subpathExports.neumorphicTheme);
 });
