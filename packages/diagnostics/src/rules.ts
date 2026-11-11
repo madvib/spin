@@ -198,11 +198,19 @@ interface ExpressionNode {
   readonly expression?: unknown;
   readonly properties?: readonly unknown[];
   readonly elements?: readonly unknown[];
+  readonly test?: unknown;
   readonly consequent?: unknown;
   readonly alternate?: unknown;
+  readonly operator?: unknown;
   readonly left?: unknown;
   readonly right?: unknown;
   readonly argument?: unknown;
+  readonly object?: unknown;
+  readonly property?: unknown;
+  readonly computed?: unknown;
+  readonly optional?: unknown;
+  readonly callee?: unknown;
+  readonly arguments?: readonly unknown[];
   readonly quasis?: readonly {
     readonly value?: { readonly cooked?: unknown };
   }[];
@@ -275,6 +283,85 @@ function expressionBranches(
   return { resting, conditional, all };
 }
 
+/** Structural identity of a pure guard expression so co-guarded branches merge. */
+function guardKeyOf(node: unknown): string | undefined {
+  if (typeof node !== "object" || node === null) return undefined;
+  const v = node as ExpressionNode;
+  switch (v.type) {
+    case "Identifier":
+      return typeof v.name === "string" ? `id:${v.name}` : undefined;
+    case "Literal":
+      return typeof v.value === "string" || typeof v.value === "number" || typeof v.value === "boolean"
+        ? `lit:${typeof v.value}:${String(v.value)}`
+        : undefined;
+    case "UnaryExpression": {
+      if (typeof v.operator !== "string") return undefined;
+      const arg = guardKeyOf(v.argument);
+      if (arg === undefined) return undefined;
+      return v.operator === "!" ? negateGuardKey(arg) : `un:${v.operator}:${arg}`;
+    }
+    case "BinaryExpression":
+    case "LogicalExpression": {
+      if (typeof v.operator !== "string") return undefined;
+      const left = guardKeyOf(v.left);
+      const right = guardKeyOf(v.right);
+      if (left === undefined || right === undefined) return undefined;
+      return `bin:${v.operator}:(${left},${right})`;
+    }
+    case "MemberExpression": {
+      const obj = guardKeyOf(v.object);
+      const prop = guardKeyOf(v.property);
+      if (obj === undefined || prop === undefined) return undefined;
+      const sep = v.optional === true ? "?." : ".";
+      return v.computed === true ? `mem:${obj}${sep}[${prop}]` : `mem:${obj}${sep}${prop}`;
+    }
+    case "CallExpression": {
+      const callee = guardKeyOf(v.callee);
+      if (callee === undefined) return undefined;
+      const args: string[] = [];
+      for (const arg of v.arguments ?? []) {
+        const k = guardKeyOf(arg);
+        if (k === undefined) return undefined;
+        args.push(k);
+      }
+      return `call:${callee}(${args.join(",")})`;
+    }
+    case "ChainExpression":
+    case "ParenthesizedExpression":
+    case "TSAsExpression":
+    case "TSSatisfiesExpression":
+    case "TSNonNullExpression":
+      return guardKeyOf(v.expression);
+    default:
+      return undefined;
+  }
+}
+
+function negateGuardKey(key: string | undefined): string | undefined {
+  if (key === undefined) return undefined;
+  return key.startsWith("un:!:") ? key.slice(5) : `un:!:${key}`;
+}
+
+function pushGuardedBranch(
+  conditional: string[][],
+  guarded: Map<string, string[]>,
+  key: string | undefined,
+  branch: string[],
+): void {
+  if (branch.length === 0) return;
+  if (key === undefined) {
+    conditional.push(branch);
+    return;
+  }
+  const existing = guarded.get(key);
+  if (existing !== undefined) {
+    existing.push(...branch);
+    return;
+  }
+  conditional.push(branch);
+  guarded.set(key, branch);
+}
+
 /**
  * A `class={...}` expression's branches.
  *
@@ -288,6 +375,7 @@ export function collectExpressionBranches(
   resting: string[],
   conditional: string[][],
   top: boolean,
+  guarded = new Map<string, string[]>(),
 ): void {
   if (typeof node !== "object" || node === null) return;
   const value = node as ExpressionNode;
@@ -303,13 +391,13 @@ export function collectExpressionBranches(
         resting.push(cls);
       }
       for (const expr of value.expressions ?? []) {
-        collectExpressionBranches(expr, resting, conditional, false);
+        collectExpressionBranches(expr, resting, conditional, false, guarded);
       }
       return;
     }
     case "ArrayExpression": {
       for (const element of value.elements ?? []) {
-        collectExpressionBranches(element, resting, conditional, false);
+        collectExpressionBranches(element, resting, conditional, false, guarded);
       }
       return;
     }
@@ -328,39 +416,41 @@ export function collectExpressionBranches(
         ) {
           resting.push(...branch);
         } else {
-          conditional.push(branch);
+          pushGuardedBranch(conditional, guarded, guardKeyOf(prop.value), branch);
         }
       }
       return;
     }
     case "Property": {
       if (top) {
-        collectExpressionBranches(value.value, resting, conditional, false);
+        collectExpressionBranches(value.value, resting, conditional, false, guarded);
         return;
       }
       const branch: string[] = [];
       collectExpressionInto(value.key, branch);
-      if (branch.length > 0) conditional.push(branch);
+      pushGuardedBranch(conditional, guarded, guardKeyOf(value.value), branch);
       return;
     }
     case "ConditionalExpression": {
-      for (const arm of [value.consequent, value.alternate]) {
-        const branch: string[] = [];
-        collectExpressionInto(arm, branch);
-        if (branch.length > 0) conditional.push(branch);
-      }
+      const testKey = guardKeyOf(value.test);
+      const consequent: string[] = [];
+      collectExpressionInto(value.consequent, consequent);
+      pushGuardedBranch(conditional, guarded, testKey, consequent);
+      const alternate: string[] = [];
+      collectExpressionInto(value.alternate, alternate);
+      pushGuardedBranch(conditional, guarded, negateGuardKey(testKey), alternate);
       return;
     }
     case "LogicalExpression": {
-      collectExpressionBranches(value.left, resting, conditional, top);
-      collectExpressionBranches(value.right, resting, conditional, top);
+      collectExpressionBranches(value.left, resting, conditional, top, guarded);
+      collectExpressionBranches(value.right, resting, conditional, top, guarded);
       return;
     }
     case "ParenthesizedExpression":
     case "TSAsExpression":
     case "TSSatisfiesExpression":
     case "TSNonNullExpression": {
-      collectExpressionBranches(value.expression, resting, conditional, top);
+      collectExpressionBranches(value.expression, resting, conditional, top, guarded);
       return;
     }
     default:

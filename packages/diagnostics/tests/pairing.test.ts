@@ -122,3 +122,52 @@ test("a fill and its ink arriving in the same conditional branch pair", () => {
   deepStrictEqual(reports, []);
 });
 
+test("co-guarded object keys pair together without crossing distinct guards", () => {
+  const rule = plugin.rules["no-unpaired-ink"];
+  const reports: Report[] = [];
+  const visit = rule.create({
+    answers: engineAnswers(Object.values(starterThemes)),
+    report(descriptor) {
+      reports.push({ messageId: descriptor.messageId, data: descriptor.data });
+    },
+  }).JSXAttribute;
+  visit?.({
+    type: "JSXAttribute",
+    name: { name: "classList" },
+    value: {
+      type: "JSXExpressionContainer",
+      expression: {
+        type: "ObjectExpression",
+        properties: [
+          {
+            type: "Property",
+            key: { type: "Literal", value: "bg-primary" },
+            value: { type: "Identifier", name: "active" },
+          },
+          {
+            type: "Property",
+            key: { type: "Literal", value: "text-primary" },
+            value: { type: "Identifier", name: "active" },
+          },
+          {
+            type: "Property",
+            key: { type: "Literal", value: "bg-accent" },
+            value: { type: "Identifier", name: "other" },
+          },
+        ],
+      },
+    },
+    parent: { type: "JSXOpeningElement", name: { name: "div" } },
+  });
+  deepStrictEqual(reports, [
+    {
+      messageId: "mismatch",
+      data: {
+        ink: "text-primary",
+        fill: "primary",
+        expected: "text-on-primary",
+      },
+    },
+  ]);
+});
+

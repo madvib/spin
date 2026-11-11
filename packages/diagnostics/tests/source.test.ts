@@ -415,8 +415,8 @@ test("classList, variant attribute, dynamic interpolation, inline style, and Vue
       [
         `export const App = (props: { active: boolean; tone: string }) => (`,
         `  <div>`,
-        `    <div classList={{ "bg-primary text-primary": props.active }}>Mismatched</div>`,
-        `    <div classList={{ "bg-primary text-on-primary": props.active }}>Paired</div>`,
+        `    <div classList={{ "bg-primary": props.active, "text-primary": props.active, "bg-accent": props.tone }}>Mismatched</div>`,
+        `    <div classList={{ "bg-primary": props.active, "text-on-primary": props.active }}>Paired</div>`,
         `    <button variant="primary" class="text-on-primary">Redundant</button>`,
         `    <span class={\`bg-\${props.tone}\`}>Dynamic</span>`,
         `    <p style={{ color: "#ff0000", top: "4px" }}>Inline</p>`,
@@ -427,11 +427,11 @@ test("classList, variant attribute, dynamic interpolation, inline style, and Vue
     );
     await writeFile(
       `${root}/src/card.vue`,
-      `<template>\n  <div :class="{ 'bg-primary text-primary': active }">Vue</div>\n</template>\n`,
+      `<template>\n  <div :class="{ 'bg-primary': active, 'text-primary': active }">Vue</div>\n</template>\n`,
     );
     await writeFile(
       `${root}/src/item.svelte`,
-      `<div class="text-primary" class:bg-primary={active}>Svelte</div>\n`,
+      `<div class:bg-primary={active} class:text-primary={active} class:bg-accent={other}>Svelte</div>\n`,
     );
     const report = await lintSource(root);
     const findings = report.groups.flatMap((group) => group.findings);

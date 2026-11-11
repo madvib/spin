@@ -278,7 +278,8 @@ export async function lintMarkup(
   if (filename.endsWith(".svelte")) {
     prepared = prepared
       .replace(/\{[#/:@][a-zA-Z][^}]*\}/g, blank)
-      .replace(/\bclass:([a-zA-Z0-9_-]+)=\{([^}]+)\}/g, 'class={$2 ? "$1" : ""}');
+      .replace(/\bclass:([a-zA-Z0-9_:/-]+)=\{([^}]+)\}/g, 'class={$2 ? "$1" : ""}')
+      .replace(/(?<=\s)class:([a-zA-Z_$][a-zA-Z0-9_$]*)(?=\s|\/?>)/g, 'class={$1 ? "$1" : ""}');
   }
   const runtime = await import("@spinjs/components/runtime").catch(() => undefined);
   if (runtime === undefined) {
@@ -404,37 +405,6 @@ function lintComponentIr(
       for (const child of node.body) visit(child);
       return;
     }
-    const branchesOfAttr = (
-      attr: { readonly value: AttrValue } | undefined,
-    ): { resting: string[]; conditional: string[][]; all: string[] } => {
-      if (attr === undefined) return { resting: [], conditional: [], all: [] };
-      if (attr.value.kind === "static") {
-        const resting = runtime.classTokensOf(attr.value);
-        return { resting, conditional: [], all: [...resting] };
-      }
-      try {
-        const parsed = parseSync("expr.ts", `(${attr.value.expr})`, {
-          lang: "ts",
-          sourceType: "module",
-        });
-        const stmt = parsed.program.body[0] as { expression?: unknown } | undefined;
-        const exprNode = stmt?.expression;
-        const resting: string[] = [];
-        const conditional: string[][] = [];
-        collectExpressionBranches(exprNode, resting, conditional, true);
-        const seen = new Set<string>();
-        const all: string[] = [];
-        for (const cls of [...resting, ...conditional.flat()]) {
-          if (seen.has(cls)) continue;
-          seen.add(cls);
-          all.push(cls);
-        }
-        return { resting, conditional, all };
-      } catch {
-        const resting = runtime.classTokensOf(attr.value);
-        return { resting, conditional: [], all: [...resting] };
-      }
-    };
     const classAttrs = node.attrs.filter(
       (attr) =>
         attr.name === "class" ||
@@ -452,19 +422,39 @@ function lintComponentIr(
         }
       }
     }
-    const resting: string[] = [...variantResting];
+    const classResting: string[] = [];
     const conditional: string[][] = [];
+    const elementGuarded = new Map<string, string[]>();
+    for (const attr of classAttrs) {
+      const val = (attr as { readonly value: AttrValue }).value;
+      if (val.kind === "static") {
+        classResting.push(...runtime.classTokensOf(val));
+        continue;
+      }
+      try {
+        const parsed = parseSync("expr.ts", `(${val.expr})`, {
+          lang: "ts",
+          sourceType: "module",
+        });
+        const stmt = parsed.program.body[0] as { expression?: unknown } | undefined;
+        collectExpressionBranches(
+          stmt?.expression,
+          classResting,
+          conditional,
+          true,
+          elementGuarded,
+        );
+      } catch {
+        classResting.push(...runtime.classTokensOf(val));
+      }
+    }
+    const resting: string[] = [...variantResting, ...classResting];
     const all: string[] = [];
     const seenAll = new Set<string>();
-    for (const attr of classAttrs) {
-      const b = branchesOfAttr(attr as { readonly value: AttrValue });
-      resting.push(...b.resting);
-      conditional.push(...b.conditional);
-      for (const cls of b.all) {
-        if (seenAll.has(cls)) continue;
-        seenAll.add(cls);
-        all.push(cls);
-      }
+    for (const cls of [...classResting, ...conditional.flat()]) {
+      if (seenAll.has(cls)) continue;
+      seenAll.add(cls);
+      all.push(cls);
     }
     const parsedBranches = { resting, conditional, all };
     const position = positionOfSpan(code, node.span.start);
