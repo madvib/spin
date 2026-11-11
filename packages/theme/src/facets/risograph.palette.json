@@ -1,0 +1,79 @@
+{
+  "color": {
+    "$type": "color",
+    "$description": "Risograph zine print: chalk newsprint and carbon ink frames paired with punchy emerald-lime and fluorescent magenta.",
+    "surface": {
+      "$value": "#f4f7f0",
+      "$modes": { "dark": "#111310" }
+    },
+    "surface-raised": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#191c17" }
+    },
+    "surface-sunken": {
+      "$value": "#e7ece0",
+      "$modes": { "dark": "#0b0d0a" }
+    },
+    "field": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#191c17" }
+    },
+    "text": {
+      "$value": "#10140e",
+      "$modes": { "dark": "#f1f5ee" }
+    },
+    "text-muted": {
+      "$value": "#444d40",
+      "$modes": { "dark": "#a2ada0" }
+    },
+    "border": {
+      "$value": "#1b2118",
+      "$modes": { "dark": "#d7e0d4" }
+    },
+    "border-strong": {
+      "$value": "#10140e",
+      "$modes": { "dark": "#f1f5ee" }
+    },
+    "primary": {
+      "$value": "#15803d",
+      "$modes": { "dark": "#a3e635" }
+    },
+    "on-primary": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#132005" }
+    },
+    "secondary": {
+      "$value": "#10140e",
+      "$modes": { "dark": "#e4ebe0" }
+    },
+    "on-secondary": {
+      "$value": "#f4f7f0",
+      "$modes": { "dark": "#111310" }
+    },
+    "accent": {
+      "$value": "#be185d",
+      "$modes": { "dark": "#f472b6" }
+    },
+    "on-accent": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#290516" }
+    },
+    "semantic": {
+      "success": { "$value": "#15803d", "$modes": { "dark": "#86efac" } },
+      "warning": { "$value": "#a16207", "$modes": { "dark": "#fde047" } },
+      "error": { "$value": "#be123c", "$modes": { "dark": "#fb7185" } },
+      "info": { "$value": "#0369a1", "$modes": { "dark": "#7dd3fc" } }
+    },
+    "on-semantic-success": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#052e16" } },
+    "on-semantic-warning": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#1a1604" } },
+    "on-semantic-error": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#24060d" } },
+    "on-semantic-info": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#082f49" } },
+    "selected": { "$type": "color", "$value": "#10140e", "$modes": { "dark": "#a3e635" } },
+    "on-selected": { "$type": "color", "$value": "#f4f7f0", "$modes": { "dark": "#132005" } },
+    "disabled": { "$type": "color", "$value": "#dce2d5", "$modes": { "dark": "#272c25" } },
+    "on-disabled": { "$type": "color", "$value": "#444d40", "$modes": { "dark": "#a2ada0" } },
+    "focus-ring": { "$value": "#10140e", "$modes": { "dark": "#a3e635" } },
+    "link": { "$value": "#15803d", "$modes": { "dark": "#a3e635" } }
+  },
+  "modes": ["light", "dark"]
+}

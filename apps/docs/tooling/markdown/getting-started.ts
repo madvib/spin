@@ -35,7 +35,7 @@ export function buildGettingStartedMarkdown(routePath: string): string | undefin
         "",
         "## 4. Open the Studio",
         "",
-        "On Vite, the Studio is mounted automatically at `http://localhost:5173/__spin/studio/`. On non-Vite bundlers, run:",
+        "On Vite, click the floating **Studio** button in the bottom-right corner of your running app. On other bundlers, run:",
         "",
         "```bash",
         GETTING_STARTED_SNIPPETS.studioServe,

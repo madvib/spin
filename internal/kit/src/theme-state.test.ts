@@ -71,15 +71,28 @@ test("a two-mode theme keeps the mode the reader asked for", () => {
   deepStrictEqual(state.mode(), "light");
 });
 
-test("default theme state exposes demo palette and spacing axes while custom document maps default facets to empty", () => {
+test("default theme state scopes palettes to the active design language and resets incompatible palettes on switch", () => {
   const defaults = createThemeState({
+    initialTheme: "editorial",
     storage: storage("default-facets"),
     followSystem: false,
   });
-  deepStrictEqual(defaults.palettes, ["catppuccin", "terracotta"]);
+  deepStrictEqual(defaults.palettes, ["terracotta", "botanical"]);
   deepStrictEqual(defaults.spacings, ["compact", "spacious"]);
   deepStrictEqual(defaults.palette(), "");
   deepStrictEqual(defaults.spacing(), "");
+
+  defaults.setPalette("terracotta");
+  deepStrictEqual(defaults.palette(), "terracotta");
+  defaults.setPalette("catppuccin");
+  deepStrictEqual(defaults.palette(), "terracotta", "another language's palette is rejected");
+
+  defaults.setTheme("neobrutalist");
+  deepStrictEqual(defaults.palettes, ["bauhaus", "risograph"]);
+  deepStrictEqual(defaults.palette(), "", "switching language resets incompatible palette to the new language's default");
+
+  defaults.setPalette("bauhaus");
+  deepStrictEqual(defaults.palette(), "bauhaus");
 
   const custom = createThemeState({
     documents: { minimal: designLanguages.minimal },

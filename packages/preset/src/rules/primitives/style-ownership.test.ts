@@ -195,7 +195,7 @@ test("small print, code, strong and quotations spend their element types; links 
 
 test("a button spends the label style as a whole tuple", async () => {
   const css = (await sheetFor("<button>a</button>", minimalThemeDoc())).css;
-  const decls = declsFor(css, ":is(button:not([role]),");
+  const decls = declsFor(css, ":is(button:where(:not([role])),");
   deepStrictEqual(decls["font-family"], "var(--button-type-family)");
   deepStrictEqual(decls["font-size"], "var(--button-type-size)");
   deepStrictEqual(decls["font-weight"], "var(--button-type-weight)");
@@ -210,7 +210,7 @@ test("moving the label style moves the button", async () => {
   });
   const css = (await sheetFor("<button>a</button>", doc)).css;
   deepStrictEqual(
-    declsFor(css, ":is(button:not([role]),")["font-size"],
+    declsFor(css, ":is(button:where(:not([role])),")["font-size"],
     "var(--button-type-size)",
   );
   deepStrictEqual(
@@ -223,7 +223,7 @@ test("a button re-points by aliasing another style", async () => {
   const doc = withLeaf("button.type", "typography", "{font.style.body}");
   const css = (await sheetFor("<button>a</button>", doc)).css;
   deepStrictEqual(
-    declsFor(css, ":is(button:not([role]),")["font-size"],
+    declsFor(css, ":is(button:where(:not([role])),")["font-size"],
     "var(--button-type-size)",
     "button.type is the tuple the button reads",
   );

@@ -156,7 +156,7 @@ describe("docs routes", () => {
     expect(md.headers.get("content-type")).toContain("text/markdown");
     expect(md.headers.get("content-signal")).toContain("ai-input=yes");
     const mdText = await md.text();
-    expect(mdText).toContain("title: \"Your Brand & Studio · Spin Docs\"");
+    expect(mdText).toContain('title: "Studio · Spin Docs"');
   }, 30000);
 });
 
@@ -221,22 +221,24 @@ describe("bundler picker", () => {
 });
 
 describe("components world", () => {
-  test("/components/button opens and closes the classes modal", async () => {
+  test("/components/button leads with live preview, toggles code view, and renders classes table", async () => {
     const page = await newPage();
     await page.goto(`${URL}/components/button`, {
       waitUntil: "networkidle",
       timeout: 60000,
     });
-    await page.getByRole("button", { name: /Classes & tags/ }).click();
-    const dialog = page.getByRole("dialog", { name: "button classes and tags" });
-    await dialog.waitFor({ state: "visible" });
-    expect(await dialog.textContent()).toContain("button");
-    await dialog.getByRole("button", { name: "Close" }).click();
-    await dialog.waitFor({ state: "hidden" });
+    const previewTab = page.getByRole("button", { name: "Preview" }).first();
+    const codeTab = page.getByRole("button", { name: "Code" }).first();
+    expect(await previewTab.getAttribute("aria-pressed")).toBe("true");
+    await codeTab.click();
+    expect(await codeTab.getAttribute("aria-pressed")).toBe("true");
+    const body = await page.locator("main").first().innerText();
+    expect(body).toContain("Classes & elements");
+    expect(body).toContain("Theme tokens");
     await page.close();
   }, 60000);
 
-  test("/components/machine-select mounts and shows its contract", async () => {
+  test("/components/machine-select leads with live examples and shows props & events", async () => {
     const page = await newPage();
     await page.goto(`${URL}/components/machine-select`, {
       waitUntil: "networkidle",
@@ -244,10 +246,9 @@ describe("components world", () => {
     const h1 = await page.locator("main h1").first().textContent();
     expect(h1?.trim()).toBe("select");
     const body = await page.locator("main").first().innerText();
-    expect(body).toContain("Component contract");
+    expect(body).toContain("Props & events");
     expect(body).toContain("Props");
     expect(body).toContain("Events");
-    expect(body).toContain("Commands");
     await page.close();
   }, 60000);
 });

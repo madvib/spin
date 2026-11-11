@@ -525,17 +525,17 @@
     },
     "shadow": {
       "$type": "shadow",
-      "$description": "The resting elevation: crisp offset ink shadow beneath every framed button.",
-      "$value": "{shadow.sm}"
+      "$description": "The resting elevation: bold 4px offset ink shadow beneath every framed button.",
+      "$value": "{shadow.md}"
     },
     "shadow-hover": {
       "$type": "shadow",
-      "$description": "The hovered elevation: deeper hard offset shadow as the control lifts.",
-      "$value": "{shadow.md}"
+      "$description": "The hovered elevation: presses halfway into its shadow so the offset shrinks.",
+      "$value": "{shadow.sm}"
     },
     "shadow-active": {
       "$type": "shadow",
-      "$description": "The pressed elevation: stamps flush into its shadow footprint.",
+      "$description": "The pressed elevation: stamps flush onto its shadow footprint.",
       "$value": "none"
     },
     "radius": {
@@ -544,19 +544,19 @@
     },
     "hover-lift-x": {
       "$type": "dimension",
-      "$value": "-1px"
+      "$value": "2px"
     },
     "hover-lift-y": {
       "$type": "dimension",
-      "$value": "-1px"
+      "$value": "2px"
     },
     "active-x": {
       "$type": "dimension",
-      "$value": "2px"
+      "$value": "4px"
     },
     "active-y": {
       "$type": "dimension",
-      "$value": "2px"
+      "$value": "4px"
     }
   },
   "border": {

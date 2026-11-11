@@ -21,7 +21,7 @@ const VOCABULARY_ITEMS: readonly PropEntry[] = [
     name: "Brand",
     badge: "spin/<brand>/",
     description:
-      "Your project's own design identity on disk — your palette, type voices, spacing, and modes, shaped in the Studio or an editor.",
+      "Your project's own design identity in git — your colors, typography, spacing, and dark mode, shaped in Studio or your code editor.",
   },
   {
     name: "Facet",
@@ -39,10 +39,10 @@ const VOCABULARY_ITEMS: readonly PropEntry[] = [
 
 const STUDIO_STEPS: readonly PropEntry[] = [
   {
-    name: "1. Open the Studio",
-    badge: "/__spin/studio/",
+    name: "1. Click the Studio button",
+    badge: "live overlay",
     description:
-      "With your dev server running, open /__spin/studio/ in the browser — or run the standalone editor when you have no app server yet.",
+      "Start your dev server and click the floating Studio button in the bottom-right corner of your app (or run npx spin studio standalone).",
   },
   {
     name: "2. Create your brand in 4 steps (/init)",
@@ -136,8 +136,8 @@ export default function ThemesOverview(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Your Brand & Studio"
-        lede="Shape your brand visually in the Studio, seeded from a design language. What you save becomes the spin/<brand>/ directory your build serves."
+        title="Studio"
+        lede="Create and edit your brand visually inside your running app, starting from one of six design languages."
       />
 
       <Section id="vocabulary" title="Design Language, Brand, Facet, and Theme">

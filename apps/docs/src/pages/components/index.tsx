@@ -40,6 +40,19 @@ interface Group {
   readonly rows: readonly Row[];
 }
 
+const GALLERY_VIGNETTES: Readonly<Record<string, string>> = {
+  dialog: `<div class="w-full max-w-60 rounded-lg border bg-surface-raised p-3 shadow-md"><div class="type-label">Delete environment?</div><p class="mt-1 type-caption text-muted">Production keys will be revoked immediately.</p><div class="mt-3 flex justify-end gap-2"><button type="button" class="secondary s-sm">Cancel</button><button type="button" class="danger s-sm">Delete</button></div></div>`,
+  popover: `<div class="flex flex-col items-center gap-2"><button type="button" class="secondary s-sm">Share</button><div class="w-56 rounded-md border bg-surface-raised p-3 shadow-md"><div class="type-caption-emphasized">Invite link</div><div class="mt-1 rounded-sm border bg-surface px-2 py-1 type-code text-muted">spin.dev/s/9f2a</div></div></div>`,
+  tooltip: `<div class="flex flex-col items-center gap-2"><div class="rounded-sm border bg-surface-raised px-2 py-1 type-caption shadow-sm">⌘K · Quick search</div><button type="button" class="secondary s-sm">Search</button></div>`,
+  "hover-card": `<div class="w-56 rounded-lg border bg-surface-raised p-3 shadow-md"><div class="flex items-center gap-2"><span class="grid h-7 w-7 place-items-center rounded-full bg-primary type-caption-emphasized text-on-primary">AC</span><div><div class="type-label">@ada</div><div class="type-caption text-muted">Maintainer · 42 commits</div></div></div></div>`,
+  menu: `<div class="w-40 rounded-md border bg-surface-raised p-1 shadow-md"><div class="flex items-center justify-between rounded-sm bg-surface px-2 py-1 type-caption"><span>Duplicate</span><span class="text-muted">⌘D</span></div><div class="flex items-center justify-between px-2 py-1 type-caption"><span>Rename</span><span class="text-muted">⏎</span></div><div class="mt-1 border-t pt-1 px-2 py-1 type-caption text-semantic-error">Archive</div></div>`,
+  "context-menu": `<div class="w-40 rounded-md border bg-surface-raised p-1 shadow-md"><div class="flex items-center justify-between rounded-sm bg-surface px-2 py-1 type-caption"><span>Inspect token</span><span class="text-muted">⌥I</span></div><div class="flex items-center justify-between px-2 py-1 type-caption"><span>Copy class</span><span class="text-muted">⌘C</span></div></div>`,
+  toast: `<div class="flex w-60 items-center justify-between gap-2 rounded-md border bg-surface-raised px-3 py-2 shadow-md"><div class="flex items-center gap-2"><span class="i-lucide-check icon-sm text-semantic-success"></span><span class="type-caption-emphasized">Theme published</span></div><span class="type-caption text-muted">Undo</span></div>`,
+  "floating-panel": `<div class="w-56 overflow-hidden rounded-lg border bg-surface-raised shadow-md"><div class="flex items-center justify-between border-b px-3 py-2"><span class="type-caption-emphasized">Inspector</span><span class="i-lucide-x icon-sm text-muted"></span></div><div class="p-3 type-caption text-muted">Draggable, resizable workspace tool window.</div></div>`,
+  breadcrumbs: `<nav aria-label="Breadcrumb"><ol class="breadcrumbs"><li><a href="#actions">Workspace</a></li><li><a href="#actions">Billing</a></li><li aria-current="page">Invoices</li></ol></nav>`,
+  table: `<table class="w-full type-caption"><thead><tr><th>Service</th><th>Status</th></tr></thead><tbody><tr><td>api-edge</td><td><badge variant="primary">Healthy</badge></td></tr><tr><td>worker</td><td>24ms</td></tr></tbody></table>`,
+};
+
 const GROUPS: readonly Group[] = UNIFIED_COMPONENT_GROUPS.map((group) => ({
   id: group.id,
   label: group.label,
@@ -53,8 +66,8 @@ const GROUPS: readonly Group[] = UNIFIED_COMPONENT_GROUPS.map((group) => ({
         name,
         icon: COMPONENT_ICONS[name] ?? "i-lucide-box",
         href: `/components/machine-${name}`,
-        mountHtml: `<${name}-${first}></${name}-${first}>`,
-        meta: "state machine",
+        mountHtml: GALLERY_VIGNETTES[name] ?? `<${name}-${first}></${name}-${first}>`,
+        meta: "Interactive",
         kind: "machine",
       }];
     }
@@ -66,10 +79,10 @@ const GROUPS: readonly Group[] = UNIFIED_COMPONENT_GROUPS.map((group) => ({
       name: member,
       icon: ELEMENT_ICONS.get(member) ?? COMPONENT_ICONS[member] ?? "i-lucide-box",
       href: `/components/${member}`,
-      mountHtml: example?.rows[0]?.html ?? "",
+      mountHtml: GALLERY_VIGNETTES[member] ?? example?.rows[0]?.html ?? "",
       meta: variants > 0
         ? `${variants} ${variants === 1 ? "variant" : "variants"}`
-        : "unstyled",
+        : "HTML",
       kind: "primitive",
     }];
   }),
@@ -77,8 +90,8 @@ const GROUPS: readonly Group[] = UNIFIED_COMPONENT_GROUPS.map((group) => ({
 
 const KINDS: readonly { readonly id: "all" | Kind; readonly label: string; readonly href: string }[] = [
   { id: "all", label: "All", href: "/components" },
-  { id: "primitive", label: "Primitives", href: "/components?kind=primitives" },
-  { id: "machine", label: "Machines", href: "/components?kind=machines" },
+  { id: "primitive", label: "HTML Elements", href: "/components?kind=primitives" },
+  { id: "machine", label: "Interactive", href: "/components?kind=machines" },
 ];
 
 /** The groups the current filter keeps, in the taxonomy's order. */
@@ -123,30 +136,30 @@ export default function ComponentsIndex(): JSX.Element {
     );
 
   return (
-    <main class="mx-auto w-full max-w-screen-lg px-6 py-10 md:py-16">
+    <main class="mx-auto w-full max-w-screen-lg px-6 py-10">
       <h1>Components</h1>
-      <p class="text-muted max-w-prose">
-        Every element spin paints — live, in the theme the rail has set. Open
-        one to copy the markup, see the classes it answers to, and check what it
-        reads from the theme.
+      <p class="max-w-prose text-muted">
+        Native HTML elements and interactive UI components, rendered live in the
+        active design language. Select any card for live variations, copyable
+        markup, and styling tokens.
       </p>
 
       <nav
-        class="mt-4 flex flex-wrap items-center gap-1"
+        class="mt-5 inline-flex flex-wrap items-center gap-1 rounded-lg border bg-surface-raised p-1"
         aria-label="component kind"
       >
         <For each={KINDS}>
           {(entry) => (
             <A
               href={entry.href}
-              class={`rounded-md px-3 py-1 no-underline transition-colors duration-fast ${
+              class={`inline-flex h-7 items-center gap-2 rounded-md px-3 no-underline transition-colors duration-fast ${
                 kind() === entry.id
-                  ? "bg-primary text-on-primary type-body-emphasized"
-                  : "text-muted hover:bg-surface type-body"
+                  ? "bg-primary text-on-primary type-caption-emphasized"
+                  : "text-muted hover:bg-surface type-caption"
               }`}
             >
-              {entry.label}{" "}
-              <span class="type-caption opacity-70">{countOf(entry.id)}</span>
+              <span>{entry.label}</span>
+              <span class="opacity-75">{countOf(entry.id)}</span>
             </A>
           )}
         </For>
@@ -157,40 +170,46 @@ export default function ComponentsIndex(): JSX.Element {
       <For each={groups()}>
         {(group) => (
           <section class="mt-10 scroll-mt-20" id={group.id}>
-            <h2>
-              {group.label}
-            </h2>
-            <div class="mt-4 grid gap-4 md:grid-cols-2">
+            <h2>{group.label}</h2>
+            <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <For each={group.rows}>
                 {(row) => (
-                    <A
-                      href={row.href}
-                      class="flex h-full flex-col gap-3 overflow-hidden rounded-md border bg-surface p-4 no-underline transition-colors duration-fast hover:border-strong sm:flex-row sm:items-stretch sm:gap-4"
+                  <A
+                    href={row.href}
+                    class="group flex h-full flex-col overflow-hidden rounded-lg border bg-surface-raised no-underline shadow-sm transition-colors duration-fast hover:border-strong"
+                  >
+                    <div
+                      ref={(el) => {
+                        el.inert = true;
+                      }}
+                      class="pointer-events-none flex min-h-36 flex-1 select-none items-center justify-center overflow-hidden border-b bg-surface p-4"
                     >
-                    <span class="flex shrink-0 flex-row items-center justify-between gap-2 sm:w-24 sm:flex-col sm:items-start sm:justify-start sm:gap-1">
-                      <span class="flex min-w-0 items-center gap-2 type-body-emphasized">
+                      <Show
+                        when={row.mountHtml !== ""}
+                        fallback={
+                          <span class="type-caption text-muted">
+                            Typography & layout utility
+                          </span>
+                        }
+                      >
+                        <div
+                          class="flex w-full min-w-0 max-w-full items-center justify-center overflow-hidden"
+                          innerHTML={row.mountHtml}
+                        />
+                      </Show>
+                    </div>
+                    <div class="flex items-center justify-between gap-2 px-4 py-3">
+                      <span class="flex min-w-0 items-center gap-2 type-label">
                         <i
-                          class={`${row.icon} icon-md shrink-0 text-muted`}
+                          class={`${row.icon} icon-sm shrink-0 text-muted group-hover:text-primary`}
                           aria-hidden="true"
                         />
                         <span class="truncate">{row.name}</span>
                       </span>
-                      <span class="shrink-0 type-caption text-muted">
+                      <span class="shrink-0 rounded-sm border bg-surface px-2 py-1 type-caption text-muted">
                         {row.meta}
                       </span>
-                    </span>
-                    <Show
-                      when={row.mountHtml !== ""}
-                      fallback={
-                        <span class="flex min-h-20 flex-1 items-center justify-center type-caption text-muted">
-                          utility family
-                        </span>
-                      }
-                    >
-                      <span class="flex min-h-20 min-w-0 flex-1 items-center justify-center overflow-hidden">
-                        <span class="block w-full min-w-0 max-w-full overflow-hidden text-center [&>*]:mx-auto [&>*]:block [&>*]:max-w-full [&>*]:text-left" innerHTML={row.mountHtml} />
-                      </span>
-                    </Show>
+                    </div>
                   </A>
                 )}
               </For>

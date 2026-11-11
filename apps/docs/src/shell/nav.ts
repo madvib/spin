@@ -57,106 +57,112 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
     label: "Getting Started",
     items: [
       {
-        title: "Why Spin",
+        title: "Introduction",
         href: "/docs/getting-started/overview",
         summary:
-          "Stop rewriting button styles on every page. Your brand lives in one place, every tag and utility reads it, and lints catch drift before it ships.",
+          "What Spin includes, how it compares to stitching together separate styling and widget libraries, and where to start.",
       },
       {
         title: "How Spin Works",
         href: "/docs/getting-started/architecture",
         summary:
-          "Your brand tokens, finished HTML elements, layout utilities, and interactive components — and which layer to change when the design moves.",
+          "How themes, native HTML elements, layout utilities, and interactive components fit together.",
       },
       {
         title: "Quickstart",
         href: "/docs/getting-started/quickstart",
         summary:
-          "Install the packages, scaffold your brand, and open the Studio in two minutes.",
+          "Install the two packages, initialize your project, and launch the live Studio in two minutes.",
       },
       {
         title: "Bundler Setup",
         href: "/docs/getting-started/install",
         summary:
-          "Project layout, the init command and its flags, and configurations for all seven bundlers.",
+          "Configure Spin in Vite, Rspack, webpack, Rollup, Rolldown, esbuild, Bun, or UnoCSS.",
       },
       {
         title: "Incremental Adoption",
         href: "/docs/getting-started/paths",
         summary:
-          "Bring Spin into an existing app piecemeal: the full plugin, shared brands, the preset-only path, or the standalone Studio.",
+          "Adopt Spin gradually in an existing app: start with tokens and utilities, opt in to HTML elements, or add single components.",
       },
     ],
   },
   {
     id: "themes",
-    label: "Brand & Studio",
+    label: "Theming",
     items: [
       {
-        title: "Your Brand & Studio",
+        title: "Studio",
         href: "/docs/themes/overview",
         summary:
-          "Shape your brand visually in the Studio, seeded from a design language. What you save becomes the spin/<brand>/ directory your build serves.",
+          "Create and edit your brand visually inside your running app, starting from one of six design languages.",
       },
       {
-        title: "Color & Contrast",
+        title: "Colors",
         href: "/docs/themes/palettes",
         summary:
-          "Name colors by their job — primary, surface, ink — and let paired foregrounds keep every fill legible in light and dark.",
+          "Semantic surface, action, and status colors with paired foreground text that stays readable in every mode.",
       },
       {
-        title: "Light & Dark Modes",
+        title: "Dark Mode",
         href: "/docs/themes/modes",
         summary:
-          "Design one palette with two answers. Switch modes on the page or a subtree without touching markup.",
+          "Support light and dark appearances across the whole page or scoped to a single section without dark: utility clutter.",
       },
       {
-        title: "Typography & Voices",
+        title: "Typography",
         href: "/docs/themes/fonts",
         summary:
-          "Load web fonts and spend complete type styles — display, body, caption — with one class each.",
+          "Load web fonts and apply consistent heading, body, label, and monospace text styles.",
       },
       {
-        title: "Palettes & Density",
+        title: "Alternate Palettes",
         href: "/docs/themes/facets",
         summary:
-          "Swap a subtree's ink or rhythm independently of the brand: seasonal palettes, compact sidebars, generous marketing pages.",
+          "Offer multiple colorways for your brand or re-theme individual sections without duplicating typography or spacing.",
       },
       {
-        title: "Brand Files",
+        title: "Density",
+        href: "/docs/themes/density",
+        summary:
+          "Adjust padding and layout spacing globally or inside dense tables, sidebars, and toolbars.",
+      },
+      {
+        title: "Theme Files",
         href: "/docs/themes/customization",
         summary:
-          "How spin/<brand>/ splits identity, scales, element voices, and per-component overrides — and how each file becomes CSS variables.",
+          "Edit your spin/<brand>/ JSON files directly in code and customize individual elements when needed.",
       },
       {
-        title: "Theme Checks",
+        title: "Contrast Checks",
         href: "/docs/themes/validation",
         summary:
-          "Contrast floors and completeness checks that run while you edit, at build time, and in CI.",
+          "Automatic contrast, scale, and completeness checks in Studio, your editor, and CI.",
       },
       {
         title: "Token Reference",
         href: "/docs/themes/reference",
         summary:
-          "Every token group your brand can declare: color roles, type scales, spacing, radii, shadows, motion, and per-element voices.",
+          "Complete catalog of color roles, typography, spacing, radius, shadow, and element tokens.",
       },
     ],
   },
   {
     id: "primitives",
-    label: "Primitives",
+    label: "Elements",
     items: [
       {
-        title: "HTML Elements & Surfaces",
+        title: "HTML Elements",
         href: "/docs/styling/elements",
         summary:
-          "Write plain buttons, cards, and inputs that arrive styled. Reach for a variant when one control plays a different role.",
+          "Styled native buttons, inputs, dialogs, tables, and cards with semantic variants and sizes.",
       },
       {
-        title: "Text & Prose",
+        title: "Prose",
         href: "/docs/styling/prose",
         summary:
-          "Headings and paragraphs that read right out of the box, named type styles for UI, and document versus interface lists.",
+          "Readable headings, paragraphs, lists, blockquotes, and code blocks for articles and docs.",
       },
     ],
   },
@@ -165,40 +171,40 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
     label: "Utilities",
     items: [
       {
-        title: "Utility Syntax",
+        title: "Utility Classes",
         href: "/docs/styling/tailwind",
         summary:
-          "The utility grammar you already know, verified against your brand at build time — no silent no-ops.",
+          "Tailwind-compatible layout and surface classes backed by your theme and verified at build time.",
       },
       {
-        title: "Spacing & Layout",
+        title: "Layout",
         href: "/docs/styling/space",
         summary:
-          "Pad, gap, and size from your brand's spacing scale, reflow across breakpoints, and pin floating panels with CSS anchors.",
+          "Padding, gaps, sizing, responsive breakpoints, and CSS anchor positioning.",
       },
       {
-        title: "Surfaces & Alpha",
+        title: "Surfaces",
         href: "/docs/styling/color",
         summary:
-          "Paint semantic surfaces once for both modes, and thin any brand color toward transparency without minting values.",
+          "Backgrounds, borders, text roles, and opacity modifiers that adapt automatically to dark mode.",
       },
       {
-        title: "Motion & Transitions",
+        title: "Motion",
         href: "/docs/styling/animation",
         summary:
-          "Brand-governed timing and easing for state changes, named entrances for arrivals — and stillness for readers who ask.",
+          "Theme-timed transitions, entrance animations, and automatic reduced-motion support.",
       },
       {
-        title: "Project Shortcuts",
+        title: "Shortcuts",
         href: "/docs/styling/utilities",
         summary:
-          "Name the layouts your app repeats so every page spells them the same way, checked at build time.",
+          "Define reusable layout class combinations once in your bundler config.",
       },
       {
         title: "Utility Reference",
         href: "/docs/styling/catalog",
         summary:
-          "Every utility family, the CSS it emits, and the brand tokens it reads.",
+          "Searchable reference of every utility class available in Spin.",
       },
     ],
   },
@@ -209,33 +215,38 @@ export const DOCS_GROUPS: readonly NavGroup[] = [
       {
         title: "Interactive Components",
         href: "/docs/authoring/components",
-        summary: "Copy a tested select, dialog, or date picker into your repo and drive it from any framework.",
+        summary:
+          "Copy accessible selects, comboboxes, dialogs, and date pickers into your repo for React, Solid, Vue, Svelte, or HTML.",
       },
       {
-        title: "Statechart Machines",
+        title: "State Machines",
         href: "/docs/authoring/machines",
-        summary: "How the components think: explicit states, guarded transitions, and reactive signals you can read.",
+        summary:
+          "Use Spin's headless statecharts directly when building custom interactive widgets.",
       },
     ],
   },
   {
     id: "tooling",
-    label: "Verification & AI",
+    label: "Tooling",
     items: [
       {
-        title: "Lints & Guardrails",
+        title: "Lint Rules",
         href: "/docs/tooling/lints",
-        summary: "Six theme-aware rules that catch unknown classes, broken overrides, and unreadable pairings — with autofixes.",
+        summary:
+          "Catch hardcoded colors, unknown classes, and unreadable contrast pairs in oxlint or ESLint.",
       },
       {
-        title: "CLI & Build Options",
+        title: "CLI Reference",
         href: "/docs/tooling/cli",
-        summary: "Every spin command and plugin option: scaffold, serve Studio, lint, inspect brands, and copy components.",
+        summary:
+          "Command flags, bundler plugin options, and package exports.",
       },
       {
         title: "MCP Server",
         href: "/docs/tooling/mcp",
-        summary: "Connect your coding agent to the live project so it writes brand-true UI the first time.",
+        summary:
+          "Connect coding agents to your live tokens, components, and diagnostics.",
       },
     ],
   },

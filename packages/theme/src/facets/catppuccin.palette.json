@@ -23,6 +23,12 @@
         "dark": "#181825"
       }
     },
+    "field": {
+      "$value": "#e6e9ef",
+      "$modes": {
+        "dark": "#1e1e2e"
+      }
+    },
     "text": {
       "$value": "#4c4f69",
       "$description": "Latte text: the default ink.",

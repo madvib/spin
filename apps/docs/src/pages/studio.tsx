@@ -37,13 +37,11 @@ export default function Studio(): JSX.Element {
 
       <Section id="launch" title="Launching the Studio">
         <p>
-          The plugin mounts the Studio itself beside the app, on the
-          app's own origin — no <code>mount</code> to name. The editor
-          opens from the <code>Studio</code> launcher in the
-          bottom-right corner of your dev page, or directly at{" "}
-          <code>/__spin/studio/</code>. Only name the mount to turn it
-          off: <code>studio: false</code> disables the mount and the
-          launcher entirely.
+          During development on Vite, Spin injects a floating{" "}
+          <strong>Studio</strong> button in the bottom-right corner of your app
+          automatically. Set <code>studio: false</code> in{" "}
+          <code>spin.vite(&#123; studio: false &#125;)</code> if you ever want to
+          hide the launcher.
         </p>
         <Code class="mt-3" code={GETTING_STARTED_SNIPPETS.studio} lang="ts" />
         <p>

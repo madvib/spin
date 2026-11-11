@@ -1,0 +1,79 @@
+{
+  "color": {
+    "$type": "color",
+    "$description": "Machined arctic magnesium and deep fjord gunmetal calibrated for neumorphic bevel relief with telemetry cyan.",
+    "surface": {
+      "$value": "#e2e7ee",
+      "$modes": { "dark": "#191e26" }
+    },
+    "surface-raised": {
+      "$value": "#e8edf4",
+      "$modes": { "dark": "#202630" }
+    },
+    "surface-sunken": {
+      "$value": "#d6dde6",
+      "$modes": { "dark": "#13171d" }
+    },
+    "field": {
+      "$value": "#d6dde6",
+      "$modes": { "dark": "#13171d" }
+    },
+    "text": {
+      "$value": "#161d26",
+      "$modes": { "dark": "#e5ebf3" }
+    },
+    "text-muted": {
+      "$value": "#485464",
+      "$modes": { "dark": "#9aa8ba" }
+    },
+    "border": {
+      "$value": "#c6cfdb",
+      "$modes": { "dark": "#2c3542" }
+    },
+    "border-strong": {
+      "$value": "#8996a8",
+      "$modes": { "dark": "#4d5b6e" }
+    },
+    "primary": {
+      "$value": "#0b648f",
+      "$modes": { "dark": "#67d4ff" }
+    },
+    "on-primary": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#04202e" }
+    },
+    "secondary": {
+      "$value": "#cfd7e2",
+      "$modes": { "dark": "#2a323f" }
+    },
+    "on-secondary": {
+      "$value": "#161d26",
+      "$modes": { "dark": "#e5ebf3" }
+    },
+    "accent": {
+      "$value": "#4355b8",
+      "$modes": { "dark": "#a3b3ff" }
+    },
+    "on-accent": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#0d1538" }
+    },
+    "semantic": {
+      "success": { "$value": "#186e42", "$modes": { "dark": "#6ee7a8" } },
+      "warning": { "$value": "#855800", "$modes": { "dark": "#f5c869" } },
+      "error": { "$value": "#b4232c", "$modes": { "dark": "#ff949b" } },
+      "info": { "$value": "#0b648f", "$modes": { "dark": "#67d4ff" } }
+    },
+    "on-semantic-success": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#052614" } },
+    "on-semantic-warning": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#241600" } },
+    "on-semantic-error": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#2e0609" } },
+    "on-semantic-info": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#04202e" } },
+    "selected": { "$type": "color", "$value": "#0b648f", "$modes": { "dark": "#67d4ff" } },
+    "on-selected": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#04202e" } },
+    "disabled": { "$type": "color", "$value": "#d1d8e3", "$modes": { "dark": "#262d38" } },
+    "on-disabled": { "$type": "color", "$value": "#485464", "$modes": { "dark": "#9aa8ba" } },
+    "focus-ring": { "$value": "#0b648f", "$modes": { "dark": "#67d4ff" } },
+    "link": { "$value": "#0b648f", "$modes": { "dark": "#67d4ff" } }
+  },
+  "modes": ["light", "dark"]
+}

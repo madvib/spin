@@ -16,22 +16,22 @@ const NEXT: readonly {
   {
     title: "How Spin Works",
     href: "/docs/getting-started/architecture",
-    blurb: "Your brand, finished elements, layout utilities, and components — and which layer to change.",
+    blurb: "See how your theme, HTML elements, utilities, and interactive components fit together.",
   },
   {
     title: "Quickstart",
     href: "/docs/getting-started/quickstart",
-    blurb: "Install the packages, create your brand in spin/<brand>/, and open the Studio.",
+    blurb: "Install Spin, initialize a brand, and open the visual Studio in two minutes.",
   },
   {
     title: "Bundler Setup",
     href: "/docs/getting-started/install",
-    blurb: "The two-package install, every bundler's config, and the project layout.",
+    blurb: "Wire the plugin into Vite, Rspack, webpack, Rollup, Rolldown, esbuild, or Bun.",
   },
   {
     title: "Incremental Adoption",
     href: "/docs/getting-started/paths",
-    blurb: "The full plugin, shared brand packages, the preset-only path, or standalone Studio.",
+    blurb: "Bring Spin into an existing app gradually — tokens and utilities first, elements and components as you go.",
   },
 ];
 
@@ -39,8 +39,8 @@ export default function GettingStartedOverview(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Why Spin"
-        lede="Stop rewriting button styles on every page. Your brand lives in one place, every tag and utility reads it, and lints catch drift before it ships."
+        title="Introduction"
+        lede="What Spin includes, how it replaces stitched-together styling stacks, and where to start."
         playgroundExample="elements-form"
       />
       <Markdown text={startMd} />

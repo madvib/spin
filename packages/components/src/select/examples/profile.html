@@ -18,7 +18,7 @@ const machine = select({
 
   <div class="flex items-center gap-1" {...machine.getControlProps()}>
     <button
-      class={["flex h-7 min-w-0 flex-1 items-center gap-2 secondary s-sm transition-colors duration-fast ease-decelerate hover:bg-surface", { "bg-surface": machine.open, "ring-2 ring-border-strong": machine.focused, "opacity-50 cursor-not-allowed": machine.disabled }]}
+      class={["bare flex h-8 min-w-0 flex-1 items-center gap-2 rounded-md border bg-surface px-3 type-label transition-colors duration-fast ease-decelerate hover:bg-surface-raised", { "bg-surface-raised border-strong": machine.open, "ring-2 ring-border-strong": machine.focused, "opacity-50 cursor-not-allowed": machine.disabled }]}
       {...machine.getTriggerProps()}
     >
       <span class="min-w-0 flex-1 truncate text-left"

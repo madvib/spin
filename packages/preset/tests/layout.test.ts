@@ -265,7 +265,7 @@ test("a field and a button share one control height", async () => {
   const field = declarationsFor(css, ":is(input, textarea, select)");
   const button = declarationsFor(
     css,
-    ':is(button:not([role]), [type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"])',
+    ':is(button:where(:not([role])), :where([type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"]))',
   );
   assert(
     field["min-height"] !== undefined,
@@ -295,7 +295,7 @@ test("a small field lands on the small button height", async () => {
   const field = declarationsFor(css, ":is(input, select).s-sm");
   const button = declarationsFor(
     css,
-    ':is(button:not([role]), [type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"]).s-sm',
+    ':is(button:where(:not([role])), :where([type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"])).s-sm',
   );
   assert(field["height"] !== undefined, "the small field states its height");
   assert(

@@ -19,7 +19,6 @@ import {
   tokenizeCode,
   tokenizeHtml,
 } from "./code.ts";
-import { Marker } from "./section.tsx";
 
 export {
   CODE_INK,
@@ -33,20 +32,12 @@ export {
 /** The word the copy control carries after it has copied. */
 const COPIED_MS = 1200;
 
-const SWITCH =
-  "bare inline-flex min-h-0 items-center justify-center cursor-pointer rounded-sm border border-transparent bg-transparent px-2 py-1 normal-case type-caption text-muted shadow-none hover:bg-surface-raised focus:bg-surface-raised aria-[pressed=true]:bg-primary aria-[pressed=true]:text-on-primary";
-
-const COPY_CONTROL =
-  "absolute end-2 bottom-2 inline-flex min-h-0 items-center gap-1 cursor-pointer rounded-sm border bg-surface-raised px-2 py-1 normal-case type-caption text-muted opacity-0 pointer-events-none transition-opacity duration-fast group-hover:opacity-100 group-hover:pointer-events-auto focus:opacity-100 focus:pointer-events-auto hover:border-strong";
-
 const CODE_PRE =
-  "max-h-[20rem] max-w-full whitespace-pre-wrap overflow-y-auto overflow-x-auto rounded-md border bg-surface p-4 type-code text-muted shadow-sm";
+  "max-h-[22rem] max-w-full whitespace-pre-wrap overflow-y-auto overflow-x-auto bg-surface p-4 type-code text-muted";
 const SPECIMEN_PANEL =
-  "min-h-[2rem] flex items-center justify-center rounded-md border bg-surface p-6 shadow-sm";
-/** A panel whose content floats: menus, calendars, popovers, and crops escape the card instead of clipping inside it. */
+  "min-h-32 flex items-center justify-center bg-surface p-6 sm:p-8";
 const SPECIMEN_PANEL_OVERLAY =
-  "min-h-[2rem] flex items-center justify-center overflow-visible rounded-md border bg-surface p-6 shadow-sm";
-
+  "min-h-32 flex items-center justify-center overflow-visible bg-surface p-6 sm:p-8";
 export interface SpecimenProps {
   /** The example's name, as the row's heading reads it. */
   readonly name: string;
@@ -135,34 +126,57 @@ export function Specimen(props: SpecimenProps): JSX.Element {
   };
 
   return (
-    <section class="mb-4">
-      <div class="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-        <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <h3 class="flex items-center gap-2">
-            <Marker />
-            {props.name}
-          </h3>
-        </div>
+    <section
+      class={`mb-6 rounded-lg border bg-surface-raised shadow-sm ${
+        props.overlay === true ? "overflow-visible" : "overflow-hidden"
+      }`}
+    >
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b bg-surface-raised px-4 py-2">
+        <span class="type-label">{props.name}</span>
         <div class="flex items-center gap-2">
           {props.actions}
-          <div class="flex items-center gap-1" role="group" aria-label="view">
+          <div
+            class="inline-flex h-8 items-center gap-1 rounded-md border bg-surface p-1"
+            role="group"
+            aria-label="view"
+          >
             <button
               type="button"
-              class={SWITCH}
               aria-pressed={view() === "component"}
               onClick={() => setView("component")}
+              class={`bare inline-flex h-6 items-center justify-center rounded-sm px-2 type-caption-emphasized transition-colors ${
+                view() === "component"
+                  ? "bg-primary text-on-primary"
+                  : "text-muted hover:bg-surface-raised"
+              }`}
             >
-              component
+              Preview
             </button>
             <button
               type="button"
-              class={SWITCH}
               aria-pressed={view() === "code"}
               onClick={() => setView("code")}
+              class={`bare inline-flex h-6 items-center justify-center rounded-sm px-2 type-caption-emphasized transition-colors ${
+                view() === "code"
+                  ? "bg-primary text-on-primary"
+                  : "text-muted hover:bg-surface-raised"
+              }`}
             >
-              code
+              Code
             </button>
           </div>
+          <button
+            type="button"
+            onClick={copy}
+            aria-label={`Copy the ${props.name} example`}
+            class="bare inline-flex h-8 items-center gap-1 rounded-md border bg-surface px-2 type-caption text-muted transition-colors hover:bg-surface-raised"
+          >
+            <i
+              class={copied() ? "i-lucide-check icon-sm text-semantic-success" : "i-lucide-copy icon-sm"}
+              aria-hidden="true"
+            />
+            <span>{copied() ? "Copied" : "Copy"}</span>
+          </button>
         </div>
       </div>
       <Show when={view() === "component"}>
@@ -185,7 +199,7 @@ export function Specimen(props: SpecimenProps): JSX.Element {
         </div>
       </Show>
       <Show when={view() === "code"}>
-        <div class={`group relative ${props.panelClass ?? ""}`}>
+        <div class={`relative ${props.panelClass ?? ""}`}>
           <pre class={`${CODE_PRE} ${props.codeClass ?? ""}`}>
             <code class="break-all">
               <For each={tokens()}>
@@ -195,20 +209,6 @@ export function Specimen(props: SpecimenProps): JSX.Element {
               </For>
             </code>
           </pre>
-          <button
-            type="button"
-            onClick={copy}
-            class={COPY_CONTROL}
-            aria-label={`Copy the ${props.name} example`}
-          >
-            <i
-              class={copied()
-                ? "i-lucide-check icon-md"
-                : "i-lucide-copy icon-md"}
-              aria-hidden="true"
-            />
-            {copied() ? "copied" : "copy"}
-          </button>
         </div>
       </Show>
     </section>

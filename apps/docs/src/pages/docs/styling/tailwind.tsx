@@ -191,8 +191,8 @@ export default function StylingTailwind(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Utility Syntax"
-        lede="The utility grammar you already know, verified against your brand at build time — no silent no-ops."
+        title="Utility Classes"
+        lede="Tailwind-compatible layout and surface classes backed by your theme and verified at build time."
       />
 
       <Section id="what-transfers" title="What transfers">

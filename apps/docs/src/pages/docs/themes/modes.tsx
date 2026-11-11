@@ -47,8 +47,8 @@ export default function ThemesModes(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Light & Dark Modes"
-        lede="Design one palette with two answers. Switch modes on the page or a subtree without touching markup."
+        title="Dark Mode"
+        lede="Support light and dark appearances across the whole page or scoped to a single section without dark: utility clutter."
       />
 
       <Section id="modes" title="How modes work">

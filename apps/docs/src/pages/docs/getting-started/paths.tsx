@@ -1,43 +1,60 @@
 /**
- * Ways to Use Spin: full bundler plugin, UnoCSS preset-only, standalone Studio,
- * and CLI / MCP tools.
+ * Incremental Adoption: adopt Spin layer by layer inside an existing codebase.
  */
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
 import { Code, PageHeader, PropList, Section, type PropEntry } from "../../../ui/index.ts";
-import { GETTING_STARTED_SNIPPETS } from "./getting-started.snippets.ts";
-import { TOOLING_SNIPPETS } from "../tooling/tooling.snippets.ts";
 
-const ENTRY_PATHS: readonly PropEntry[] = [
+const TOKENS_ONLY_CONFIG = `import { defineConfig } from "vite";
+import { spin } from "@spinjs/dev/vite";
+
+export default defineConfig({
+  plugins: [
+    spin.vite({
+      // Emit CSS variables and utilities only; leave existing <button> and <input> CSS untouched
+      primitives: false,
+    }),
+  ],
+});`;
+
+const SCOPED_PRIMITIVES_CONFIG = `spin.vite({
+  // Style only the native elements you've migrated so far
+  primitives: ["button", "badge", "card", "dialog"],
+})`;
+
+const COPY_SINGLE_COMPONENT = `# Add one accessible component without touching the rest of your widget library
+npx spin component copy combobox basic`;
+
+const SHARED_BRAND_CONFIG = `import { brand } from "@acme/design-system";
+
+spin.vite({
+  extends: brand,
+})`;
+
+const ROLLOUT_STAGES: readonly PropEntry[] = [
   {
-    name: "spin.vite() / spin.<bundler>()",
-    badge: "Full app + Studio",
+    name: "Stage 1 · Tokens & utilities only",
+    badge: "primitives: false",
     description:
-      "Provides the token stylesheet, bare-tag primitives, spin/<brand>/ discovery, project src/lib/components/*.html compiler and types, plus the live Studio overlay on Vite.",
+      "Generate your brand's CSS variables (--color-*, --spacing-*, --radius-*) and layout utilities without restyling existing <button>, <input>, or <table> tags.",
   },
   {
-    name: "spin.vite({ extends: brand })",
-    badge: "Multi-app brand",
+    name: "Stage 2 · Opt in to HTML elements one by one",
+    badge: "primitives: [...]",
     description:
-      "Layers a shared brand package's themes and components beneath local spin/<brand>/ and src/lib/components/*.html overrides.",
+      "Enable Spin's native element styles incrementally — start with badges and cards, then migrate buttons, inputs, and dialogs as old CSS modules retire.",
   },
   {
-    name: "spinPreset({ themes })",
-    badge: "Stylesheet only",
+    name: "Stage 3 · Drop in interactive components where needed",
+    badge: "spin component copy",
     description:
-      "Drops into an existing uno.config.ts for token CSS, utilities, and element rules from explicit theme objects. Does not transform .html components or auto-discover spin/<brand>/.",
+      "Copy individual accessible widgets (a combobox, date picker, or menu) into src/lib/components/ and mount them inside existing React, Solid, Vue, or Svelte views.",
   },
   {
-    name: "npx spin studio",
-    badge: "Standalone daemon",
+    name: "Stage 4 · Turn on lint rules per folder",
+    badge: "oxlint / ESLint",
     description:
-      "Serves the visual theme editor at /studio/ and RPC daemon at /rpc without running an application bundler.",
-  },
-  {
-    name: "spin lint / theme / component / mcp",
-    badge: "CLI & Agent tools",
-    description:
-      "Runs source lints, theme validation gates, component scaffolding, and the stdio MCP server.",
+      "Scope Spin's lint rules to migrated directories first so new code stays consistent while legacy routes finish converting.",
   },
 ];
 
@@ -46,120 +63,86 @@ export default function Paths(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Incremental Adoption"
-        lede="Bring Spin into an existing app piecemeal: the full plugin, shared brands, the preset-only path, or the standalone Studio."
+        lede="Adopt Spin gradually in an existing app: start with tokens and utilities, opt in to HTML elements, or add single components."
       />
 
-      <Section id="matrix" title="Entry points at a glance">
-        <PropList items={ENTRY_PATHS} />
+      <Section id="stages" title="A practical migration path">
+        <p class="max-w-prose">
+          You don't need a big-bang rewrite to bring Spin into an existing
+          product. Every layer — design tokens, layout utilities, native HTML
+          element styles, interactive components, and lint rules — can be turned
+          on independently:
+        </p>
+        <PropList items={ROLLOUT_STAGES} />
       </Section>
 
-      <Section id="plugin" title="Full bundler plugin">
+      <Section id="tokens-only" title="1. Start with tokens and utilities only">
         <p class="max-w-prose">
-          The Spin bundler plugin supports Vite, Rspack, webpack, Rollup,
-          Rolldown, esbuild, and Bun: <code>spin.vite()</code>,{" "}
-          <code>spin.rspack()</code>, <code>spin.webpack()</code>,{" "}
-          <code>spin.rollup()</code>, <code>spin.rolldown()</code>,{" "}
-          <code>spin.esbuild()</code>, and <code>spin.bun()</code>. It compiles{" "}
-          <code>spin/styles.css</code>, discovers <code>spin/&lt;brand&gt;/</code>,
-          transforms <code>src/lib/components/**/*.html</code> into custom elements,
-          and mounts the Studio in development.
+          If your app already has global CSS or a component library styling bare{" "}
+          <code>&lt;button&gt;</code> and <code>&lt;input&gt;</code> tags, set{" "}
+          <code>primitives: false</code>. Spin still generates your{" "}
+          <code>spin/&lt;brand&gt;/</code> CSS variables, light and dark modes,
+          and utility classes (<code>bg-surface</code>, <code>p-4</code>,{" "}
+          <code>text-muted</code>), while leaving every HTML tag untouched:
         </p>
-        <div class="my-3 grid gap-3 sm:grid-cols-2">
+        <div class="my-3">
           <Code
-            code={GETTING_STARTED_SNIPPETS.vite}
+            code={TOKENS_ONLY_CONFIG}
             lang="ts"
             title="vite.config.ts"
           />
-          <Code
-            code={GETTING_STARTED_SNIPPETS.studio}
-            lang="ts"
-            title="Disable Studio in prod/tools"
-          />
         </div>
-        <p class="max-w-prose">
-          See <A href="/docs/tooling/cli#plugin">CLI &amp; Plugin Options</A>{" "}
-          for every field on <code>SpinPluginOptions</code>.
+        <p class="max-w-prose text-muted">
+          Existing stylesheets can also read Spin's CSS custom properties
+          directly (such as <code>var(--color-primary)</code> and{" "}
+          <code>var(--radius-md)</code>) while you migrate.
         </p>
       </Section>
 
-      <Section id="extends" title="Shared brand packages (extends)">
+      <Section id="elements" title="2. Enable HTML elements one tag at a time">
         <p class="max-w-prose">
-          Multi-app teams can publish a shared brand package that exports{" "}
-          <code>{"{ themes, componentsDir }"}</code> and pass it to{" "}
-          <code>{"spin.vite({ extends: brand })"}</code> (or any{" "}
-          <code>{"spin.<bundler>({ extends: brand })"}</code>). Local{" "}
-          <code>spin/&lt;brand&gt;/tokens.json</code> themes and{" "}
-          <code>src/lib/components/&lt;name&gt;.html</code> components take
-          precedence over brand entries of the same name, and un-forked brand
-          themes open read-only in the Studio with a one-click copy into local{" "}
-          <code>spin/</code>:
-        </p>
-        <div class="my-3 grid gap-3 sm:grid-cols-2">
-          <Code
-            code={GETTING_STARTED_SNIPPETS.brandExport}
-            lang="ts"
-            title="packages/brand/src/spin.ts"
-          />
-          <Code
-            code={GETTING_STARTED_SNIPPETS.viteExtends}
-            lang="ts"
-            title="apps/web/vite.config.ts"
-          />
-        </div>
-      </Section>
-
-      <Section id="preset" title="Stylesheet only in an existing UnoCSS app">
-        <alert variant="accent" class="my-3">
-          <p>
-            <strong>Stylesheet-only mode:</strong> <code>spinPreset</code> is
-            for projects that already own <code>uno.config.ts</code> and want
-            Spin's tokens, utilities, and element CSS without the component
-            compiler or mounted Studio.
-          </p>
-        </alert>
-        <p class="max-w-prose">
-          Themes are passed explicitly in the <code>themes</code> map. Because{" "}
-          <code>spinPreset</code> does not scan <code>spin/&lt;brand&gt;/</code> on
-          disk, register each theme in <code>uno.config.ts</code> directly:
+          Pass an array to <code>primitives</code> to turn on Spin's element
+          styles selectively as you retire legacy stylesheets:
         </p>
         <div class="my-3">
           <Code
-            code={GETTING_STARTED_SNIPPETS.unocss}
+            code={SCOPED_PRIMITIVES_CONFIG}
             lang="ts"
-            title="uno.config.ts"
+            title="vite.config.ts"
           />
         </div>
       </Section>
 
-      <Section id="studio" title="Standalone Studio">
+      <Section id="components" title="3. Add single interactive components">
         <p class="max-w-prose">
-          <code>spin studio</code> starts the daemon and serves the editor at{" "}
-          <code>http://localhost:7463/studio/</code> for editing{" "}
-          <code>spin/&lt;brand&gt;/</code> themes independent of your app server.
+          Interactive components are copied one at a time into your repo — you
+          never bundle 38 widgets just to use one combobox or dialog. Copy the
+          component you need and bind it with{" "}
+          <A href="/docs/authoring/components">React, Solid, Vue, Svelte, or HTML</A>:
         </p>
         <div class="my-3">
           <Code
-            code={GETTING_STARTED_SNIPPETS.studioServe}
+            code={COPY_SINGLE_COMPONENT}
             lang="bash"
             title="Terminal"
           />
         </div>
       </Section>
 
-      <Section id="tools" title="CLI and MCP">
+      <Section id="monorepo" title="4. Share one brand across multiple apps">
         <p class="max-w-prose">
-          The CLI and MCP server inspect your project files directly on disk or
-          connect to a running Studio daemon via <code>--url</code>:
+          In a monorepo with multiple web apps (for example, a marketing site, a
+          product dashboard, and docs), export your shared brand package and pass
+          it to <code>extends</code> so every app inherits the same tokens and
+          components:
         </p>
-        <div class="my-3 grid gap-3 sm:grid-cols-3">
-          <Code code={TOOLING_SNIPPETS.lint} lang="bash" title="Lint check" />
-          <Code code={TOOLING_SNIPPETS.lintFix} lang="bash" title="Autofix" />
-          <Code code={TOOLING_SNIPPETS.mcp} lang="bash" title="MCP server" />
+        <div class="my-3">
+          <Code
+            code={SHARED_BRAND_CONFIG}
+            lang="ts"
+            title="vite.config.ts"
+          />
         </div>
-        <p class="max-w-prose">
-          See <A href="/docs/tooling/mcp">MCP Server</A> for client
-          configurations and tool schemas.
-        </p>
       </Section>
     </main>
   );

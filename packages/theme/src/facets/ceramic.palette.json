@@ -1,0 +1,79 @@
+{
+  "color": {
+    "$type": "color",
+    "$description": "Tactile ceramic bisque: matte warm clay calibrated for neumorphic twin bevel shadows by day, dark basalt hardware by night.",
+    "surface": {
+      "$value": "#eae5dd",
+      "$modes": { "dark": "#1f1d1b" }
+    },
+    "surface-raised": {
+      "$value": "#efeae3",
+      "$modes": { "dark": "#262320" }
+    },
+    "surface-sunken": {
+      "$value": "#dfd9cf",
+      "$modes": { "dark": "#181614" }
+    },
+    "field": {
+      "$value": "#dfd9cf",
+      "$modes": { "dark": "#181614" }
+    },
+    "text": {
+      "$value": "#231f1b",
+      "$modes": { "dark": "#ede8e1" }
+    },
+    "text-muted": {
+      "$value": "#595249",
+      "$modes": { "dark": "#aba398" }
+    },
+    "border": {
+      "$value": "#d2cbc0",
+      "$modes": { "dark": "#34302c" }
+    },
+    "border-strong": {
+      "$value": "#999083",
+      "$modes": { "dark": "#575049" }
+    },
+    "primary": {
+      "$value": "#a84420",
+      "$modes": { "dark": "#ff9870" }
+    },
+    "on-primary": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#290d03" }
+    },
+    "secondary": {
+      "$value": "#d8d1c6",
+      "$modes": { "dark": "#322e2a" }
+    },
+    "on-secondary": {
+      "$value": "#231f1b",
+      "$modes": { "dark": "#ede8e1" }
+    },
+    "accent": {
+      "$value": "#1f665e",
+      "$modes": { "dark": "#6ee7d8" }
+    },
+    "on-accent": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#062420" }
+    },
+    "semantic": {
+      "success": { "$value": "#1f6e3d", "$modes": { "dark": "#76e09a" } },
+      "warning": { "$value": "#855508", "$modes": { "dark": "#f5c469" } },
+      "error": { "$value": "#b32424", "$modes": { "dark": "#ff9494" } },
+      "info": { "$value": "#1c5e80", "$modes": { "dark": "#80ccf2" } }
+    },
+    "on-semantic-success": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#062411" } },
+    "on-semantic-warning": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#241600" } },
+    "on-semantic-error": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#2e0606" } },
+    "on-semantic-info": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#06202e" } },
+    "selected": { "$type": "color", "$value": "#a84420", "$modes": { "dark": "#ff9870" } },
+    "on-selected": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#290d03" } },
+    "disabled": { "$type": "color", "$value": "#dad3c8", "$modes": { "dark": "#2c2926" } },
+    "on-disabled": { "$type": "color", "$value": "#595249", "$modes": { "dark": "#aba398" } },
+    "focus-ring": { "$value": "#a84420", "$modes": { "dark": "#ff9870" } },
+    "link": { "$value": "#a84420", "$modes": { "dark": "#ff9870" } }
+  },
+  "modes": ["light", "dark"]
+}

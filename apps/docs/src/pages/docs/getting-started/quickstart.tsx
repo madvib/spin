@@ -1,7 +1,6 @@
 /**
  * Quickstart: from an empty folder to a themed app with the Studio open.
  */
-import { A } from "@solidjs/router";
 import type { JSX } from "solid-js";
 import { Code, PageHeader, Section } from "../../../ui/index.ts";
 import { GETTING_STARTED_SNIPPETS } from "./getting-started.snippets.ts";
@@ -11,19 +10,15 @@ export default function Quickstart(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Quickstart"
-        lede="From an empty project to a themed app with the Studio and MCP server wired."
+        lede="Install the two packages, initialize your project, and launch the live Studio in two minutes."
       />
 
-      <Section id="init" title="1. Install and create your brand">
+      <Section id="init" title="1. Install and initialize">
         <p class="max-w-prose">
-          Install the packages and run <code>npx spin init</code> (or open{" "}
-          <code>/__spin/studio/init</code> in the browser for the four-step
-          visual brand wizard: Brand name → Design language → Seed color → Type
-          &amp; icons). Spin detects your bundler, scaffolds{" "}
-          <code>spin/&lt;brand&gt;/tokens.json</code> extending your chosen
-          design language, wires <code>spin.vite()</code> into{" "}
-          <code>vite.config.ts</code>, and generates <code>.mcp.json</code> plus{" "}
-          <code>src/spin-components.d.ts</code>.
+          Install <code>@spinjs/dev</code> and <code>@spinjs/components</code>,
+          then run <code>npx spin init</code>. Spin detects your bundler, creates
+          your starter brand in <code>spin/&lt;brand&gt;/tokens.json</code>, adds
+          the bundler plugin, and sets up TypeScript and MCP editor integration.
         </p>
         <div class="my-3 grid gap-3 sm:grid-cols-2">
           <Code
@@ -82,18 +77,14 @@ export default function Quickstart(): JSX.Element {
         </div>
       </Section>
 
-      <Section id="studio" title="4. Open the Studio & connect your agent">
+      <Section id="studio" title="4. Customize visually in Studio">
         <p class="max-w-prose">
-          During development, the <A href="/studio">Studio</A> mounts at{" "}
-          <code>/__spin/studio/</code> on your dev server (or run{" "}
-          <code>npx spin studio</code> standalone).{" "}
-          <code>npx spin init</code> also writes <code>.mcp.json</code> so
-          coding agents automatically connect to <code>npx spin mcp</code> —
-          pair it with the{" "}
-          <a href="/llms.txt" target="_blank" rel="noreferrer">
-            /llms.txt agent guide
-          </a>{" "}
-          or the prompt below:
+          Start your dev server and click the floating <strong>Studio</strong>{" "}
+          button in the bottom-right corner of your app (or run{" "}
+          <code>npx spin studio</code> if your bundler doesn't run a dev
+          server). Adjust colors, fonts, spacing, and radii against your live UI
+          and click <strong>Save</strong> to write changes to{" "}
+          <code>spin/&lt;brand&gt;/</code>.
         </p>
         <div class="my-3">
           <Code

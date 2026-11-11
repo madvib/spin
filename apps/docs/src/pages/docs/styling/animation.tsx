@@ -50,8 +50,8 @@ export default function StylingAnimation(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Motion & Transitions"
-        lede="Brand-governed timing and easing for state changes, named entrances for arrivals — and stillness for readers who ask."
+        title="Motion"
+        lede="Theme-timed transitions, entrance animations, and automatic reduced-motion support."
       />
 
       <Section id="theme-motion" title="Motion comes from the theme">

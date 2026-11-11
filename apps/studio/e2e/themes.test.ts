@@ -161,10 +161,10 @@ test("a theme created from the studio lands on disk, in the registry, and seated
         card.includes(`spin/${name}.json`),
         `the card does not name the project's file: ${card}`,
       );
-      const source = await cardText(page, "minimal");
+      const languageCard = await cardText(page, "minimal");
       assert(
-        source.includes("the brand"),
-        `the card does not name the language's home: ${source}`,
+        languageCard.includes("the brand"),
+        `the card does not name the language's home: ${languageCard}`,
       );
     } finally {
       await take(file);

@@ -17,7 +17,7 @@ const machine = pagination({
   ><span aria-hidden="true">‹</span></button>
   <template for={machine.getItems()} as={row} key={row.key}>
     <button
-      class={["min-w-7 s-sm transition-colors duration-fast ease-decelerate", { "secondary hover:bg-surface": row.value !== machine.page, "hidden": row.type !== "page" }]}
+      class={["min-w-7 s-sm", { "secondary": row.value !== machine.page, "hidden": row.type !== "page" }]}
       {...machine.getItemProps(row)}
     >{row.label}</button><span
       class={["grid h-7 min-w-7 place-items-center px-1 type-caption text-muted", { "hidden": row.type !== "ellipsis" }]}

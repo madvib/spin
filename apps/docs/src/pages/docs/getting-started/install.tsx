@@ -32,7 +32,7 @@ const BUNDLER_TABS: Readonly<
     name: "Vite",
     file: "vite.config.ts",
     code: GETTING_STARTED_SNIPPETS.vite,
-    note: "Compiles spin/styles.css, transforms src/lib/components/**/*.html, and mounts the Studio at /__spin/studio/.",
+    note: "Compiles styles, builds HTML components, and injects the floating Studio launcher during development.",
   },
   rspack: {
     name: "Rspack",
@@ -132,146 +132,15 @@ const PACKAGE_ITEMS: readonly PropEntry[] = [
   },
 ];
 
-const PLUGIN_OPTIONS: readonly PropEntry[] = [
-  {
-    name: "themesDir",
-    badge: "string",
-    defaultValue: '"spin"',
-    description: "Local directory containing DTCG theme JSON files.",
-  },
-  {
-    name: "componentsDir",
-    badge: "string",
-    defaultValue: '"src/lib/components"',
-    description: "Local directory containing .html components compiled into custom elements.",
-  },
-  {
-    name: "prefix",
-    badge: "string",
-    defaultValue: "package.json name",
-    description: "Tag prefix for compiled project components (fallback: \"app\").",
-  },
-  {
-    name: "extends",
-    badge: "{ themes?, componentsDir? }",
-    description: "Shared brand package whose themes and components sit beneath local overrides.",
-  },
-  {
-    name: "shortcuts",
-    badge: "Record<string, string>",
-    description:
-      "Your project's own utility compositions, e.g. { \"page-shell\": \"mx-auto w-full max-w-screen-lg px-6 py-10\" }. The preset ships none.",
-  },
-  {
-    name: "primitives",
-    badge: "string[] | boolean",
-    defaultValue: "true",
-    description: "Subset of element rules to include — custom elements always style their bare tags — or false for a utility-only build.",
-  },
-  {
-    name: "strictClasses",
-    badge: "boolean",
-    description:
-      "Fail the build when markup names a class the theme cannot produce — reported with the file, the class, and what to write instead. Warns in dev, errors in builds; pass false to restore silence. Only literal class text is checked: computed names stay silent.",
-  },
-  {
-    name: "icons",
-    badge: "boolean",
-    defaultValue: "true",
-    description: "Register @unocss/preset-icons with the shipped offline Iconify collections.",
-  },
-  {
-    name: "studio",
-    badge: "boolean",
-    defaultValue: "true",
-    description: "Mount the Studio and /__spin/rpc API on the dev server.",
-  },
-];
-
-const initFlags = (): readonly PropEntry[] => [
-  {
-    name: "--root",
-    defaultValue: ".",
-    description: "The project root directory to scaffold in.",
-  },
-  {
-    name: "--name",
-    defaultValue: "default",
-    description: (
-      <>
-        The name of the first theme — written to{" "}
-        <code>spin/&lt;brand&gt;/tokens.json</code>.
-      </>
-    ),
-  },
-  {
-    name: "--language",
-    defaultValue: "editorial",
-    description:
-      "The shipped design language to seed from (minimal, editorial, material, neobrutalist, neumorphic, glassmorphic).",
-  },
-  {
-    name: "--bundler",
-    defaultValue: "auto-detected",
-    description: (
-      <>
-        Target bundler config to wire: <code>vite</code>, <code>rspack</code>,{" "}
-        <code>webpack</code>, <code>rollup</code>, <code>rolldown</code>,{" "}
-        <code>esbuild</code>, or <code>bun</code>.
-      </>
-    ),
-  },
-  {
-    name: "--themes-dir",
-    defaultValue: "spin/",
-    description: "Directory where DTCG theme JSON documents live.",
-  },
-  {
-    name: "--components-dir",
-    defaultValue: "src/lib/components/",
-    description: "Directory where project .html components live.",
-  },
-  {
-    name: "--prefix",
-    defaultValue: "derived",
-    description: (
-      <>
-        Custom-element tag prefix derived from <code>package.json</code> name
-        (fallback: <code>app</code>), e.g. <code>&lt;app-select&gt;</code>.
-      </>
-    ),
-  },
-  {
-    name: "--vendor",
-    description:
-      "Vendor the full design language text instead of a sparse $extends document.",
-  },
-  {
-    name: "--from",
-    description:
-      "Seed from an existing brand directory instead of a design language.",
-  },
-  {
-    name: "--url",
-    defaultValue: "in-process",
-    description:
-      "Connect to a running Studio daemon instead of running in-process.",
-  },
-  {
-    name: "-y, --yes",
-    description: "Skip interactive prompts and accept defaults.",
-  },
-];
-
 export default function Install(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
         title="Bundler Setup"
-        lede="Project layout, the init command and its flags, and configurations for all seven bundlers."
+        lede="Configure Spin in Vite, Rspack, webpack, Rollup, Rolldown, esbuild, Bun, or UnoCSS."
       />
 
-      <Section id="packages" title="Install the packages">
+      <Section id="packages" title="1. Install the two packages">
         <div class="mb-4">
           <Code
             code={GETTING_STARTED_SNIPPETS.install}
@@ -282,20 +151,11 @@ export default function Install(): JSX.Element {
         <PropList items={PACKAGE_ITEMS} />
       </Section>
 
-      <Section id="init" title="Scaffold with spin init">
+      <Section id="wire" title="2. Add the bundler plugin">
         <p class="max-w-prose">
-          <code>npx spin init</code> detects your bundler, writes the first
-          theme, and wires the plugin into your bundler config.
-        </p>
-        <div class="mt-3">
-          <PropList items={initFlags()} />
-        </div>
-      </Section>
-
-      <Section id="wire" title="Wire your bundler">
-        <p class="max-w-prose">
-          Pick your bundler below, then import <code>spin/styles.css</code> and{" "}
-          <code>spin/components</code> once in your entry file:
+          Run <code>npx spin init</code> to wire your bundler automatically, or
+          add the plugin to your config manually and import{" "}
+          <code>spin/styles.css</code> once in your app entry:
         </p>
         <div class="my-4">
           <BundlerPicker />
@@ -309,64 +169,40 @@ export default function Install(): JSX.Element {
         </div>
       </Section>
 
-      <Section id="config" title="Plugin configuration reference">
-        <p class="max-w-prose">
-          Every <code>spin.&lt;bundler&gt;(options)</code> adapter accepts the
-          same <code>SpinPluginOptions</code> object. All fields are optional:
-        </p>
-        <div class="my-3">
-          <Code
-            code={GETTING_STARTED_SNIPPETS.viteOptions}
-            lang="ts"
-            title="vite.config.ts"
-          />
-        </div>
-        <PropList items={PLUGIN_OPTIONS} />
-      </Section>
-      <Section id="layout" title="Project layout">
+      <Section id="layout" title="3. Files added to your project">
         <PropList
           items={[
             {
-              name: "spin/<brand>/",
-              badge: "themes",
+              name: "spin/<brand>/tokens.json",
+              badge: "theme",
               description:
-                "DTCG theme documents declaring your palette, scales, modes, and element overrides.",
+                "Your brand's colors, typography, spacing, radii, and dark mode overrides.",
             },
             {
-              name: "spin/config.json",
-              badge: "config",
-              description:
-                "Optional project seating configuration (activeTheme and themeOrder) written by the Studio.",
-            },
-            {
-              name: "src/lib/components/**/*.html",
+              name: "src/lib/components/",
               badge: "components",
-              description: (
-                <>
-                  Vendored and custom HTML components compiled into{" "}
-                  <code>&lt;prefix&gt;-&lt;name&gt;</code> custom elements.
-                </>
-              ),
+              description:
+                "Interactive components copied into your repo with npx spin component copy.",
             },
             {
               name: "src/spin-components.d.ts",
-              badge: "generated",
+              badge: "types",
               description:
-                "Auto-generated virtual module declarations (spin/styles.css, spin/components) and DOM/JSX types for your project components.",
+                "Generated TypeScript declarations for spin/styles.css and your project's custom elements.",
             },
             {
               name: ".mcp.json",
-              badge: "agents",
+              badge: "AI",
               description:
-                "Written by spin init so coding agents automatically connect to the npx spin mcp stdio server.",
+                "Connects Claude Code, Cursor, and other MCP-compatible coding agents to your project.",
             },
           ]}
         />
-        <p class="max-w-prose">
-          Plugin options are documented in{" "}
-          <A href="/docs/tooling/cli#plugin">CLI &amp; Plugin Options</A>. The
-          preset-only path for existing UnoCSS apps is covered on{" "}
-          <A href="/docs/getting-started/paths#preset">Ways to Use Spin</A>.
+        <p class="max-w-prose text-muted">
+          Need CLI flags or advanced plugin options? See the{" "}
+          <A href="/docs/tooling/cli">CLI Reference</A>. Adopting Spin inside an
+          existing app? Read{" "}
+          <A href="/docs/getting-started/paths">Incremental Adoption</A>.
         </p>
       </Section>
     </main>

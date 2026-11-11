@@ -47,6 +47,7 @@ export default defineConfig({
         filesystem: [
           resolve(here, "src/**/*.{tsx,ts}"),
           resolve(here, "src/lib/components/**/*.html"),
+          resolve(here, "../../internal/kit/src/**/*.{tsx,ts}"),
         ],
         pipeline: {
           include: [/\.(tsx?|html)($|\?)/],

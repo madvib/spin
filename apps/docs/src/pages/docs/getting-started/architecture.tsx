@@ -124,7 +124,7 @@ export default function Architecture(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="How Spin Works"
-        lede="Your brand tokens, finished HTML elements, layout utilities, and interactive components — and which layer to change when the design moves."
+        lede="How themes, native HTML elements, layout utilities, and interactive components fit together."
       />
 
       <Section id="layers" title="The five layers">

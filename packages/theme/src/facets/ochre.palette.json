@@ -1,0 +1,79 @@
+{
+  "color": {
+    "$type": "color",
+    "$description": "Tonal ochre sandstone containers: warm amber-tinted elevation steps with burnt sienna primary.",
+    "surface": {
+      "$value": "#fbf6f0",
+      "$modes": { "dark": "#17130e" }
+    },
+    "surface-raised": {
+      "$value": "#fffcf9",
+      "$modes": { "dark": "#221c16" }
+    },
+    "surface-sunken": {
+      "$value": "#f2eae0",
+      "$modes": { "dark": "#100d09" }
+    },
+    "field": {
+      "$value": "#fffcf9",
+      "$modes": { "dark": "#221c16" }
+    },
+    "text": {
+      "$value": "#211a13",
+      "$modes": { "dark": "#efe4d8" }
+    },
+    "text-muted": {
+      "$value": "#5c4f42",
+      "$modes": { "dark": "#b5a594" }
+    },
+    "border": {
+      "$value": "#dfd3c5",
+      "$modes": { "dark": "#382f26" }
+    },
+    "border-strong": {
+      "$value": "#a3917e",
+      "$modes": { "dark": "#5c4e40" }
+    },
+    "primary": {
+      "$value": "#96490b",
+      "$modes": { "dark": "#ffb784" }
+    },
+    "on-primary": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#311300" }
+    },
+    "secondary": {
+      "$value": "#ede0d1",
+      "$modes": { "dark": "#382d23" }
+    },
+    "on-secondary": {
+      "$value": "#2b1f14",
+      "$modes": { "dark": "#f2dfd0" }
+    },
+    "accent": {
+      "$value": "#5b631d",
+      "$modes": { "dark": "#c4cf7a" }
+    },
+    "on-accent": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#1b1f00" }
+    },
+    "semantic": {
+      "success": { "$value": "#23703c", "$modes": { "dark": "#87d99c" } },
+      "warning": { "$value": "#8c5800", "$modes": { "dark": "#f7be5c" } },
+      "error": { "$value": "#ba1a1a", "$modes": { "dark": "#ffb4ab" } },
+      "info": { "$value": "#1c6385", "$modes": { "dark": "#8fd0f2" } }
+    },
+    "on-semantic-success": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#062912" } },
+    "on-semantic-warning": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#261600" } },
+    "on-semantic-error": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#410002" } },
+    "on-semantic-info": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#052333" } },
+    "selected": { "$type": "color", "$value": "#96490b", "$modes": { "dark": "#ffb784" } },
+    "on-selected": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#311300" } },
+    "disabled": { "$type": "color", "$value": "#e6ddd2", "$modes": { "dark": "#2e261f" } },
+    "on-disabled": { "$type": "color", "$value": "#5c4f42", "$modes": { "dark": "#b5a594" } },
+    "focus-ring": { "$value": "#96490b", "$modes": { "dark": "#ffb784" } },
+    "link": { "$value": "#96490b", "$modes": { "dark": "#ffb784" } }
+  },
+  "modes": ["light", "dark"]
+}

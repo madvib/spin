@@ -1,0 +1,79 @@
+{
+  "color": {
+    "$type": "color",
+    "$description": "Bauhaus poster primary: crisp gallery paper, stark jet-black ink frames, ultramarine cobalt primary, and cadmium yellow accent.",
+    "surface": {
+      "$value": "#f7f6f2",
+      "$modes": { "dark": "#101114" }
+    },
+    "surface-raised": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#181a20" }
+    },
+    "surface-sunken": {
+      "$value": "#eceae2",
+      "$modes": { "dark": "#0a0b0d" }
+    },
+    "field": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#181a20" }
+    },
+    "text": {
+      "$value": "#0d0e11",
+      "$modes": { "dark": "#f5f6f8" }
+    },
+    "text-muted": {
+      "$value": "#454852",
+      "$modes": { "dark": "#a4a9b6" }
+    },
+    "border": {
+      "$value": "#181a20",
+      "$modes": { "dark": "#d8dce6" }
+    },
+    "border-strong": {
+      "$value": "#0d0e11",
+      "$modes": { "dark": "#f5f6f8" }
+    },
+    "primary": {
+      "$value": "#1d4ed8",
+      "$modes": { "dark": "#60a5fa" }
+    },
+    "on-primary": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#081226" }
+    },
+    "secondary": {
+      "$value": "#facc15",
+      "$modes": { "dark": "#facc15" }
+    },
+    "on-secondary": {
+      "$value": "#0d0e11",
+      "$modes": { "dark": "#0d0e11" }
+    },
+    "accent": {
+      "$value": "#be123c",
+      "$modes": { "dark": "#fb7185" }
+    },
+    "on-accent": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#24060d" }
+    },
+    "semantic": {
+      "success": { "$value": "#15803d", "$modes": { "dark": "#4ade80" } },
+      "warning": { "$value": "#a16207", "$modes": { "dark": "#facc15" } },
+      "error": { "$value": "#be123c", "$modes": { "dark": "#fb7185" } },
+      "info": { "$value": "#1d4ed8", "$modes": { "dark": "#60a5fa" } }
+    },
+    "on-semantic-success": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#052e16" } },
+    "on-semantic-warning": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#0d0e11" } },
+    "on-semantic-error": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#24060d" } },
+    "on-semantic-info": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#081226" } },
+    "selected": { "$type": "color", "$value": "#0d0e11", "$modes": { "dark": "#f5f6f8" } },
+    "on-selected": { "$type": "color", "$value": "#f7f6f2", "$modes": { "dark": "#101114" } },
+    "disabled": { "$type": "color", "$value": "#dedcd3", "$modes": { "dark": "#272a33" } },
+    "on-disabled": { "$type": "color", "$value": "#454852", "$modes": { "dark": "#a4a9b6" } },
+    "focus-ring": { "$value": "#0d0e11", "$modes": { "dark": "#facc15" } },
+    "link": { "$value": "#1d4ed8", "$modes": { "dark": "#60a5fa" } }
+  },
+  "modes": ["light", "dark"]
+}

@@ -42,11 +42,13 @@ test("neobrutalist buttons wear a strong frame, resting offset shadow, and activ
   );
   const root = ruleDeclarations(css, ":root");
   deepStrictEqual(root["--button-edge"], "var(--color-border-strong)");
-  deepStrictEqual(root["--button-shadow"], "var(--shadow-sm)");
-  deepStrictEqual(root["--button-shadow-hover"], "var(--shadow-md)");
+  deepStrictEqual(root["--button-shadow"], "var(--shadow-md)");
+  deepStrictEqual(root["--button-shadow-hover"], "var(--shadow-sm)");
   deepStrictEqual(root["--button-shadow-active"], "none");
-  deepStrictEqual(root["--button-active-x"], "2px");
-  deepStrictEqual(root["--button-active-y"], "2px");
+  deepStrictEqual(root["--button-hover-lift-x"], "2px");
+  deepStrictEqual(root["--button-hover-lift-y"], "2px");
+  deepStrictEqual(root["--button-active-x"], "4px");
+  deepStrictEqual(root["--button-active-y"], "4px");
   const primary = ruleDeclarations(css, (s) => s.endsWith('[variant~="primary"]'));
   deepStrictEqual(primary["border-color"], "var(--button-edge, var(--color-primary))");
   const secondary = ruleDeclarations(css, (s) => s.endsWith('[variant~="secondary"]'));
@@ -95,7 +97,7 @@ test("glassmorphic surfaces emit optical backdrop-filter blur and paint-free var
     (s: string) => s === "card",
     (s: string) => s === "panel",
     (s: string) => s === "dialog",
-    (s: string) => s.startsWith(":is(button") && s.endsWith('[role="button"])'),
+    (s: string) => s.startsWith(":is(button") && s.endsWith('[role="button"]))'),
   ]) {
     const found = ruleDeclarations(css, matcher);
     deepStrictEqual(found["backdrop-filter"], "blur(var(--surface-blur))");

@@ -3,11 +3,8 @@
  * in a fullscreen Jibe embed. Host picks framework + example; the embed
  * owns chrome, view, and preview mode internally.
  */
-import { A } from "@solidjs/router";
 import { createSignal, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
-import { Logo, ThemePicker } from "@spinjs/kit";
-import { version } from "../../../../packages/dev/package.json";
 import {
   activeFileForFramework,
   SpinEmbed,
@@ -26,14 +23,13 @@ const PRESETS: readonly Preset[] = [
   { title: "Dialog & Form Actions", subject: "dialog" },
 ];
 
-const FRAMEWORKS: readonly PlaygroundFramework[] = [
-  "vanilla",
-  "solid",
-  "react",
-  "vue",
-  "svelte",
+const FRAMEWORKS: readonly { readonly id: PlaygroundFramework; readonly label: string }[] = [
+  { id: "solid", label: "Solid" },
+  { id: "react", label: "React" },
+  { id: "vue", label: "Vue" },
+  { id: "svelte", label: "Svelte" },
+  { id: "vanilla", label: "HTML" },
 ];
-
 export default function PlaygroundPage(): JSX.Element {
   const [preset, setPreset] = createSignal(0);
   const [framework, setFramework] = createSignal<PlaygroundFramework>("solid");
@@ -42,60 +38,80 @@ export default function PlaygroundPage(): JSX.Element {
   const current = (): Preset => PRESETS[preset()] ?? PRESETS[0]!;
   return (
     <div class="flex h-full flex-col bg-surface">
-      <div class="relative z-dropdown flex h-12 min-w-0 shrink-0 items-center gap-3 overflow-visible border-b bg-surface-raised px-4">
-        <A href="/" class="flex shrink-0 items-center gap-2 no-underline" aria-label="spin home">
-          <Logo size="sm" />
-          <span class="type-code text-muted">v{version}</span>
-        </A>
-        <div class="relative shrink-0">
-          <button
-            type="button"
-            aria-haspopup="listbox"
-            aria-expanded={examplesOpen()}
-            onClick={() => setExamplesOpen((open) => !open)}
-            class="bare s-sm cursor-pointer rounded-md border bg-surface hover:bg-surface-raised"
-          >
-            {current().title}
-          </button>
-          <Show when={examplesOpen()}>
-            <div
-              role="listbox"
-              aria-label="examples"
-              class="absolute left-0 top-full z-dropdown mt-1 min-w-64 rounded-md border bg-surface-raised p-1 shadow-lg"
+      <div class="relative z-dropdown flex h-10 min-w-0 shrink-0 items-center justify-between gap-3 overflow-visible border-b bg-surface-raised px-4">
+        <div class="flex min-w-0 items-center gap-3">
+          <div class="relative shrink-0">
+            <button
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded={examplesOpen()}
+              onClick={() => setExamplesOpen((open) => !open)}
+              class="bare inline-flex h-8 items-center gap-2 rounded-md border bg-surface px-3 type-label transition-colors hover:bg-surface-raised"
             >
-              <For each={PRESETS}>
-                {(item, index) => (
+              <span class="i-lucide-sparkles icon-sm text-primary" aria-hidden="true" />
+              <span>{current().title}</span>
+              <span class="i-lucide-chevron-down icon-sm text-muted" aria-hidden="true" />
+            </button>
+            <Show when={examplesOpen()}>
+              <div
+                role="listbox"
+                aria-label="examples"
+                class="absolute left-0 top-full z-dropdown mt-1 min-w-56 rounded-md border bg-surface-raised p-1 shadow-lg"
+              >
+                <For each={PRESETS}>
+                  {(item, index) => (
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={preset() === index()}
+                      onClick={() => {
+                        setPreset(index());
+                        setExamplesOpen(false);
+                      }}
+                      class={`bare flex h-8 w-full items-center justify-between gap-2 rounded-sm px-3 text-left type-label transition-colors ${
+                        preset() === index()
+                          ? "bg-surface text-primary"
+                          : "hover:bg-surface"
+                      }`}
+                    >
+                      <span>{item.title}</span>
+                      <Show when={preset() === index()}>
+                        <span class="i-lucide-check icon-sm text-primary" aria-hidden="true" />
+                      </Show>
+                    </button>
+                  )}
+                </For>
+              </div>
+            </Show>
+          </div>
+
+          <div
+            role="group"
+            aria-label="framework"
+            class="inline-flex h-8 items-center gap-1 rounded-md border bg-surface p-1"
+          >
+            <For each={FRAMEWORKS}>
+              {(fw) => {
+                const active = () => framework() === fw.id;
+                return (
                   <button
                     type="button"
-                    role="option"
-                    aria-selected={preset() === index()}
-                    onClick={() => {
-                      setPreset(index());
-                      setExamplesOpen(false);
-                    }}
-                    class={`bare block w-full cursor-pointer rounded-sm px-3 py-1 text-left hover:bg-surface ${
-                      preset() === index() ? "type-body-emphasized" : ""
+                    aria-pressed={active()}
+                    onClick={() => setFramework(fw.id)}
+                    class={`bare inline-flex h-6 items-center justify-center rounded-sm px-2 type-caption-emphasized transition-colors ${
+                      active()
+                        ? "bg-primary text-on-primary"
+                        : "text-muted hover:bg-surface-raised"
                     }`}
                   >
-                    {item.title}
+                    {fw.label}
                   </button>
-                )}
-              </For>
-            </div>
-          </Show>
+                );
+              }}
+            </For>
+          </div>
         </div>
-        <select
-          aria-label="framework"
-          value={framework()}
-          onChange={(event) =>
-            setFramework(event.currentTarget.value as PlaygroundFramework)
-          }
-          class="s-sm w-auto shrink-0 cursor-pointer"
-        >
-          <For each={FRAMEWORKS}>
-            {(name) => <option value={name}>{name}</option>}
-          </For>
-        </select>
+
         <Show when={updating()}>
           <span
             role="status"
@@ -105,12 +121,9 @@ export default function PlaygroundPage(): JSX.Element {
               class="i-lucide-loader-circle icon-sm animate-spin"
               aria-hidden="true"
             />
-            rebuilding…
+            <span>Bundling…</span>
           </span>
         </Show>
-        <span class="ms-auto flex shrink-0 items-center">
-          <ThemePicker />
-        </span>
       </div>
       <div class="min-h-0 flex-1">
         <SpinEmbed

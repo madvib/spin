@@ -36,7 +36,6 @@
   },
   "scripts": {
     "test": "bun test --path-ignore-patterns=\"**/e2e/**\" --path-ignore-patterns=\"**/e2e.test.ts\" packages/ apps/ internal/ examples/",
-    "test:launch": "bun test ./.agents/launch/launch.test.ts",
     "lint": "bun packages/dev/src/cli/main.ts lint",
     "lint:ox": "bunx oxlint@1.85.0 --config .oxlintrc.json packages/ apps/ internal/ examples/",
     "fmt": "bunx oxfmt@0.78.0 --write packages/ apps/ internal/ examples/ scripts/",

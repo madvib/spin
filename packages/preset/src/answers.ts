@@ -545,7 +545,9 @@ function collectSubjects(
     if (part.startsWith(":") || part.startsWith("[")) continue;
     const name = /^([a-zA-Z][a-zA-Z0-9-]*)/.exec(part);
     if (name === null) continue;
-    const rest = part.slice((name[1] as string).length).replace(/^:not\(\[role\]\)/, "");
+    const rest = part
+      .slice((name[1] as string).length)
+      .replace(/^:(?:not\(\[role\]\)|where\(:not\(\[role\]\)\))/, "");
     out.push({
       tag: name[1] as string,
       conditional: conditional || /^\s*[:[]/.test(rest),

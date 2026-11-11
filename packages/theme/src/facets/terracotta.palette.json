@@ -23,6 +23,12 @@
         "dark": "#110c0a"
       }
     },
+    "field": {
+      "$value": "#fffcf8",
+      "$modes": {
+        "dark": "#221915"
+      }
+    },
     "text": {
       "$value": "#2b1d16",
       "$description": "Roasted espresso: the primary reading ink.",

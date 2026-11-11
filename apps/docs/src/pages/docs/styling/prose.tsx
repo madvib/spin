@@ -39,8 +39,8 @@ export default function StylingProse(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Text & Prose"
-        lede="Headings and paragraphs that read right out of the box, named type styles for UI, and document versus interface lists."
+        title="Prose"
+        lede="Readable headings, paragraphs, lists, blockquotes, and code blocks for articles and docs."
       />
 
       <Section id="scales" title="Scales are the building blocks">

@@ -5,7 +5,7 @@
  * Each example renders as a live `<Specimen>`: the component as a consumer
  * writes it, the markup behind it, and the copy control for the markup.
  */
-import { createMemo, For, Show } from "solid-js";
+import { createMemo, createSignal, For, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import {
   examplesFor,
@@ -20,7 +20,7 @@ import { A, Navigate, useParams } from "@solidjs/router";
 import { Specimen } from "@spinjs/kit";
 import { EXAMPLE_ONLOAD } from "@spinjs/dev/examples";
 import { COMPONENT_ALIASES, COMPONENT_GROUPS } from "../../shell/nav.ts";
-import { Chip, Code, Section } from "../../ui/index.ts";
+import { Chip, Section } from "../../ui/index.ts";
 import { ExampleRow } from "../../playground/example-row.tsx";
 
 /** A machine or controller export, read off the library namespace. */
@@ -52,18 +52,38 @@ function handleOf(name: string): ComponentHandle | undefined {
   return handle as ComponentHandle;
 }
 
-/** Whether the handle is a platform controller rather than a machine. */
-function isController(name: string): boolean {
-  const manifest = (library as unknown as Record<string, unknown>)[`${exportOf(name)}Manifest`];
-  return manifest !== undefined;
-}
-
 /** Every component id in rail order, for the prev/next footer. */
 const RAIL_ORDER: readonly string[] = COMPONENT_GROUPS.flatMap((group) =>
   group.items.map((item) =>
     item.href.includes("/machine-") ? `machine-${item.name}` : item.name
   )
 );
+
+const ELEMENT_SUMMARIES: Readonly<Record<string, string>> = {
+  button: "Actions and form triggers with semantic variants, three sizes, and theme-driven press physics.",
+  badge: "Compact status labels and counts in neutral, brand, and semantic tones.",
+  card: "Framed content containers with structured header, body, media, and action slots.",
+  alert: "Inline callouts for status updates, warnings, and actionable notices.",
+  dialog: "Modal and non-modal native <dialog> overlays with focus trapping and backdrop scrim.",
+  panel: "Elevated floating surfaces and selectable item lists for menus, popovers, and command palettes.",
+  field: "Single-line inputs, textareas, and native selects sharing one height and focus ring.",
+  checkbox: "Binary and indeterminate selection boxes styled directly on native <input type=\"checkbox\">.",
+  radio: "Mutually exclusive option controls on native <input type=\"radio\">.",
+  switch: "Immediate on/off toggle state built on <input type=\"checkbox\" role=\"switch\">.",
+  range: "Continuous and stepped numeric sliders on native <input type=\"range\">.",
+  progress: "Determinate and indeterminate completion bars on native <progress>.",
+  meter: "Capacity and threshold gauges on native <meter>.",
+  table: "Data tables with tabular alignment, sticky headers, and optional zebra rows.",
+  disclosure: "Collapsible native <details> and <summary> sections with animated disclosure markers.",
+  breadcrumbs: "Hierarchical trail navigation using semantic ordered lists.",
+  join: " horizontally attached button and input groups with shared borders and outer radii.",
+  kbd: "Keyboard shortcut caps styled for inline hints and command menus.",
+  avatar: "User and workspace identity thumbnails with image and initials support.",
+  stat: "Key metric readouts pairing a headline figure with label and trend context.",
+  skeleton: "Loading placeholders that pulse smoothly while content resolves.",
+  divider: "Horizontal and labeled section rules on native <hr>.",
+  label: "Accessible form field captions with automatic inline alignment for checkboxes and radios.",
+};
 
 export default function ComponentPage(): JSX.Element {
   const params = useParams<{ id: string }>();
@@ -90,91 +110,35 @@ export default function ComponentPage(): JSX.Element {
     )?.label
   );
   const alias = createMemo(() => COMPONENT_ALIASES[params.id]);
-  let classesDialog: HTMLDialogElement | undefined;
+  const summary = createMemo(
+    () => ELEMENT_SUMMARIES[params.id]?.trim() ?? examples()?.note ?? "",
+  );
+
   const page = (
     <Show when={known()} fallback={<NotFound id={params.id} />}>
       <Show
         when={machineId() === null}
-        fallback={<MachineDetail name={machineId() ?? ""} />}
+        fallback={<MachineDetail name={machineId() ?? ""} prev={prev()} next={next()} />}
       >
-        <main class="px-6 py-6">
+        <main class="mx-auto w-full max-w-screen-lg px-6 py-8">
           <Show when={category()}>
-            <p class="uppercase text-muted">{category()}</p>
+            <span class="block type-overline uppercase text-muted">{category()}</span>
           </Show>
-          <h1>{params.id}</h1>
-          <Show when={examples()}>
-            {(ex) => <p class="max-w-prose text-muted">{ex().note}</p>}
-          </Show>
-
-          <div class="mt-4 flex flex-wrap gap-x-8 gap-y-2">
-            <div>
-              <p class="uppercase text-muted">
-                tags
-              </p>
-              <div class="mt-2 flex flex-wrap gap-2">
+          <div class="mt-1 flex flex-wrap items-baseline justify-between gap-3">
+            <h1>{params.id}</h1>
+            <Show when={contract()!.tags.length > 0}>
+              <div class="flex flex-wrap items-center gap-2">
                 <For each={contract()!.tags}>
-                  {(tag) => <Chip>{tag}</Chip>}
+                  {(tag) => <code>&lt;{tag}&gt;</code>}
                 </For>
-                <Show when={contract()!.tags.length === 0}>
-                  <span class="type-body text-muted">
-                    none — a utility family
-                  </span>
-                </Show>
-              </div>
-            </div>
-            <div>
-              <p class="uppercase text-muted">
-                variants
-              </p>
-              <div class="mt-2 flex flex-wrap gap-2">
-                <For each={contract()!.variants}>
-                  {(variant) => <Chip>{variant}</Chip>}
-                </For>
-                <Show when={contract()!.variants.length === 0}>
-                  <span class="type-body text-muted">none</span>
-                </Show>
-              </div>
-            </div>
-            <Show when={(examples()?.classes ?? []).length > 0}>
-              <div class="flex items-end">
-                <button
-                  type="button"
-                  class="secondary s-sm"
-                  onClick={() => classesDialog?.showModal()}
-                >
-                  Classes & tags ({(examples()?.classes ?? []).length})
-                </button>
               </div>
             </Show>
           </div>
-
-          <Show when={(examples()?.classes ?? []).length > 0}>
-            <dialog
-              ref={classesDialog}
-              class="w-full max-w-screen-lg"
-              aria-label={`${params.id} classes and tags`}
-              onClick={(e: MouseEvent) => {
-                if (e.target === e.currentTarget) classesDialog?.close();
-              }}
-            >
-              <header>
-                <h2>{params.id} — classes & tags</h2>
-                <button
-                  type="button"
-                  class="bare"
-                  aria-label="Close"
-                  onClick={() => classesDialog?.close()}
-                >
-                  <span class="i-lucide-x icon-sm" aria-hidden="true" />
-                </button>
-              </header>
-              <div class="overflow-x-auto">
-                <ClassTable classes={examples()?.classes ?? []} />
-              </div>
-            </dialog>
+          <Show when={summary() !== ""}>
+            <p class="max-w-prose text-muted">{summary()}</p>
           </Show>
 
-          <div class="mt-8">
+          <div class="mt-6">
             <For each={examples()?.rows}>
               {(row) => (
                 <Specimen
@@ -186,61 +150,36 @@ export default function ComponentPage(): JSX.Element {
             </For>
           </div>
 
-          <Show when={(contract()!.scope?.paints ?? []).length > 0}>
-            <Section title="What it owns">
-              <div class="mt-4 overflow-x-auto">
-                <table class="w-full border-collapse wrap">
-                  <thead>
-                    <tr class="border-b text-left">
-                      <th class="py-2 pr-4">element</th>
-                      <th class="py-2 pr-4">where</th>
-                      <th class="py-2 pr-4">owns</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <For each={contract()!.scope.paints}>
-                      {(paint) => (
-                        <tr class="border-b">
-                          <td class="type-code">
-                            {paint.tag}
-                          </td>
-                          <td class="type-code text-muted">
-                            {paint.where}
-                          </td>
-                          <td class="type-code">
-                            {paint.owns.join(" · ")}
-                          </td>
-                        </tr>
-                      )}
-                    </For>
-                  </tbody>
-                </table>
+          <Show when={(examples()?.classes ?? []).length > 0}>
+            <Section title="Classes & elements">
+              <div class="mt-3 overflow-x-auto rounded-lg border bg-surface">
+                <ClassTable classes={examples()?.classes ?? []} />
               </div>
             </Section>
           </Show>
 
           <Show when={contract()!.component.length > 0}>
-            <Section title="Component tokens — what the theme decides">
-              <div class="mt-4 overflow-x-auto">
-                <table class="w-full border-collapse wrap">
+            <Section title="Theme tokens">
+              <div class="mt-3 overflow-x-auto rounded-lg border bg-surface">
+                <table class="w-full border-collapse text-left wrap">
                   <thead>
-                    <tr class="border-b text-left">
-                      <th class="py-2 pr-4">token</th>
-                      <th class="py-2 pr-4">type</th>
-                      <th class="py-2 pr-4">scaffold placeholder</th>
+                    <tr class="border-b bg-surface-raised text-muted">
+                      <th class="px-3 py-2">Token</th>
+                      <th class="px-3 py-2">Type</th>
+                      <th class="px-3 py-2">Default</th>
                     </tr>
                   </thead>
                   <tbody>
                     <For each={contract()!.component}>
                       {(token) => (
-                        <tr class="border-b">
-                          <td class="type-code">
-                            {token.path}
+                        <tr class="border-b last:border-b-0">
+                          <td class="type-code text-primary">
+                            <code>{token.path}</code>
                           </td>
                           <td class="type-code text-muted">
                             {token.type}
                           </td>
-                          <td class="type-code">
+                          <td class="type-code text-muted">
                             {token.value}
                           </td>
                         </tr>
@@ -252,38 +191,7 @@ export default function ComponentPage(): JSX.Element {
             </Section>
           </Show>
 
-          <hr />
-          <nav
-            class="flex items-center justify-between gap-4 pt-6"
-            aria-label="more components"
-          >
-            <Show
-              when={prev()}
-              fallback={<span />}
-            >
-              {(name) => (
-                <A
-                  href={`/components/${name()}`}
-                  class="text-muted no-underline"
-                >
-                  ← {name()}
-                </A>
-              )}
-            </Show>
-            <Show
-              when={next()}
-              fallback={<span />}
-            >
-              {(name) => (
-                <A
-                  href={`/components/${name()}`}
-                  class="text-muted no-underline"
-                >
-                  {name()} →
-                </A>
-              )}
-            </Show>
-          </nav>
+          <PrevNextNav prev={prev()} next={next()} />
         </main>
       </Show>
     </Show>
@@ -295,9 +203,35 @@ export default function ComponentPage(): JSX.Element {
     </Show>
   );
 }
+
+function PrevNextNav(props: { prev?: string; next?: string }): JSX.Element {
+  const labelOf = (id: string): string =>
+    id.startsWith("machine-") ? id.slice("machine-".length) : id;
+  return (
+    <nav
+      class="mt-10 flex items-center justify-between gap-4 border-t pt-6"
+      aria-label="more components"
+    >
+      <Show when={props.prev} fallback={<span />}>
+        {(name) => (
+          <A href={`/components/${name()}`} class="text-muted no-underline hover:text-primary">
+            ← {labelOf(name())}
+          </A>
+        )}
+      </Show>
+      <Show when={props.next} fallback={<span />}>
+        {(name) => (
+          <A href={`/components/${name()}`} class="text-muted no-underline hover:text-primary">
+            {labelOf(name())} →
+          </A>
+        )}
+      </Show>
+    </nav>
+  );
+}
 function ClassTable(props: { classes: readonly ClassDoc[] }): JSX.Element {
   return (
-    <table class="w-fit max-w-full border-collapse text-left wrap">
+    <table class="w-full border-collapse text-left wrap">
       <thead>
         <tr class="border-b bg-surface-raised text-muted">
           <th class="px-3 py-2">Class / Tag</th>
@@ -328,7 +262,7 @@ function ClassTable(props: { classes: readonly ClassDoc[] }): JSX.Element {
   );
 }
 
-function MachineDetail(props: { name: string }): JSX.Element {
+function MachineDetail(props: { name: string; prev?: string; next?: string }): JSX.Element {
   const rows = () => exampleSources().get(props.name) ?? [];
   const handle = () => handleOf(props.name);
   const manifest = () => handle()?.manifest;
@@ -336,42 +270,48 @@ function MachineDetail(props: { name: string }): JSX.Element {
     COMPONENT_GROUPS.find((group) =>
       group.items.some((item) => item.name === props.name)
     )?.label;
-  const controller = () => isController(props.name);
   const events = (): readonly (readonly [string, string])[] =>
     Object.entries(handle()?.events ?? {}).map(([dom, contract]) => [dom, contract.on] as const);
+  const [copiedCli, setCopiedCli] = createSignal(false);
+  const cliCommand = () => `npx spin component copy ${props.name} basic`;
+  const copyCli = () => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      void navigator.clipboard.writeText(cliCommand());
+    }
+    setCopiedCli(true);
+    window.setTimeout(() => setCopiedCli(false), 1200);
+  };
+
   return (
-    <main class="min-w-0 px-4 py-6 sm:px-6">
+    <main class="mx-auto min-w-0 w-full max-w-screen-lg px-6 py-8">
       <Show when={category()}>
-        <p class="uppercase text-muted">{category()}</p>
+        <span class="block type-overline uppercase text-muted">{category()}</span>
       </Show>
-      <h1>{props.name}</h1>
-      <p>
-        <Chip>{controller() ? "controller" : "machine"}</Chip>
-      </p>
-      <div class="my-3">
-        <Code code={`npx spin component copy ${props.name} basic`} lang="bash" />
+      <div class="mt-1 flex flex-wrap items-center justify-between gap-3">
+        <h1>{props.name}</h1>
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={copyCli}
+            aria-label="Copy CLI scaffold command"
+            class="bare inline-flex h-8 items-center gap-2 rounded-md border bg-surface-raised px-3 type-code text-muted transition-colors hover:border-strong hover:bg-surface"
+          >
+            <span class="text-primary">$</span>
+            <span>{cliCommand()}</span>
+            <span
+              class={copiedCli() ? "i-lucide-check icon-sm text-semantic-success" : "i-lucide-copy icon-sm"}
+              aria-hidden="true"
+            />
+          </button>
+        </div>
       </div>
-      <Show when={(manifest()?.parts ?? []).length > 0}>
-        <span class="mt-4 mb-1 block type-label text-muted">Parts</span>
-        <div class="flex flex-wrap gap-2">
-          <For each={manifest()?.parts ?? []}>
-            {(part) => <Chip>{part}</Chip>}
-          </For>
-        </div>
-      </Show>
-      <Show when={(manifest()?.slots ?? []).length > 0}>
-        <span class="mt-4 mb-1 block type-label text-muted">Slots</span>
-        <div class="flex flex-wrap gap-2">
-          <For each={manifest()?.slots ?? []}>
-            {(slot) => <Chip>{slot}</Chip>}
-          </For>
-        </div>
-      </Show>
-      <div class="mt-4">
+
+      <div class="mt-6">
         <For each={rows()}>
           {(row) => (
             <ExampleRow
               name={row.stem}
+              overlay
               html={`<${props.name}-${row.stem} class="flex w-full min-w-0 flex-col items-center"></${props.name}-${row.stem}>`}
               source={row.html}
               onLoad={EXAMPLE_ONLOAD[`${props.name}/${row.stem}`]}
@@ -379,8 +319,9 @@ function MachineDetail(props: { name: string }): JSX.Element {
           )}
         </For>
       </div>
+
       <Show when={handle() !== undefined}>
-        <Section title="Component contract">
+        <Section title="Props & events">
           <Show when={(handle()?.fields ?? []).length > 0}>
             <h3>Props</h3>
             <div class="flex flex-wrap gap-2">
@@ -391,51 +332,56 @@ function MachineDetail(props: { name: string }): JSX.Element {
           </Show>
           <Show when={events().length > 0}>
             <h3>Events</h3>
-            <table class="wrap">
-              <thead>
-                <tr>
-                  <th>DOM event</th>
-                  <th>Callback prop</th>
-                </tr>
-              </thead>
-              <tbody>
-                <For each={events()}>
-                  {([dom, prop]) => (
-                    <tr>
-                      <td><code>{dom}</code></td>
-                      <td><code>{prop}</code></td>
+            <div class="overflow-x-auto rounded-lg border bg-surface">
+              <table class="w-full border-collapse text-left wrap">
+                <thead>
+                  <tr class="border-b bg-surface-raised text-muted">
+                    <th class="px-3 py-2">DOM event</th>
+                    <th class="px-3 py-2">Callback prop</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={events()}>
+                    {([dom, prop]) => (
+                      <tr class="border-b last:border-b-0">
+                        <td class="type-code text-primary"><code>{dom}</code></td>
+                        <td class="type-code text-muted"><code>{prop}</code></td>
+                      </tr>
+                    )}
+                  </For>
+                </tbody>
+              </table>
+            </div>
+          </Show>
+          <Show when={(manifest()?.parts ?? []).length > 0 || (manifest()?.slots ?? []).length > 0}>
+            <h3>Template anatomy</h3>
+            <div class="overflow-x-auto rounded-lg border bg-surface">
+              <table class="w-full border-collapse text-left wrap">
+                <tbody>
+                  <Show when={(manifest()?.parts ?? []).length > 0}>
+                    <tr class="border-b last:border-b-0">
+                      <th>Parts</th>
+                      <td class="type-code text-muted">
+                        {(manifest()?.parts ?? []).join(", ")}
+                      </td>
                     </tr>
-                  )}
-                </For>
-              </tbody>
-            </table>
-          </Show>
-          <Show when={(manifest()?.commands ?? []).length > 0}>
-            <h3>Commands</h3>
-            <div class="flex flex-wrap gap-2">
-              <For each={manifest()?.commands ?? []}>
-                {(command) => <Chip>ctl.commands.{command}()</Chip>}
-              </For>
-            </div>
-          </Show>
-          <Show when={(manifest()?.readers ?? []).length > 0}>
-            <h3>State readers</h3>
-            <div class="flex flex-wrap gap-2">
-              <For each={manifest()?.readers ?? []}>
-                {(reader) => <Chip>ctl.state.{reader}</Chip>}
-              </For>
-            </div>
-          </Show>
-          <Show when={(manifest()?.methods ?? []).length > 0}>
-            <h3>Methods</h3>
-            <div class="flex flex-wrap gap-2">
-              <For each={manifest()?.methods ?? []}>
-                {(method) => <Chip>machine.{method}()</Chip>}
-              </For>
+                  </Show>
+                  <Show when={(manifest()?.slots ?? []).length > 0}>
+                    <tr class="border-b last:border-b-0">
+                      <th>Slots</th>
+                      <td class="type-code text-muted">
+                        {(manifest()?.slots ?? []).join(", ")}
+                      </td>
+                    </tr>
+                  </Show>
+                </tbody>
+              </table>
             </div>
           </Show>
         </Section>
       </Show>
+
+      <PrevNextNav prev={props.prev} next={props.next} />
     </main>
   );
 }

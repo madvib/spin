@@ -14,7 +14,7 @@ export function buildThemeMarkdown(routePath: string): string | undefined {
       return [
         "## Designing in the Studio",
         "",
-        "Open the Studio (`/__spin/studio/` on Vite or `npx spin studio`) to create, fork, and edit themes visually against your live application. Edits preview in memory and save to `spin/<brand>/tokens.json` and `spin/config.json`.",
+        "Click the floating **Studio** button in your running Vite app (or run `npx spin studio`) to create and edit your brand visually against your live UI. Edits preview in memory and save to `spin/<brand>/tokens.json` and `spin/config.json`.",
         "",
         "## Design Languages",
         "",
@@ -75,23 +75,27 @@ export function buildThemeMarkdown(routePath: string): string | undefined {
     }
     case "/docs/themes/facets":
       return [
-        "## Four Orthogonal Runtime Axes (`data-theme` / `data-palette` / `data-spacing` / `data-mode`)",
-        "",
-        "```html",
-        THEMES_SNIPPETS.composedAxes,
-        "```",
-        "",
-        "## Composing Facets in Nested Subtrees",
+        "## Alternate Palettes (`data-palette`)",
         "",
         "```html",
         THEMES_SNIPPETS.composedSubtree,
         "```",
         "",
-        "## Authoring Palette and Spacing Facets (`*.palette.json` & `*.spacing.json`)",
+        "## Authoring a Palette File (`*.palette.json`)",
         "",
         "```json",
         THEMES_SNIPPETS.paletteFacet,
         "```",
+      ].join("\n");
+    case "/docs/themes/density":
+      return [
+        "## Page-wide or Scoped Density (`data-spacing`)",
+        "",
+        "```html",
+        THEMES_SNIPPETS.nestedFacets,
+        "```",
+        "",
+        "## Authoring a Spacing Scale (`*.spacing.json`)",
         "",
         "```json",
         THEMES_SNIPPETS.spacingFacet,

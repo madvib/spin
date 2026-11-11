@@ -171,10 +171,23 @@ export {
   neumorphicLanguage,
 } from "./languages/index.ts";
 export {
+  auroraPalette,
+  bauhausPalette,
+  botanicalPalette,
   catppuccinPalette,
+  ceramicPalette,
   compactSpacing,
   demoPalettes,
   demoSpacings,
+  eucalyptusPalette,
+  graphitePalette,
+  languageDefaultPaletteLabels,
+  type LanguagePaletteOption,
+  languagePalettes,
+  nordicPalette,
+  ochrePalette,
+  risographPalette,
+  rosewaterPalette,
   spaciousSpacing,
   terracottaPalette,
 } from "./facets/index.ts";

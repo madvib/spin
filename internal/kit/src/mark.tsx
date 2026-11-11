@@ -253,12 +253,17 @@ const SILK_SEGMENTS: readonly SilkSegmentGeom[] = ORB_RINGS.flatMap(
     }),
 );
 
+const SPIDER_SCALE = 1.55;
+const SPINNERET_Y = 12.2 * SPIDER_SCALE;
+
 function evalSegmentWithPause(
   seg: SilkSegmentGeom,
   rawLocalT: number,
 ): { x: number; y: number; deg: number; attachFrac: number } {
-  const travelWindow = 0.85;
-  const t = Math.max(0, Math.min(1, rawLocalT / travelWindow));
+  const travelWindow = 0.88;
+  const raw = Math.max(0, Math.min(1, rawLocalT / travelWindow));
+  const smooth = raw * raw * (3 - 2 * raw);
+  const t = 0.55 * raw + 0.45 * smooth;
   const u = 1 - t;
   const x = u * u * seg.ax + 2 * u * t * seg.baseCx + t * t * seg.bx;
   const y = u * u * seg.ay + 2 * u * t * seg.baseCy + t * t * seg.by;
@@ -404,9 +409,9 @@ export function Mark(props: {
   let spiderY = HUB_Y - ORB_RINGS[0]!.radius;
   let spiderDeg = 90;
   let gaitPhase = 0;
+  let strideActivity = 0;
   let anchorKnotX = HUB_X;
   let anchorKnotY = HUB_Y;
-
   // Mouse-cursor target in cameraGroup local coordinates (transformed via getScreenCTM().inverse())
   const cursorTarget = {
     x: HUB_X,
@@ -431,14 +436,16 @@ export function Mark(props: {
     ];
   };
 
-  const renderLegs = (phase: number, breath = 0) => {
+  const renderLegs = (phase: number, breath = 0, activity = 1) => {
+    const amp = Math.max(0, Math.min(1, activity));
     for (let i = 0; i < LEG_RIGS.length; i++) {
       const rig = LEG_RIGS[i]!;
       const p = phase + rig.phaseOffset;
-      const strideY = Math.sin(p) * 2.4;
-      const swingLift = Math.max(0, Math.cos(p)) * 1.5;
+      const liftRaw = Math.max(0, Math.cos(p));
+      const strideY = Math.sin(p) * 2.0 * amp;
+      const swingLift = liftRaw * liftRaw * 1.2 * amp;
       const hx = rig.hipX;
-      const hy = rig.hipY + breath * 0.2;
+      const hy = rig.hipY + breath * 0.18;
       const desiredFx = rig.restFootX + rig.side * swingLift;
       const desiredFy = rig.restFootY + strideY;
 
@@ -455,20 +462,20 @@ export function Mark(props: {
 
       legEls[i]?.setAttribute(
         "d",
-        `M${hx.toFixed(1)} ${hy.toFixed(1)} L${kx.toFixed(1)} ${ky.toFixed(1)} L${fx.toFixed(1)} ${fy.toFixed(1)}`,
+        `M${hx.toFixed(2)} ${hy.toFixed(2)} L${kx.toFixed(2)} ${ky.toFixed(2)} L${fx.toFixed(2)} ${fy.toFixed(2)}`,
       );
-      legJointEls[i]?.setAttribute("cx", kx.toFixed(1));
-      legJointEls[i]?.setAttribute("cy", ky.toFixed(1));
+      legJointEls[i]?.setAttribute("cx", kx.toFixed(2));
+      legJointEls[i]?.setAttribute("cy", ky.toFixed(2));
     }
   };
 
   const updateSpiderTransform = (breath = 0) => {
     spiderGroupRef?.setAttribute(
       "transform",
-      `translate(${spiderX.toFixed(2)} ${spiderY.toFixed(2)}) rotate(${spiderDeg.toFixed(2)})`,
+      `translate(${spiderX.toFixed(2)} ${spiderY.toFixed(2)}) rotate(${spiderDeg.toFixed(2)}) scale(${SPIDER_SCALE})`,
     );
     bodyGroupRef?.setAttribute("transform", `translate(0 ${breath.toFixed(2)})`);
-    const [spx, spy] = toWorld(0, 12.2, spiderX, spiderY, spiderDeg);
+    const [spx, spy] = toWorld(0, SPINNERET_Y, spiderX, spiderY, spiderDeg);
     if (draglineRef) {
       draglineRef.setAttribute("x1", anchorKnotX.toFixed(1));
       draglineRef.setAttribute("y1", anchorKnotY.toFixed(1));
@@ -606,16 +613,21 @@ export function Mark(props: {
         ? SILK_SEGMENTS[currentSegIdx - 1]!
         : SILK_SEGMENTS[currentSegIdx]!;
       const pose = evalSegmentWithPause(seg, restingAtEnd ? 1 : localT);
+      const jumpDist = Math.hypot(pose.x - prevX, pose.y - prevY);
       spiderX = pose.x;
       spiderY = pose.y;
-      spiderDeg = pose.deg;
+      if (jumpDist >= 60 || !isCurrentlyWeaving) {
+        spiderDeg = pose.deg;
+      } else {
+        spiderDeg += shortestAngleDelta(spiderDeg, pose.deg) * 0.28;
+      }
       anchorKnotX = HUB_X;
       anchorKnotY = HUB_Y;
 
       if (restingAtEnd) {
         spinneretSilkRef?.setAttribute("opacity", "0");
       } else {
-        const [spx, spy] = toWorld(0, 12.2, spiderX, spiderY, spiderDeg);
+        const [spx, spy] = toWorld(0, SPINNERET_Y, spiderX, spiderY, spiderDeg);
         if (spinneretSilkRef) {
           spinneretSilkRef.setAttribute(
             "d",
@@ -628,11 +640,14 @@ export function Mark(props: {
 
     const stepDist = Math.hypot(spiderX - prevX, spiderY - prevY);
     if (stepDist > 0.001 && stepDist < 80) {
-      gaitPhase += stepDist * 0.42;
+      gaitPhase += stepDist * 0.22;
+      strideActivity = Math.min(1, strideActivity + 0.18);
+    } else {
+      strideActivity *= 0.82;
     }
 
     updateSpiderTransform(0);
-    renderLegs(gaitPhase, 0);
+    renderLegs(gaitPhase, 0, strideActivity);
   };
 
   const animateToStage = (targetStage: number, forceReweaveRing = false) => {
@@ -762,22 +777,26 @@ export function Mark(props: {
           const dy = cursorTarget.y - spiderY;
           const dist = Math.hypot(dx, dy);
 
-          if (dist > 16) {
+          if (dist > 18) {
             const desiredDeg = Math.atan2(dy, dx) / RAD + 90;
             const angleDiff = shortestAngleDelta(spiderDeg, desiredDeg);
-            spiderDeg += angleDiff * Math.min(1, dt * 10);
+            spiderDeg += angleDiff * Math.min(1, dt * 8.5);
 
-            const speed = Math.min(175, Math.max(30, (dist - 14) * 2.5));
-            const step = Math.min(dist - 14, speed * dt);
+            const speed = Math.min(155, Math.max(26, (dist - 16) * 2.2));
+            const step = Math.min(dist - 16, speed * dt);
             spiderX += (dx / dist) * step;
             spiderY += (dy / dist) * step;
-            gaitPhase += step * 0.44;
+            gaitPhase += step * 0.22;
+            strideActivity = Math.min(1, strideActivity + dt * 6.5);
+          } else {
+            strideActivity *= Math.exp(-dt * 8);
           }
           updateSpiderTransform(breath);
-          renderLegs(gaitPhase, breath);
+          renderLegs(gaitPhase, breath, strideActivity);
         } else {
+          strideActivity *= Math.exp(-dt * 8);
           updateSpiderTransform(breath);
-          renderLegs(gaitPhase, breath);
+          renderLegs(gaitPhase, breath, strideActivity);
         }
       }
 
@@ -1129,7 +1148,7 @@ export function Mark(props: {
         <g
           ref={spiderGroupRef}
           filter="url(#spin-spider-shadow)"
-          transform={`translate(${HUB_X} ${HUB_Y - ORB_RINGS[0]!.radius}) rotate(90)`}
+          transform={`translate(${HUB_X} ${HUB_Y - ORB_RINGS[0]!.radius}) rotate(90) scale(${SPIDER_SCALE})`}
           pointer-events="none"
         >
           {/* 8 2-bone IK legs */}

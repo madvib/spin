@@ -501,7 +501,7 @@ export default function Catalog(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Utility Reference"
-        lede="Every utility family, the CSS it emits, and the brand tokens it reads."
+        lede="Searchable reference of every utility class available in Spin."
       />
 
       <Section id="search" title="Filter utility rules">

@@ -31,8 +31,8 @@ export default function Lints(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Lints & Guardrails"
-        lede="Six theme-aware rules that catch unknown classes, broken overrides, and unreadable pairings — with autofixes."
+        title="Lint Rules"
+        lede="Catch hardcoded colors, unknown classes, and unreadable contrast pairs in oxlint or ESLint."
       />
       <Markdown text={principlesMd} />
       <Markdown text={lintsMd} />

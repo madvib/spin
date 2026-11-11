@@ -1,0 +1,79 @@
+{
+  "color": {
+    "$type": "color",
+    "$description": "Aged ivory vellum and deep botanical press green by day, library leather and brass sage by night.",
+    "surface": {
+      "$value": "#f5f3eb",
+      "$modes": { "dark": "#131815" }
+    },
+    "surface-raised": {
+      "$value": "#fcfbf7",
+      "$modes": { "dark": "#1b221e" }
+    },
+    "surface-sunken": {
+      "$value": "#ebe7db",
+      "$modes": { "dark": "#0d110f" }
+    },
+    "field": {
+      "$value": "#fcfbf7",
+      "$modes": { "dark": "#1b221e" }
+    },
+    "text": {
+      "$value": "#18211b",
+      "$modes": { "dark": "#e9ede8" }
+    },
+    "text-muted": {
+      "$value": "#4b5950",
+      "$modes": { "dark": "#a1b0a6" }
+    },
+    "border": {
+      "$value": "#d5d0c1",
+      "$modes": { "dark": "#2c3730" }
+    },
+    "border-strong": {
+      "$value": "#9e9887",
+      "$modes": { "dark": "#48594e" }
+    },
+    "primary": {
+      "$value": "#1b5e3a",
+      "$modes": { "dark": "#6ee7a0" }
+    },
+    "on-primary": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#0b2215" }
+    },
+    "secondary": {
+      "$value": "#2c3b32",
+      "$modes": { "dark": "#d4dfd7" }
+    },
+    "on-secondary": {
+      "$value": "#f5f3eb",
+      "$modes": { "dark": "#131815" }
+    },
+    "accent": {
+      "$value": "#8a5a14",
+      "$modes": { "dark": "#f2c46d" }
+    },
+    "on-accent": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#1f1404" }
+    },
+    "semantic": {
+      "success": { "$value": "#1b6b3a", "$modes": { "dark": "#6ee7a0" } },
+      "warning": { "$value": "#8a5a14", "$modes": { "dark": "#f2c46d" } },
+      "error": { "$value": "#b4232c", "$modes": { "dark": "#f88b8b" } },
+      "info": { "$value": "#1d5b79", "$modes": { "dark": "#7dd3fc" } }
+    },
+    "on-semantic-success": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#0b2215" } },
+    "on-semantic-warning": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#1f1404" } },
+    "on-semantic-error": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#26080a" } },
+    "on-semantic-info": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#08202c" } },
+    "selected": { "$type": "color", "$value": "#18211b", "$modes": { "dark": "#e9ede8" } },
+    "on-selected": { "$type": "color", "$value": "#f5f3eb", "$modes": { "dark": "#131815" } },
+    "disabled": { "$type": "color", "$value": "#dedad0", "$modes": { "dark": "#26302a" } },
+    "on-disabled": { "$type": "color", "$value": "#4b5950", "$modes": { "dark": "#a1b0a6" } },
+    "focus-ring": { "$value": "#1b5e3a", "$modes": { "dark": "#6ee7a0" } },
+    "link": { "$value": "#1b5e3a", "$modes": { "dark": "#6ee7a0" } }
+  },
+  "modes": ["light", "dark"]
+}

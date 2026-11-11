@@ -93,7 +93,7 @@ export default function AuthoringComponents(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Interactive Components"
-        lede="Copy a tested select, dialog, or date picker into your repo and drive it from any framework."
+        lede="Copy accessible selects, comboboxes, dialogs, and date pickers into your repo for React, Solid, Vue, Svelte, or HTML."
         playgroundExample="components-select"
       />
       <Markdown text={componentsMd} />

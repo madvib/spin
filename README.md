@@ -28,7 +28,7 @@ and tune until the preview reads like your product. What you save becomes the
 | Package              | Install as    | What it is                                                                                        |
 | -------------------- | ------------- | ------------------------------------------------------------------------------------------------- |
 | `@spinjs/dev`        | devDependency | The toolchain: bundler plugins, theme engine, Studio, CLI, LSP, lints, and MCP server.            |
-| `@spinjs/components` | dependency    | The statechart machines and client runtime, with React, Solid, Vue, and Svelte adapters.           |
+| `@spinjs/components` | `dependency` | Accessible interactive components and client runtime, with React and Solid hooks plus controller bindings for Vue, Svelte, and HTML. |
 
 Public subpaths: `@spinjs/dev/vite` (the plugin in all seven bundler shapes),
 `@spinjs/dev/preset` (the stylesheet-only preset), `@spinjs/dev/theme` (the

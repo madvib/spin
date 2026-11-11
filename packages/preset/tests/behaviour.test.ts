@@ -319,7 +319,7 @@ test("a button rule excludes buttons carrying non-button ARIA widget roles", asy
   const baseSelector = selectorsFor(result, "button")[0];
   deepStrictEqual(
     baseSelector,
-    ':is(button:not([role]), [type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"])',
+    ':is(button:where(:not([role])), :where([type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"]))',
   );
 });
 

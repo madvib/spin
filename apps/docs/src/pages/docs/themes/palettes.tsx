@@ -12,7 +12,7 @@ import {
   Section,
   type PropEntry,
 } from "../../../ui/index.ts";
-import { FLOORS } from "../../../markdown/theme-docs.ts";
+
 import { THEMES_SNIPPETS } from "./themes.snippets.ts";
 
 const PALETTE_LAYERS: readonly PropEntry[] = [
@@ -97,21 +97,13 @@ const PAIRED_ROLES: readonly {
     classes: "border bg-surface-raised text-muted",
   },
 ];
-
-const FLOOR_ITEMS: readonly PropEntry[] = FLOORS.map((f) => ({
-  name: `${f.fg} on ${f.bg}`,
-  badge: `≥ ${f.min}:1`,
-  description: `Verified across every mode declared by the brand before the stylesheet builds.`,
-}));
-
 export default function ThemesPalettes(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Color & Contrast"
-        lede="Name colors by their job — primary, surface, ink — and let paired foregrounds keep every fill legible in light and dark."
+        title="Colors"
+        lede="Semantic surface, action, and status colors with paired foreground text that stays readable in every mode."
       />
-
       <Section id="paired-inks" title="Why fills and inks travel in pairs">
         <p class="max-w-prose">
           In a raw utility sheet, a callsite paints{" "}
@@ -176,16 +168,16 @@ export default function ThemesPalettes(): JSX.Element {
         </div>
       </Section>
 
-      <Section id="contrast-floors" title="Enforced WCAG contrast floors">
+      <Section id="contrast-floors" title="Automatic contrast verification">
         <p class="max-w-prose">
-          Both the <A href="/studio">Studio</A> Color workbench and{" "}
-          <code>npx spin lint</code> check every fill-and-ink pair against its
-          WCAG contrast floor across every mode the brand declares. In Studio,
-          any pair that drops below its floor displays a one-click{" "}
-          <strong>Fix</strong> button that nudges lightness to the nearest
-          passing value:
+          Studio's Color workbench and <code>npx spin lint</code> verify every
+          background and text pair across light and dark modes against WCAG
+          contrast thresholds. When a color tweak drops below minimum contrast,
+          Studio highlights the pair immediately with a one-click{" "}
+          <strong>Fix</strong> action. Full threshold rules are listed on{" "}
+          <A href="/docs/themes/validation">Contrast Checks</A> and{" "}
+          <A href="/docs/themes/reference#roles">Token Reference</A>.
         </p>
-        <PropList items={FLOOR_ITEMS} />
       </Section>
     </main>
   );

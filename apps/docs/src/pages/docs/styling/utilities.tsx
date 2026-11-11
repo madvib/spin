@@ -104,8 +104,8 @@ export default function StylingUtilities(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Project Shortcuts"
-        lede="Name the layouts your app repeats so every page spells them the same way, checked at build time."
+        title="Shortcuts"
+        lede="Define reusable layout class combinations once in your bundler config."
       />
       <Markdown text={cssMd} />
 

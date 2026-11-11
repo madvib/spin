@@ -36,12 +36,10 @@ import {
   type MarkPluckEvent,
   mode,
   palette,
-  palettes,
+  paletteOptions,
   setPalette,
-  setSpacing,
   setTheme,
   spacing,
-  spacings,
   languageList,
   theme,
 } from "@spinjs/kit";
@@ -280,7 +278,20 @@ export default function Home(): JSX.Element {
   });
 
   onMount(() => {
+    const overlayBlocksStage = (target: EventTarget | null): boolean => {
+      if (document.querySelector("dialog[open], [popover]:popover-open") !== null) {
+        return true;
+      }
+      const el = target instanceof HTMLElement ? target : null;
+      if (el === null) return false;
+      if (el.closest("dialog, [popover], [role='listbox'], [data-part='content'][data-state='open']") !== null) {
+        return true;
+      }
+      return false;
+    };
+
     const onWheel = (e: WheelEvent) => {
+      if (overlayBlocksStage(e.target)) return;
       if (Math.abs(e.deltaY) < 2) return;
       e.preventDefault();
       const now = performance.now();
@@ -303,6 +314,7 @@ export default function Home(): JSX.Element {
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
+      if (overlayBlocksStage(e.target)) return;
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
       if (e.key === "ArrowDown" || e.key === "PageDown") {
@@ -315,6 +327,10 @@ export default function Home(): JSX.Element {
     };
 
     const onTouchStart = (e: TouchEvent) => {
+      if (overlayBlocksStage(e.target)) {
+        touchStartY = null;
+        return;
+      }
       touchStartY = e.touches[0]?.clientY ?? null;
     };
 
@@ -327,7 +343,6 @@ export default function Home(): JSX.Element {
         stepStage(dy > 0 ? 1 : -1);
       }
     };
-
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("touchstart", onTouchStart, { passive: true });
@@ -620,67 +635,75 @@ export default function Home(): JSX.Element {
                 </button>
               </div>
 
-              <div class="hidden max-w-full flex-col gap-2 sm:flex">
-                <div class="flex max-w-full flex-wrap items-center gap-1">
-                  <span class="pr-1 type-code text-muted">
-                    Language:
-                  </span>
+              <div class="hidden w-full max-w-full flex-wrap items-center gap-2 pt-1 sm:flex">
+                <div
+                  role="group"
+                  aria-label="Design language"
+                  class="inline-flex flex-wrap items-center gap-1 rounded-lg border bg-surface-raised p-1 shadow-sm"
+                >
                   <For each={languageList}>
-                    {(name) => (
-                      <button
-                        type="button"
-                        onClick={() => setTheme(name)}
-                         class={`bare rounded-full border px-2 py-1 transition-colors duration-fast ${
-                          theme() === name
-                            ? "border-primary bg-primary type-body-emphasized text-on-primary"
-                            : "border bg-surface-raised type-code text-muted hover:border-strong"
-                        }`}
-                      >
-                        {name}
-                      </button>
-                    )}
+                    {(name) => {
+                      const active = () => theme() === name;
+                      return (
+                        <button
+                          type="button"
+                          aria-pressed={active()}
+                          onClick={() => setTheme(name)}
+                          class={`bare inline-flex h-7 items-center gap-1 rounded-md px-2 type-caption-emphasized transition-colors duration-fast ${
+                            active()
+                              ? "bg-primary text-on-primary"
+                              : "text-muted hover:bg-surface"
+                          }`}
+                        >
+                          <span
+                            data-swatch-theme={name}
+                            class="inline-flex shrink-0 items-center"
+                            aria-hidden="true"
+                          >
+                            <span class="h-2 w-2 rounded-full bg-primary" />
+                          </span>
+                          <span>{`${name[0]!.toUpperCase()}${name.slice(1)}`}</span>
+                        </button>
+                      );
+                    }}
                   </For>
                 </div>
-                <div class="flex max-w-full flex-wrap items-center gap-1">
-                  <span class="pr-1 type-code text-muted">
-                    Palette:
-                  </span>
-                  <For each={[{ value: "", label: "Default" }, ...palettes.map((name) => ({ value: name, label: name }))]}>
-                    {(option) => (
-                      <button
-                        type="button"
-                        onClick={() => setPalette(option.value)}
-                         class={`bare rounded-full border px-2 py-1 transition-colors duration-fast ${
-                          palette() === option.value
-                            ? "border-primary bg-primary type-body-emphasized text-on-primary"
-                            : "border bg-surface-raised type-code text-muted hover:border-strong"
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    )}
-                  </For>
-                </div>
-                <div class="flex max-w-full flex-wrap items-center gap-1">
-                  <span class="pr-1 type-code text-muted">
-                    Density:
-                  </span>
-                  <For each={[{ value: "", label: "Default" }, ...spacings.map((name) => ({ value: name, label: name }))]}>
-                    {(option) => (
-                      <button
-                        type="button"
-                        onClick={() => setSpacing(option.value)}
-                        class={`bare rounded-full border px-2 py-1 transition-colors duration-fast ${
-                          spacing() === option.value
-                            ? "border-primary bg-primary type-body-emphasized text-on-primary"
-                            : "border bg-surface-raised type-code text-muted hover:border-strong"
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    )}
-                  </For>
-                </div>
+
+                <Show when={paletteOptions().length > 0}>
+                  <div
+                    role="group"
+                    aria-label="Palette"
+                    class="inline-flex items-center gap-1 rounded-lg border bg-surface-raised p-1 shadow-sm"
+                  >
+                    <For each={paletteOptions()}>
+                      {(option) => {
+                        const active = () => palette() === option.value;
+                        return (
+                          <button
+                            type="button"
+                            aria-pressed={active()}
+                            onClick={() => setPalette(option.value)}
+                            class={`bare inline-flex h-7 items-center gap-2 rounded-md px-2 type-caption transition-colors duration-fast ${
+                              active()
+                                ? "bg-surface text-primary border"
+                                : "text-muted hover:bg-surface"
+                            }`}
+                          >
+                            <span
+                              data-swatch-theme={option.value === "" ? theme() : undefined}
+                              data-swatch-palette={option.value === "" ? undefined : option.value}
+                              class="inline-flex shrink-0 items-center"
+                              aria-hidden="true"
+                            >
+                              <span class="h-2 w-2 rounded-full bg-primary" />
+                            </span>
+                            <span>{option.label}</span>
+                          </button>
+                        );
+                      }}
+                    </For>
+                  </div>
+                </Show>
               </div>
             </section>
           </Match>

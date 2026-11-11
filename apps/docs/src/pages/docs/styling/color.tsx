@@ -171,8 +171,8 @@ export default function StylingColor(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Surfaces & Alpha"
-        lede="Paint semantic surfaces once for both modes, and thin any brand color toward transparency without minting values."
+        title="Surfaces"
+        lede="Backgrounds, borders, text roles, and opacity modifiers that adapt automatically to dark mode."
       />
 
       <Section id="roles" title="Roles, not colors">

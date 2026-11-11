@@ -33,22 +33,37 @@ export function ComponentsRail(props: {
   });
   return (
     <div class="grid gap-1">
-      <div role="group" aria-label="Component kind" class="flex gap-1">
-        <For each={(["all", "primitive", "machine"] as const)}>
-          {(kind) => (
-            <button
-              type="button"
-              aria-pressed={props.kind === kind}
-              onClick={() => props.onKind(kind)}
-               class="bare rounded-sm px-2 py-1 type-caption text-muted aria-[pressed=true]:bg-surface-raised"
-            >
-              {kind === "all"
-                ? "all"
-                : kind === "primitive"
-                ? "elements"
-                : "machines"}
-            </button>
-          )}
+      <div
+        role="group"
+        aria-label="Component kind"
+        class="grid grid-cols-3 gap-1 rounded-md border bg-surface-raised p-1"
+      >
+        <For
+          each={
+            [
+              { id: "all", label: "All" },
+              { id: "primitive", label: "HTML" },
+              { id: "machine", label: "UI" },
+            ] as const
+          }
+        >
+          {(entry) => {
+            const active = () => props.kind === entry.id;
+            return (
+              <button
+                type="button"
+                aria-pressed={active()}
+                onClick={() => props.onKind(entry.id)}
+                class={`bare inline-flex h-6 items-center justify-center rounded-sm px-1 type-caption-emphasized transition-colors ${
+                  active()
+                    ? "bg-primary text-on-primary"
+                    : "text-muted hover:bg-surface"
+                }`}
+              >
+                {entry.label}
+              </button>
+            );
+          }}
         </For>
       </div>
       <A

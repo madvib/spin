@@ -111,7 +111,7 @@ export default function Mcp(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="MCP Server"
-        lede="Connect your coding agent to the live project so it writes brand-true UI the first time."
+        lede="Connect coding agents to your live tokens, components, and diagnostics."
       />
       <Markdown text={mcpMd} />
 

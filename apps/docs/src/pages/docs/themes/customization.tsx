@@ -50,9 +50,9 @@ const BRAND_LAYER_ITEMS: readonly PropEntry[] = [
   },
   {
     name: "spin/<brand>/elements.json",
-    badge: "HTML element type",
+    badge: "HTML elements",
     description:
-      "Optional layer mapping intrinsic HTML elements (element.h1.type, element.p.type, element.code.type) to named font.style.* tuples.",
+      "Optional layer assigning named text styles to HTML headings, paragraphs, labels, and code tags.",
   },
   {
     name: "spin/<brand>/primitives/<component>.json",
@@ -102,8 +102,8 @@ export default function ThemesCustomization(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Brand Files"
-        lede="How spin/<brand>/ splits identity, scales, element voices, and per-component overrides — and how each file becomes CSS variables."
+        title="Theme Files"
+        lede="Edit your spin/<brand>/ JSON files directly in code and customize individual elements when needed."
       />
 
       <Section id="layers" title="Files inside spin/<brand>/">
@@ -138,7 +138,7 @@ export default function ThemesCustomization(): JSX.Element {
           <code>color.on-semantic-success</code>), neutral ramps (
           <code>color.neutral.50</code>–<code>900</code>), and WCAG contrast
           floors live in the dedicated{" "}
-          <A href="/docs/themes/palettes">Color &amp; Contrast</A> guide.
+          <A href="/docs/themes/palettes">Colors</A> guide.
         </p>
       </Section>
 
@@ -152,7 +152,7 @@ export default function ThemesCustomization(): JSX.Element {
           sharpens every card, input, and button across the app in one edit.
           Typography — families, the <code>2xs</code>–<code>display</code>{" "}
           scale, weights, and tracking — lives on the dedicated{" "}
-          <A href="/docs/themes/fonts">Fonts</A> guide.
+          <A href="/docs/themes/fonts">Typography</A> guide.
         </p>
         <PropList items={SCALE_ITEMS} />
       </Section>

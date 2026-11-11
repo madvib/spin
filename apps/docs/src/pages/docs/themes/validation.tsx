@@ -50,8 +50,8 @@ export default function ThemesValidation(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Theme Checks"
-        lede="Contrast floors and completeness checks that run while you edit, at build time, and in CI."
+        title="Contrast Checks"
+        lede="Automatic contrast, scale, and completeness checks in Studio, your editor, and CI."
       />
 
       <Section id="cli" title="Lint and CLI analysis">

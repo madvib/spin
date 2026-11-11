@@ -361,8 +361,8 @@ export default function StylingElements(): JSX.Element {
   return (
     <main class="flex min-w-0 flex-col">
       <PageHeader
-        title="HTML Elements & Surfaces"
-        lede="Write plain buttons, cards, and inputs that arrive styled. Reach for a variant when one control plays a different role."
+        title="HTML Elements"
+        lede="Styled native buttons, inputs, dialogs, tables, and cards with semantic variants and sizes."
       />
 
       <Section id="tags-arrive-finished" title="Tags arrive finished">

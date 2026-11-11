@@ -127,7 +127,7 @@ const RING = {
 
 /** The control that takes focus by keyboard: the button group. */
 const BUTTON =
-  ':is(button:not([role]), [type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"])';
+  ':is(button:where(:not([role])), :where([type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"]))';
 
 test("a focused field paints the ring as an outline, and its edge takes the ring's ink", async () => {
   // The field is where the doubled edge was worst: the border was the

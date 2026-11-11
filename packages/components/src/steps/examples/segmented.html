@@ -17,7 +17,7 @@ const machine = steps({
 
  <div class="flex items-center gap-4">
   <button
-   class="secondary icon s-sm transition-colors hover:bg-surface disabled:opacity-50"
+   class="secondary icon s-sm disabled:opacity-50"
    {...machine.getPrevTriggerProps()}><span class="i-lucide-chevron-left"></span></button>
   <ol class="row-list flex-1 items-start gap-1" {...machine.getListProps()}>
    <template for={machine.getItems()} as={row} key={row}>
@@ -34,7 +34,7 @@ const machine = steps({
    </template>
   </ol>
   <button
-   class="secondary icon s-sm transition-colors hover:bg-surface disabled:opacity-50"
+   class="secondary icon s-sm disabled:opacity-50"
    {...machine.getNextTriggerProps()}><span class="i-lucide-chevron-right"></span></button>
  </div>
 </div>

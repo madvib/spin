@@ -1,0 +1,79 @@
+{
+  "color": {
+    "$type": "color",
+    "$description": "Translucent aurora glass: frosted seafoam mist by day and deep boreal teal glass by night, preserving alpha backdrop blur.",
+    "surface": {
+      "$value": "#eaf4f2",
+      "$modes": { "dark": "#081416" }
+    },
+    "surface-raised": {
+      "$value": "rgb(255 255 255 / 72%)",
+      "$modes": { "dark": "rgb(16 36 40 / 68%)" }
+    },
+    "surface-sunken": {
+      "$value": "rgb(218 236 232 / 70%)",
+      "$modes": { "dark": "rgb(6 15 17 / 78%)" }
+    },
+    "field": {
+      "$value": "rgb(255 255 255 / 78%)",
+      "$modes": { "dark": "rgb(16 36 40 / 74%)" }
+    },
+    "text": {
+      "$value": "#0d2122",
+      "$modes": { "dark": "#e6f6f5" }
+    },
+    "text-muted": {
+      "$value": "#3c585a",
+      "$modes": { "dark": "#95b8b8" }
+    },
+    "border": {
+      "$value": "rgb(15 52 54 / 16%)",
+      "$modes": { "dark": "rgb(180 242 236 / 16%)" }
+    },
+    "border-strong": {
+      "$value": "rgb(15 52 54 / 32%)",
+      "$modes": { "dark": "rgb(180 242 236 / 32%)" }
+    },
+    "primary": {
+      "$value": "#0d6e66",
+      "$modes": { "dark": "#4eead6" }
+    },
+    "on-primary": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#042420" }
+    },
+    "secondary": {
+      "$value": "rgb(208 232 228 / 82%)",
+      "$modes": { "dark": "rgb(26 54 58 / 82%)" }
+    },
+    "on-secondary": {
+      "$value": "#0d2122",
+      "$modes": { "dark": "#e6f6f5" }
+    },
+    "accent": {
+      "$value": "#6438b5",
+      "$modes": { "dark": "#c4b5fd" }
+    },
+    "on-accent": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#1b0b3b" }
+    },
+    "semantic": {
+      "success": { "$value": "#127347", "$modes": { "dark": "#6ee7b7" } },
+      "warning": { "$value": "#875800", "$modes": { "dark": "#fcd34d" } },
+      "error": { "$value": "#be123c", "$modes": { "dark": "#fda4af" } },
+      "info": { "$value": "#0e6490", "$modes": { "dark": "#7dd3fc" } }
+    },
+    "on-semantic-success": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#042617" } },
+    "on-semantic-warning": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#241600" } },
+    "on-semantic-error": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#29050e" } },
+    "on-semantic-info": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#052130" } },
+    "selected": { "$type": "color", "$value": "#0d6e66", "$modes": { "dark": "#4eead6" } },
+    "on-selected": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#042420" } },
+    "disabled": { "$type": "color", "$value": "rgb(205 224 221 / 75%)", "$modes": { "dark": "rgb(24 44 47 / 75%)" } },
+    "on-disabled": { "$type": "color", "$value": "#3c585a", "$modes": { "dark": "#95b8b8" } },
+    "focus-ring": { "$value": "#0d6e66", "$modes": { "dark": "#4eead6" } },
+    "link": { "$value": "#0d6e66", "$modes": { "dark": "#4eead6" } }
+  },
+  "modes": ["light", "dark"]
+}

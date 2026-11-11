@@ -1,0 +1,79 @@
+{
+  "color": {
+    "$type": "color",
+    "$description": "Architectural zinc monochrome: stark obsidian ink on crisp white by day, silver ink on carbon by night.",
+    "surface": {
+      "$value": "#fafafa",
+      "$modes": { "dark": "#09090b" }
+    },
+    "surface-raised": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#121215" }
+    },
+    "surface-sunken": {
+      "$value": "#f1f1f3",
+      "$modes": { "dark": "#18181b" }
+    },
+    "field": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#121215" }
+    },
+    "text": {
+      "$value": "#09090b",
+      "$modes": { "dark": "#fafafa" }
+    },
+    "text-muted": {
+      "$value": "#52525b",
+      "$modes": { "dark": "#a1a1aa" }
+    },
+    "border": {
+      "$value": "#e4e4e7",
+      "$modes": { "dark": "#27272a" }
+    },
+    "border-strong": {
+      "$value": "#a1a1aa",
+      "$modes": { "dark": "#52525b" }
+    },
+    "primary": {
+      "$value": "#18181b",
+      "$modes": { "dark": "#f4f4f5" }
+    },
+    "on-primary": {
+      "$value": "#fafafa",
+      "$modes": { "dark": "#09090b" }
+    },
+    "secondary": {
+      "$value": "#e4e4e7",
+      "$modes": { "dark": "#27272a" }
+    },
+    "on-secondary": {
+      "$value": "#18181b",
+      "$modes": { "dark": "#fafafa" }
+    },
+    "accent": {
+      "$value": "#047857",
+      "$modes": { "dark": "#34d399" }
+    },
+    "on-accent": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#052e16" }
+    },
+    "semantic": {
+      "success": { "$value": "#15803d", "$modes": { "dark": "#4ade80" } },
+      "warning": { "$value": "#a16207", "$modes": { "dark": "#facc15" } },
+      "error": { "$value": "#b91c1c", "$modes": { "dark": "#f87171" } },
+      "info": { "$value": "#0369a1", "$modes": { "dark": "#38bdf8" } }
+    },
+    "on-semantic-success": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#052e16" } },
+    "on-semantic-warning": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#1c1917" } },
+    "on-semantic-error": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#290909" } },
+    "on-semantic-info": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#082f49" } },
+    "selected": { "$type": "color", "$value": "#18181b", "$modes": { "dark": "#f4f4f5" } },
+    "on-selected": { "$type": "color", "$value": "#fafafa", "$modes": { "dark": "#09090b" } },
+    "disabled": { "$type": "color", "$value": "#e4e4e7", "$modes": { "dark": "#27272a" } },
+    "on-disabled": { "$type": "color", "$value": "#52525b", "$modes": { "dark": "#a1a1aa" } },
+    "focus-ring": { "$value": "#18181b", "$modes": { "dark": "#f4f4f5" } },
+    "link": { "$value": "#18181b", "$modes": { "dark": "#e4e4e7" } }
+  },
+  "modes": ["light", "dark"]
+}

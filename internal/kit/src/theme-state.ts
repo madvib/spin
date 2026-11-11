@@ -16,14 +16,14 @@
 import { createEffect, createSignal } from "solid-js";
 import type { Accessor } from "solid-js";
 import {
-  demoPalettes,
   demoSpacings,
   type DesignLanguageName,
   designLanguages,
   isDesignLanguage,
+  languageDefaultPaletteLabels,
+  languagePalettes,
   themeModes,
 } from "@spinjs/theme";
-
 /** A theme document, by name. The shape is the theme package's business. */
 export type ThemeDocuments = Readonly<Record<string, unknown>>;
 
@@ -35,6 +35,11 @@ export const modesFor = (name: string): readonly string[] => {
   const doc = isDesignLanguage(name) ? designLanguages[name] : undefined;
   return doc ? themeModes(doc) : ["light"];
 };
+
+export interface PaletteChoice {
+  readonly value: string;
+  readonly label: string;
+}
 
 /**
  * What a state needs to know about the app it lives in.
@@ -84,13 +89,14 @@ export interface ThemeState {
   readonly mode: Accessor<string>;
   /** Ask for an appearance; the same verb as {@link setWant}. */
   readonly setMode: (mode: string) => void;
-  /** The palettes this app serves. */
+  /** The palettes served for the active theme. */
   readonly palettes: readonly string[];
+  /** Labeled palette choices (including the language's default) for the active theme. */
+  readonly paletteOptions: Accessor<readonly PaletteChoice[]>;
   /** The palette in force, or `""` for the language's own ink. */
   readonly palette: Accessor<string>;
   /** Serve another palette. `""` returns to the language's ink; an unknown name is ignored. */
   readonly setPalette: (name: string) => void;
-  /** The spacings this app serves. */
   readonly spacings: readonly string[];
   /** The spacing in force, or `""` for the language's own rhythm. */
   readonly spacing: Accessor<string>;
@@ -194,17 +200,36 @@ export function createThemeState(
     return served[0] ?? "light";
   };
 
-  // Facet axes follow the documents: only the default document set carries
-  // the demo palettes and spacings; custom documents serve none unless the
-  // app names them. Either way an unknown stored name falls back to the
-  // language's own voice.
-  const palettes = options.palettes ?? (options.documents === undefined ? Object.keys(demoPalettes).sort() : []);
+  const usesLanguagePalettes = options.palettes === undefined && options.documents === undefined;
+  const palettesFor = (lang: string): readonly string[] => {
+    if (options.palettes !== undefined) return options.palettes;
+    if (!usesLanguagePalettes || !isDesignLanguage(lang)) return [];
+    return languagePalettes[lang].map((entry) => entry.id);
+  };
+  const paletteOptions = (): readonly PaletteChoice[] => {
+    const lang = themeName();
+    if (usesLanguagePalettes && isDesignLanguage(lang)) {
+      const entries = languagePalettes[lang];
+      if (entries.length === 0) return [];
+      return [
+        { value: "", label: languageDefaultPaletteLabels[lang] },
+        ...entries.map((entry) => ({ value: entry.id, label: entry.label })),
+      ];
+    }
+    const list = palettesFor(lang);
+    if (list.length === 0) return [];
+    return [
+      { value: "", label: "Default" },
+      ...list.map((id) => ({ value: id, label: id })),
+    ];
+  };
   const spacings = options.spacings ?? (options.documents === undefined ? Object.keys(demoSpacings).sort() : []);
+  const initialAllowedPalettes = palettesFor(initialTheme);
   const storedPalette = storage.palette === undefined ? null : read(storage.palette);
   const [paletteName, setPaletteName] = createSignal(
-    storedPalette !== null && palettes.includes(storedPalette)
+    storedPalette !== null && initialAllowedPalettes.includes(storedPalette)
       ? storedPalette
-      : (options.initialPalette !== undefined && (options.initialPalette === "" || palettes.includes(options.initialPalette)) ? options.initialPalette : ""),
+      : (options.initialPalette !== undefined && (options.initialPalette === "" || initialAllowedPalettes.includes(options.initialPalette)) ? options.initialPalette : ""),
   );
   const storedSpacing = storage.spacing === undefined ? null : read(storage.spacing);
   const [spacingName, setSpacingName] = createSignal(
@@ -256,16 +281,24 @@ export function createThemeState(
   return {
     theme: themeName,
     setTheme: (name) => {
-      if (name in documents) setThemeName(name);
+      if (!(name in documents)) return;
+      setThemeName(name);
+      const nextAllowed = palettesFor(name);
+      if (paletteName() !== "" && !nextAllowed.includes(paletteName())) {
+        setPaletteName("");
+      }
     },
     want,
     setWant,
     mode,
     setMode: setWant,
-    palettes,
+    get palettes() {
+      return palettesFor(themeName());
+    },
+    paletteOptions,
     palette: paletteName,
     setPalette: (name) => {
-      if (name === "" || palettes.includes(name)) setPaletteName(name);
+      if (name === "" || palettesFor(themeName()).includes(name)) setPaletteName(name);
     },
     spacings,
     spacing: spacingName,
@@ -306,7 +339,7 @@ export const defaultThemeState: ThemeState = new Proxy({} as ThemeState, {
     return { ...descriptor, configurable: true };
   },
 });
-export const theme: ThemeState["theme"] = (...args: []) => defaultStateOf().theme();
+export const theme: ThemeState["theme"] = () => defaultStateOf().theme();
 export const setTheme: ThemeState["setTheme"] = (name) => defaultStateOf().setTheme(name);
 export const want: ThemeState["want"] = () => defaultStateOf().want();
 export const setWant: ThemeState["setWant"] = (m) => defaultStateOf().setWant(m);
@@ -327,6 +360,7 @@ export const palettes: ThemeState["palettes"] = new Proxy([] as unknown as Theme
 });
 export const palette: ThemeState["palette"] = () => defaultStateOf().palette();
 export const setPalette: ThemeState["setPalette"] = (name) => defaultStateOf().setPalette(name);
+export const paletteOptions: ThemeState["paletteOptions"] = () => defaultStateOf().paletteOptions();
 export const spacings: ThemeState["spacings"] = new Proxy([] as unknown as ThemeState["spacings"], {
   get: (_target, key) => {
     const value = Reflect.get(defaultStateOf().spacings, key as never);

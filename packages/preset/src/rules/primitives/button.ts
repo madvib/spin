@@ -51,7 +51,7 @@ import {
  * div becomes.
  */
 const BUTTON =
-  ':is(button:not([role]), [type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"])';
+  ':is(button:where(:not([role])), :where([type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"]))';
 
 /**
  * The contrast variant omits `[type="reset"]`: a reset button is a secondary
@@ -59,7 +59,7 @@ const BUTTON =
  * page, so it is excluded from the one variant that is.
  */
 const CONTRAST =
-  ':is(button:not([role]), [type="submit"], [type="button"]:not([role]), [role="button"])';
+  ':is(button:where(:not([role])), :where([type="submit"], [type="button"]:not([role]), [role="button"]))';
 /** The group container a joined control lives in. */
 const GROUP = 'span[role="group"]';
 

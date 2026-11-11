@@ -64,8 +64,8 @@ export default function AuthoringMachines(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Statechart Machines"
-        lede="How the components think: explicit states, guarded transitions, and reactive signals you can read."
+        title="State Machines"
+        lede="Use Spin's headless statecharts directly when building custom interactive widgets."
       />
       <Markdown text={machinesMd} />
 

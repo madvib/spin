@@ -244,7 +244,7 @@ export default function ThemesReference(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Token Reference"
-        lede="Every token group your brand can declare: color roles, type scales, spacing, radii, shadows, motion, and per-element voices."
+        lede="Complete catalog of color roles, typography, spacing, radius, shadow, and element tokens."
       />
 
       <Section id="grammar" title="Document keys and token types">

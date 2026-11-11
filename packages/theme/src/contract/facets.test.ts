@@ -1,17 +1,11 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import { mergeThemeDocuments } from "../extends.ts";
-import { demoPalettes, demoSpacings } from "../facets/index.ts";
-import { designLanguages } from "../languages/index.ts";
+import { demoPalettes, demoSpacings, languagePalettes } from "../facets/index.ts";
+import { type DesignLanguageName, designLanguages } from "../languages/index.ts";
 import type { ThemeDocument } from "../pipeline/types.ts";
 import { themeGates } from "./battery.ts";
 import { validatePaletteFacet, validateSpacingFacet } from "./validate-theme.ts";
-
-const PALETTE_AXIS: Readonly<Record<string, ThemeDocument | undefined>> = {
-  none: undefined,
-  ...demoPalettes,
-};
-
 const SPACING_AXIS: Readonly<Record<string, ThemeDocument | undefined>> = {
   none: undefined,
   ...demoSpacings,
@@ -31,8 +25,12 @@ for (const [spacingName, spacingDoc] of Object.entries(demoSpacings)) {
   });
 }
 
-for (const [languageName, languageDoc] of Object.entries(designLanguages)) {
-  for (const [paletteName, paletteDoc] of Object.entries(PALETTE_AXIS)) {
+for (const [languageName, languageDoc] of Object.entries(designLanguages) as [DesignLanguageName, ThemeDocument][]) {
+  const paletteAxis: Readonly<Record<string, ThemeDocument | undefined>> = {
+    none: undefined,
+    ...Object.fromEntries(languagePalettes[languageName].map((entry) => [entry.id, entry.document])),
+  };
+  for (const [paletteName, paletteDoc] of Object.entries(paletteAxis)) {
     for (const [spacingName, spacingDoc] of Object.entries(SPACING_AXIS)) {
       if (paletteDoc === undefined && spacingDoc === undefined) continue;
       test(`${languageName} × palette:${paletteName} × spacing:${spacingName} passes every gate in light and dark`, () => {

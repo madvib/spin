@@ -1,0 +1,79 @@
+{
+  "color": {
+    "$type": "color",
+    "$description": "Tonal eucalyptus containers: soft sage surface hierarchy with deep moss primary and tonal pill secondaries.",
+    "surface": {
+      "$value": "#f4f7f4",
+      "$modes": { "dark": "#111512" }
+    },
+    "surface-raised": {
+      "$value": "#fcfdfc",
+      "$modes": { "dark": "#1a201c" }
+    },
+    "surface-sunken": {
+      "$value": "#e7eee8",
+      "$modes": { "dark": "#0c0f0d" }
+    },
+    "field": {
+      "$value": "#fcfdfc",
+      "$modes": { "dark": "#1a201c" }
+    },
+    "text": {
+      "$value": "#161d18",
+      "$modes": { "dark": "#e2e8e3" }
+    },
+    "text-muted": {
+      "$value": "#49564d",
+      "$modes": { "dark": "#9dac9f" }
+    },
+    "border": {
+      "$value": "#cdd8cf",
+      "$modes": { "dark": "#2d3730" }
+    },
+    "border-strong": {
+      "$value": "#8ea092",
+      "$modes": { "dark": "#4c5c50" }
+    },
+    "primary": {
+      "$value": "#216944",
+      "$modes": { "dark": "#84d9a4" }
+    },
+    "on-primary": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#072916" }
+    },
+    "secondary": {
+      "$value": "#d8e6dc",
+      "$modes": { "dark": "#2a382f" }
+    },
+    "on-secondary": {
+      "$value": "#15281c",
+      "$modes": { "dark": "#d6e8dc" }
+    },
+    "accent": {
+      "$value": "#2c6375",
+      "$modes": { "dark": "#8ed1e6" }
+    },
+    "on-accent": {
+      "$value": "#ffffff",
+      "$modes": { "dark": "#07242e" }
+    },
+    "semantic": {
+      "success": { "$value": "#1d7340", "$modes": { "dark": "#84d9a4" } },
+      "warning": { "$value": "#8c5c0c", "$modes": { "dark": "#f5c96b" } },
+      "error": { "$value": "#ba1a1a", "$modes": { "dark": "#ffb4ab" } },
+      "info": { "$value": "#1f6582", "$modes": { "dark": "#8ed1e6" } }
+    },
+    "on-semantic-success": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#072916" } },
+    "on-semantic-warning": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#241700" } },
+    "on-semantic-error": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#410002" } },
+    "on-semantic-info": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#07242e" } },
+    "selected": { "$type": "color", "$value": "#216944", "$modes": { "dark": "#84d9a4" } },
+    "on-selected": { "$type": "color", "$value": "#ffffff", "$modes": { "dark": "#072916" } },
+    "disabled": { "$type": "color", "$value": "#dce4de", "$modes": { "dark": "#262e28" } },
+    "on-disabled": { "$type": "color", "$value": "#49564d", "$modes": { "dark": "#9dac9f" } },
+    "focus-ring": { "$value": "#216944", "$modes": { "dark": "#84d9a4" } },
+    "link": { "$value": "#216944", "$modes": { "dark": "#84d9a4" } }
+  },
+  "modes": ["light", "dark"]
+}

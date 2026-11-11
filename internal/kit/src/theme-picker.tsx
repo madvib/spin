@@ -98,51 +98,14 @@ export interface ThemePickerProps {
   readonly id?: string;
 }
 
-/** One axis of the appearance composer: its heading, options, and the choice in force. */
-function AxisGroup(props: {
-  heading: string;
-  options: readonly { value: string; label: string }[];
-  current: string;
-  onPick: (value: string) => void;
-}): JSX.Element {
-  const optionClass = (active: boolean): string =>
-    `bare flex w-full items-center justify-between gap-2 rounded-sm px-2 py-1 text-left type-body ${
-      active ? "bg-selected text-on-selected" : "hover:bg-surface-raised"
-    }`;
-  return (
-    <div class="flex min-w-0 flex-col gap-1">
-      <span class="px-2 type-caption-emphasized text-muted">{props.heading}</span>
-      <div role="listbox" aria-label={props.heading} class="flex min-w-0 flex-col gap-0">
-        <For each={props.options}>
-          {(option) => {
-            const active = () => props.current === option.value;
-            return (
-              <button
-                type="button"
-                role="option"
-                aria-selected={active()}
-                class={optionClass(active())}
-                onClick={() => props.onPick(option.value)}
-              >
-                <span>{option.label}</span>
-                <Show when={active()}>
-                  <span class="i-lucide-check icon-sm" aria-hidden="true" />
-                </Show>
-              </button>
-            );
-          }}
-        </For>
-      </div>
-    </div>
-  );
+function titleCase(word: string): string {
+  return word.length === 0 ? word : `${word[0]!.toUpperCase()}${word.slice(1)}`;
 }
 
 export function ThemePicker(props: ThemePickerProps = {}): JSX.Element {
   const state = props.state ?? defaultThemeState;
   const [element, setElement] = createSignal<HTMLElement>();
   const ctl = createSpinComponent(element, themePicker);
-  // The machine owns open/highlight/select; the names it offers are the
-  // state's, and the pick it reports seats the theme.
   createEffect(() =>
     ctl.bind(
       {
@@ -167,16 +130,18 @@ export function ThemePicker(props: ThemePickerProps = {}): JSX.Element {
   const triggerProps = (): Record<string, unknown> => appearance()?.getTriggerProps() ?? {};
   const contentProps = (): Record<string, unknown> => appearance()?.getContentProps() ?? {};
   const id = () => props.id ?? "kit-theme-picker";
-  const summary = (): string => {
-    const parts = [state.theme()];
-    if (state.palette() !== "") parts.push(state.palette());
-    if (state.spacing() !== "") parts.push(state.spacing());
-    return parts.join(" · ");
+  const activePaletteLabel = (): string | null => {
+    const current = state.palette();
+    if (current === "") return null;
+    return state.paletteOptions().find((opt) => opt.value === current)?.label ?? titleCase(current);
   };
+  const hasFacets = (): boolean =>
+    state.paletteOptions().length > 0 || state.spacings.length > 0;
+
   return (
-    <div class={`flex items-center gap-1 ${props.class ?? ""}`}>
+    <div class={`flex items-center gap-2 ${props.class ?? ""}`}>
       <Show
-        when={state.palettes.length > 0 || state.spacings.length > 0}
+        when={hasFacets()}
         fallback={
           <theme-picker-basic
             ref={(el: HTMLElement) => setElement(el)}
@@ -190,37 +155,133 @@ export function ThemePicker(props: ThemePickerProps = {}): JSX.Element {
           <button
             type="button"
             {...triggerProps()}
-            class="bare flex w-64 items-center gap-2 truncate rounded-lg border bg-surface px-2 py-1 type-body"
+            aria-label="Appearance settings"
+            class="bare inline-flex h-8 items-center gap-2 rounded-md border bg-surface px-3 type-label transition-colors hover:bg-surface-raised"
           >
-            <span class="min-w-0 flex-1 truncate">{summary()}</span>
+            <span class="inline-flex items-center gap-1" aria-hidden="true">
+              <span class="h-2 w-2 shrink-0 rounded-full border bg-surface" />
+              <span class="h-2 w-2 shrink-0 rounded-full bg-primary" />
+              <span class="h-2 w-2 shrink-0 rounded-full bg-accent" />
+            </span>
+            <span>{titleCase(state.theme())}</span>
+            <Show when={activePaletteLabel()}>
+              {(palLabel) => (
+                <span class="hidden type-caption text-muted sm:inline">· {palLabel()}</span>
+              )}
+            </Show>
             <span class="i-lucide-chevron-down icon-sm shrink-0 text-muted" aria-hidden="true" />
           </button>
           <popover
             {...contentProps()}
-            class="m-0 w-64 rounded-lg border bg-surface-raised p-2 shadow-md position-area-bottom-span-right"
+            class="m-0 min-w-[21rem] rounded-lg border bg-surface-raised p-3 shadow-lg position-area-bottom-span-left"
           >
             <div class="flex flex-col gap-3">
-              <AxisGroup
-                heading="Design Language"
-                options={state.names.map((name) => ({ value: name, label: name }))}
-                current={state.theme()}
-                onPick={(value) => state.setTheme(value)}
-              />
-              <Show when={state.palettes.length > 0}>
-                <AxisGroup
-                  heading="Palette"
-                  options={[{ value: "", label: "Default" }, ...state.palettes.map((name) => ({ value: name, label: name }))]}
-                  current={state.palette()}
-                  onPick={(value) => state.setPalette(value)}
-                />
+              <div class="flex flex-col gap-1">
+                <span class="type-caption-emphasized text-muted">Design language</span>
+                <div role="listbox" aria-label="Design Language" class="grid grid-cols-2 gap-1">
+                  <For each={state.names}>
+                    {(name) => {
+                      const active = () => state.theme() === name;
+                      return (
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={active()}
+                          onClick={() => state.setTheme(name)}
+                          class={`bare flex h-8 items-center gap-2 rounded-md border px-2 text-left type-label transition-colors ${
+                            active()
+                              ? "border-primary bg-surface text-primary"
+                              : "border bg-surface/60 hover:border-strong hover:bg-surface"
+                          }`}
+                        >
+                          <span
+                            data-swatch-theme={name}
+                            class="inline-flex shrink-0 items-center gap-1"
+                            aria-hidden="true"
+                          >
+                            <span class="h-2 w-2 rounded-full border bg-surface" />
+                            <span class="h-2 w-2 rounded-full bg-primary" />
+                          </span>
+                          <span class="min-w-0 flex-1 truncate">{titleCase(name)}</span>
+                        </button>
+                      );
+                    }}
+                  </For>
+                </div>
+              </div>
+
+              <Show when={state.paletteOptions().length > 0}>
+                <div class="flex flex-col gap-1">
+                  <span class="type-caption-emphasized text-muted">Palette</span>
+                  <div role="listbox" aria-label="Palette" class="grid grid-cols-3 gap-1">
+                    <For each={state.paletteOptions()}>
+                      {(option) => {
+                        const active = () => state.palette() === option.value;
+                        return (
+                          <button
+                            type="button"
+                            role="option"
+                            aria-selected={active()}
+                            onClick={() => state.setPalette(option.value)}
+                            class={`bare flex h-7 items-center justify-center gap-1 rounded-md border px-2 type-caption-emphasized transition-colors ${
+                              active()
+                                ? "border-primary bg-surface text-primary"
+                                : "border bg-surface/60 text-muted hover:border-strong hover:bg-surface"
+                            }`}
+                          >
+                            <span
+                              data-swatch-theme={option.value === "" ? state.theme() : undefined}
+                              data-swatch-palette={option.value === "" ? undefined : option.value}
+                              class="inline-flex shrink-0 items-center"
+                              aria-hidden="true"
+                            >
+                              <span class="h-2 w-2 rounded-full bg-primary" />
+                            </span>
+                            <span class="truncate">{option.label}</span>
+                          </button>
+                        );
+                      }}
+                    </For>
+                  </div>
+                </div>
               </Show>
+
               <Show when={state.spacings.length > 0}>
-                <AxisGroup
-                  heading="Density"
-                  options={[{ value: "", label: "Default" }, ...state.spacings.map((name) => ({ value: name, label: name }))]}
-                  current={state.spacing()}
-                  onPick={(value) => state.setSpacing(value)}
-                />
+                <div class="flex flex-col gap-1">
+                  <span class="type-caption-emphasized text-muted">Density</span>
+                  <div
+                    role="listbox"
+                    aria-label="Density"
+                    class="grid grid-cols-3 gap-1 rounded-md border bg-surface p-1"
+                  >
+                    <For
+                      each={[
+                        { value: "compact", label: "Compact" },
+                        { value: "", label: "Default" },
+                        { value: "spacious", label: "Spacious" },
+                      ].filter((opt) => opt.value === "" || state.spacings.includes(opt.value))}
+                    >
+                      {(option) => {
+                        const active = () => state.spacing() === option.value;
+                        return (
+                          <button
+                            type="button"
+                            role="option"
+                            aria-selected={active()}
+                            onClick={() => state.setSpacing(option.value)}
+                            class={`bare flex h-6 items-center justify-center rounded-sm px-2 type-caption transition-colors ${
+                              active()
+                                ? "bg-primary text-on-primary"
+                                : "text-muted hover:bg-surface-raised"
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        );
+                      }}
+                    </For>
+                  </div>
+                </div>
               </Show>
             </div>
           </popover>
