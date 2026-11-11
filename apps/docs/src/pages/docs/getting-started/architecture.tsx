@@ -183,8 +183,9 @@ export default function Architecture(): JSX.Element {
           source of truth. Utilities and intrinsic HTML elements read it through
           CSS custom properties; a class outside the vocabulary emits no CSS.
           Machine components read the same tokens while adding keyboard, focus,
-          and statechart behavior. Source lints verify your templates against
-          the active theme, and browser checks verify the rendered geometry.
+          and statechart behavior. Theme contract gates verify contrast and
+          scales, and source lints verify your templates against the active
+          theme.
         </p>
       </Section>
     </main>

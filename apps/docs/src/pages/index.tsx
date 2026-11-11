@@ -1001,8 +1001,8 @@ export default function Home(): JSX.Element {
                   Guardrails for humans and coding agents.
                 </h2>
                 <p class="text-muted">
-                  Spin's linter, browser checks, and MCP server catch invalid
-                  classes, hardcoded hex colors, and broken contrast
+                  Spin's linter, theme contract gates, and MCP server catch
+                  invalid classes, hardcoded hex colors, and broken contrast
                   automatically.
                 </p>
               </div>
