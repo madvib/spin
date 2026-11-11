@@ -122,6 +122,7 @@ const STYLE_PRIORITY: readonly string[] = [
   "caption-emphasized",
   "overline",
   "quote",
+  "brand",
   "code",
 ];
 

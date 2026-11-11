@@ -1,11 +1,6 @@
 {
   "button": {
     "$description": "Component tokens: the decisions a theme owns for its buttons. Metrics that every theme would answer the same way are spent in the CSS instead.",
-    "edge": {
-      "$type": "color",
-      "$description": "The ink the button frames itself in. Both variants share it, so the pair reads as one size with one shadow.",
-      "$value": "{color.border}"
-    },
     "shadow": {
       "$type": "shadow",
       "$description": "The resting elevation. A control with no shadow sits on the page rather than in it.",

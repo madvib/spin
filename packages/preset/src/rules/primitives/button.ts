@@ -6,6 +6,8 @@ import {
   type Entry,
   focusPaint,
   focusRing,
+  surfaceBlur,
+  varFallback,
 } from "./shared.ts";
 
 /**
@@ -158,6 +160,13 @@ function variantType(
   return { ...s };
 }
 
+function buttonEdge(ctx: ThemeContext | undefined): string | undefined {
+  const buttonTokens = ctx?.theme?.button as
+    | Record<string, string | undefined>
+    | undefined;
+  return buttonTokens?.["edge"];
+}
+
 /**
  * The variant declarations, keyed by variant name.
  */
@@ -178,7 +187,7 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     inked: true,
     body: (ctx) => ({
       "background-color": ctx?.theme?.color?.primary,
-      "border-color": ctx?.theme?.color?.primary,
+      "border-color": varFallback(buttonEdge(ctx), ctx?.theme?.color?.primary),
       color: ctx?.theme?.color?.["on-primary"],
       ...variantType(ctx, "primary"),
     }),
@@ -189,7 +198,7 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     inked: true,
     body: (ctx) => ({
       "background-color": ctx?.theme?.color?.secondary,
-      "border-color": ctx?.theme?.color?.border,
+      "border-color": varFallback(buttonEdge(ctx), ctx?.theme?.color?.border),
       color: ctx?.theme?.color?.["on-secondary"],
       ...variantType(ctx, "secondary"),
     }),
@@ -206,6 +215,8 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
       // a hard offset — a ghost carrying it is a black box floating over an
       // empty button.
       "box-shadow": "none",
+      "backdrop-filter": "none",
+      "-webkit-backdrop-filter": "none",
       color: ctx?.theme?.color?.text,
       ...variantType(ctx, "ghost"),
     }),
@@ -216,7 +227,7 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     inked: true,
     body: (ctx) => ({
       "background-color": ctx?.theme?.color?.semantic?.error,
-      "border-color": ctx?.theme?.color?.semantic?.error,
+      "border-color": varFallback(buttonEdge(ctx), ctx?.theme?.color?.semantic?.error),
       color: ctx?.theme?.color?.["on-semantic-error"],
       ...variantType(ctx, "danger"),
     }),
@@ -381,6 +392,26 @@ const VARIANT_HOVER: Record<string, {
   },
 };
 
+const VARIANT_ACTIVE: Record<string, {
+  selector: string;
+  body: () => Record<string, string | undefined>;
+}> = {
+  ghost: {
+    selector: `${BUTTON}.ghost:active${ALIVE}:not([aria-busy="true"]), ${BUTTON}[variant~="ghost"]:active${ALIVE}:not([aria-busy="true"])`,
+    body: () => ({
+      "box-shadow": "none",
+      transform: "none",
+    }),
+  },
+  bare: {
+    selector: `${BUTTON}.bare:active${ALIVE}:not([aria-busy="true"]), ${BUTTON}[variant~="bare"]:active${ALIVE}:not([aria-busy="true"])`,
+    body: () => ({
+      "box-shadow": "none",
+      transform: "none",
+    }),
+  },
+};
+
 /**
  * The variant-specific focus rules.
  *
@@ -434,6 +465,7 @@ export function buttonRules(roots: readonly string[]): SpinRule[] {
         const text = ctx?.theme?.color?.text;
         const duration = ctx?.theme?.motion?.duration?.fast;
         const easing = ctx?.theme?.motion?.easing?.standard;
+        const blur = surfaceBlur(ctx);
         // The base. An array body because the rule states longhand border and
         // shadow entries beside the shorthand-free component spends.
         yield [
@@ -471,11 +503,9 @@ export function buttonRules(roots: readonly string[]): SpinRule[] {
           ...(ctx?.theme?.button?.shadow !== undefined
             ? ([["box-shadow", ctx.theme.button.shadow]] as Entry[])
             : []),
-          ...(ctx?.theme?.button?.edge !== undefined
-            ? ([["border-color", ctx.theme.button.edge]] as Entry[])
-            : ctx?.theme?.color?.border !== undefined
-              ? ([["border-color", ctx.theme.color.border]] as Entry[])
-              : []),
+          ...(varFallback(buttonEdge(ctx), ctx?.theme?.color?.border) !== undefined
+            ? ([["border-color", varFallback(buttonEdge(ctx), ctx?.theme?.color?.border)!]] as Entry[])
+            : []),
           ...(ctx?.theme?.button?.radius !== undefined
             ? ([["border-radius", ctx.theme.button.radius]] as Entry[])
             : ctx?.theme?.radius?.md !== undefined
@@ -491,6 +521,12 @@ export function buttonRules(roots: readonly string[]): SpinRule[] {
             : []),
           ["background-color", surfaceRaised],
           ["color", text],
+          ...(blur !== undefined
+            ? ([
+              ["backdrop-filter", `blur(${blur})`],
+              ["-webkit-backdrop-filter", `blur(${blur})`],
+            ] as Entry[])
+            : []),
           ["-webkit-tap-highlight-color", "transparent"],
           ["touch-action", "manipulation"],
           // One transition list for everything the states animate: the same
@@ -528,14 +564,22 @@ export function buttonRules(roots: readonly string[]): SpinRule[] {
             ? { transform: `translate(${liftX}, ${liftY})` }
             : {}),
         };
-        // Active cancels the hover lift so the control reads as pushed in.
+        // Active presses into the control's footprint when active-x/y or
+        // shadow-active are declared, or cancels hover lift back to rest.
+        const activeX = buttonTokens?.["active-x"];
+        const activeY = buttonTokens?.["active-y"];
+        const shadowActive = buttonTokens?.["shadow-active"];
+        const resolvedActiveShadow = varFallback(shadowActive, ctx?.theme?.button?.shadow);
         yield {
           [ctx.symbols.selector]: () =>
             `${BUTTON}:active${ALIVE}:not([aria-busy="true"])`,
-          ...(ctx?.theme?.button?.shadow !== undefined
-            ? { "box-shadow": ctx.theme.button.shadow }
+          ...(resolvedActiveShadow !== undefined
+            ? { "box-shadow": resolvedActiveShadow }
             : {}),
-          transform: "translate(0, 0)",
+          transform:
+            activeX !== undefined || activeY !== undefined
+              ? `translate(${varFallback(activeX, "0")}, ${varFallback(activeY, "0")})`
+              : "translate(0, 0)",
         };
         // The ring, drawn on focus-visible so a mouse press leaves none. Its
         // width and offset come from the theme's focus scale; a theme that
@@ -672,6 +716,7 @@ export function buttonRules(roots: readonly string[]): SpinRule[] {
       // can miss is a lookup that can silently drop a variant.
       const def = VARIANTS[variant];
       const hover = VARIANT_HOVER[variant];
+      const active = VARIANT_ACTIVE[variant];
       const focus = VARIANT_FOCUS[variant];
       const rule: SpinRule = [
         new RegExp(`^${variant}$`),
@@ -698,6 +743,8 @@ export function buttonRules(roots: readonly string[]): SpinRule[] {
               "border-color": "transparent",
               "border-radius": "0",
               "box-shadow": "none",
+              "backdrop-filter": "none",
+              "-webkit-backdrop-filter": "none",
               color: "inherit",
               cursor: "pointer",
               "min-height": "0",
@@ -721,6 +768,12 @@ export function buttonRules(roots: readonly string[]): SpinRule[] {
             yield {
               [ctx.symbols.selector]: () => hover.selector,
               ...hover.body(ctx),
+            };
+          }
+          if (active !== undefined) {
+            yield {
+              [ctx.symbols.selector]: () => active.selector,
+              ...active.body(),
             };
           }
           // A variant whose edge is its own says what that edge wears while

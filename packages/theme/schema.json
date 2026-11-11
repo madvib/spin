@@ -1925,6 +1925,7 @@
           "type": "object",
           "additionalProperties": true,
           "required": [
+            "brand",
             "display",
             "title",
             "heading",
@@ -1940,6 +1941,232 @@
             "caption-emphasized"
           ],
           "properties": {
+            "brand": {
+              "description": "The brand style as one typography tuple.",
+              "anyOf": [
+                {
+                  "type": "object",
+                  "description": "The brand style as one typography tuple.",
+                  "additionalProperties": false,
+                  "required": [
+                    "$type",
+                    "$value"
+                  ],
+                  "properties": {
+                    "$type": {
+                      "type": "string",
+                      "enum": [
+                        "typography"
+                      ]
+                    },
+                    "$value": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "family",
+                        "size",
+                        "weight",
+                        "tracking",
+                        "leading"
+                      ],
+                      "properties": {
+                        "family": {},
+                        "size": {},
+                        "weight": {},
+                        "tracking": {},
+                        "leading": {}
+                      }
+                    },
+                    "$description": {
+                      "type": "string"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "required": [
+                    "family",
+                    "size",
+                    "weight",
+                    "tracking",
+                    "leading"
+                  ],
+                  "properties": {
+                    "family": {
+                      "type": "object",
+                      "description": "The family the brand style reads at.",
+                      "additionalProperties": false,
+                      "required": [
+                        "$value"
+                      ],
+                      "properties": {
+                        "$value": {},
+                        "$type": {
+                          "type": "string",
+                          "enum": [
+                            "color",
+                            "boolean",
+                            "dimension",
+                            "fontFamily",
+                            "fontWeight",
+                            "duration",
+                            "cubicBezier",
+                            "number",
+                            "strokeStyle",
+                            "border",
+                            "transition",
+                            "shadow",
+                            "gradient",
+                            "typography",
+                            "textTransform"
+                          ]
+                        },
+                        "$description": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "size": {
+                      "type": "object",
+                      "description": "The size the brand style reads at.",
+                      "additionalProperties": false,
+                      "required": [
+                        "$value"
+                      ],
+                      "properties": {
+                        "$value": {},
+                        "$type": {
+                          "type": "string",
+                          "enum": [
+                            "color",
+                            "boolean",
+                            "dimension",
+                            "fontFamily",
+                            "fontWeight",
+                            "duration",
+                            "cubicBezier",
+                            "number",
+                            "strokeStyle",
+                            "border",
+                            "transition",
+                            "shadow",
+                            "gradient",
+                            "typography",
+                            "textTransform"
+                          ]
+                        },
+                        "$description": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "weight": {
+                      "type": "object",
+                      "description": "The weight the brand style reads at.",
+                      "additionalProperties": false,
+                      "required": [
+                        "$value"
+                      ],
+                      "properties": {
+                        "$value": {},
+                        "$type": {
+                          "type": "string",
+                          "enum": [
+                            "color",
+                            "boolean",
+                            "dimension",
+                            "fontFamily",
+                            "fontWeight",
+                            "duration",
+                            "cubicBezier",
+                            "number",
+                            "strokeStyle",
+                            "border",
+                            "transition",
+                            "shadow",
+                            "gradient",
+                            "typography",
+                            "textTransform"
+                          ]
+                        },
+                        "$description": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "tracking": {
+                      "type": "object",
+                      "description": "The tracking the brand style reads at.",
+                      "additionalProperties": false,
+                      "required": [
+                        "$value"
+                      ],
+                      "properties": {
+                        "$value": {},
+                        "$type": {
+                          "type": "string",
+                          "enum": [
+                            "color",
+                            "boolean",
+                            "dimension",
+                            "fontFamily",
+                            "fontWeight",
+                            "duration",
+                            "cubicBezier",
+                            "number",
+                            "strokeStyle",
+                            "border",
+                            "transition",
+                            "shadow",
+                            "gradient",
+                            "typography",
+                            "textTransform"
+                          ]
+                        },
+                        "$description": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "leading": {
+                      "type": "object",
+                      "description": "The leading the brand style reads at.",
+                      "additionalProperties": false,
+                      "required": [
+                        "$value"
+                      ],
+                      "properties": {
+                        "$value": {},
+                        "$type": {
+                          "type": "string",
+                          "enum": [
+                            "color",
+                            "boolean",
+                            "dimension",
+                            "fontFamily",
+                            "fontWeight",
+                            "duration",
+                            "cubicBezier",
+                            "number",
+                            "strokeStyle",
+                            "border",
+                            "transition",
+                            "shadow",
+                            "gradient",
+                            "typography",
+                            "textTransform"
+                          ]
+                        },
+                        "$description": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
             "display": {
               "description": "The display style as one typography tuple.",
               "anyOf": [
@@ -6988,48 +7215,6 @@
       "type": "object",
       "additionalProperties": true,
       "properties": {
-        "edge": {
-          "type": "object",
-          "description": "The ink the button frames itself in. Both variants share it, so the pair reads as one size with one shadow.",
-          "additionalProperties": false,
-          "required": [
-            "$value"
-          ],
-          "properties": {
-            "$value": {},
-            "$type": {
-              "type": "string",
-              "enum": [
-                "color",
-                "boolean",
-                "dimension",
-                "fontFamily",
-                "fontWeight",
-                "duration",
-                "cubicBezier",
-                "number",
-                "strokeStyle",
-                "border",
-                "transition",
-                "shadow",
-                "gradient",
-                "typography",
-                "textTransform"
-              ]
-            },
-            "$description": {
-              "type": "string"
-            },
-            "$modes": {
-              "type": "object",
-              "properties": {
-                "light": {},
-                "dark": {}
-              },
-              "additionalProperties": false
-            }
-          }
-        },
         "shadow": {
           "type": "object",
           "description": "The resting elevation. A control with no shadow sits on the page rather than in it.",

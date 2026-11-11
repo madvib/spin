@@ -576,7 +576,12 @@
   "button": {
     "shadow": {
       "$type": "shadow",
-      "$description": "The resting elevation. A control with no shadow sits on the page rather than in it.",
+      "$description": "The resting elevation: subtle tonal lift on pill controls.",
+      "$value": "{shadow.sm}"
+    },
+    "shadow-active": {
+      "$type": "shadow",
+      "$description": "The pressed elevation: settles cleanly onto the surface.",
       "$value": "none"
     },
     "shadow-hover": {

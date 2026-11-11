@@ -548,6 +548,17 @@
           "tracking": "{font.style.caption.tracking}",
           "leading": "{font.style.caption.leading}"
         }
+      },
+      "brand": {
+        "$type": "typography",
+        "$description": "The brand lockup voice.",
+        "$value": {
+          "family": "{font.family.brand}",
+          "size": "{font.size.lg}",
+          "weight": "{font.weight.bold}",
+          "tracking": "{font.tracking.tight}",
+          "leading": "{font.leading.none}"
+        }
       }
     },
     "tracking": {

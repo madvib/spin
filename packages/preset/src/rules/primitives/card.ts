@@ -1,7 +1,7 @@
 import type { SpinRule } from "../../utils/lookup.ts";
 import type { ThemeContext } from "../../utils/lookup.ts";
 import type { ThemeType } from "@spinjs/theme/theme-types";
-import { fallback } from "./shared.ts";
+import { fallback, surfaceBlur } from "./shared.ts";
 
 /**
  * Card — the compound primitive, as rules.
@@ -126,6 +126,7 @@ function cardSurface(card: string): SpinRule {
       }
       const { spacing, radius, borderWidth, border, raised, shadow } =
         cardTokens(ctx);
+      const blur = surfaceBlur(ctx);
       yield {
         [ctx.symbols.selector]: () => card,
         display: "flex",
@@ -133,6 +134,12 @@ function cardSurface(card: string): SpinRule {
         ...(spacing !== undefined ? { gap: spacing } : {}),
         ...(radius !== undefined ? { "border-radius": radius } : {}),
         ...(raised !== undefined ? { "background-color": raised } : {}),
+        ...(blur !== undefined
+          ? {
+            "backdrop-filter": `blur(${blur})`,
+            "-webkit-backdrop-filter": `blur(${blur})`,
+          }
+          : {}),
         ...(borderWidth !== undefined && border !== undefined
           ? { border: `${borderWidth} solid ${border}` }
           : {}),
@@ -345,6 +352,8 @@ function cardGhost(card: string): SpinRule {
         "background-color": "transparent",
         border: "none",
         "box-shadow": "none",
+        "backdrop-filter": "none",
+        "-webkit-backdrop-filter": "none",
       };
     },
     { layer: "primitives", autocomplete: "card-ghost" },

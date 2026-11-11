@@ -1,5 +1,6 @@
 import type { SpinRule } from "../../utils/lookup.ts";
 import type { ThemeContext } from "../../utils/lookup.ts";
+import { surfaceBlur } from "./shared.ts";
 
 
 /**
@@ -28,12 +29,18 @@ export function panelRules(
       /^panel$/,
       function* (_m, ctx) {
         const t = panelTokens(ctx);
+        const blur = surfaceBlur(ctx);
         yield {
           [ctx.symbols.selector]: () => panel,
           display: "block",
           width: "100%",
           ...(t.raised !== undefined ? { "background-color": t.raised } : {}),
-          ...(t.text !== undefined ? { color: t.text } : {}),
+          ...(blur !== undefined
+            ? {
+              "backdrop-filter": `blur(${blur})`,
+              "-webkit-backdrop-filter": `blur(${blur})`,
+            }
+            : {}),
           ...(t.borderWidth !== undefined && t.border !== undefined
             ? { border: `${t.borderWidth} solid ${t.border}` }
             : {}),

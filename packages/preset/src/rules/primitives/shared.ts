@@ -41,6 +41,31 @@ export function fallback(
   return primary ?? shared;
 }
 
+/**
+ * CSS custom-property fallback (`var(--primary, var(--shared))`) so multi-theme
+ * stylesheets honor an optional component token where declared and fall back to
+ * the shared role on themes that omit it.
+ */
+export function varFallback(
+  primary: string | undefined,
+  shared: string | undefined,
+): string | undefined {
+  if (primary === undefined) return shared;
+  if (shared === undefined) return primary;
+  if (primary.startsWith("var(") && primary.endsWith(")")) {
+    return `${primary.slice(0, -1)}, ${shared})`;
+  }
+  return primary;
+}
+
+/** Optional optical blur declared on `surface.blur` by translucent languages. */
+export function surfaceBlur(ctx: ThemeContext | undefined): string | undefined {
+  const theme = ctx?.theme as
+    | Record<string, Record<string, string | undefined> | undefined>
+    | undefined;
+  return theme?.["surface"]?.["blur"];
+}
+
 
 /**
  * A spent declaration map as CSS entry tuples.

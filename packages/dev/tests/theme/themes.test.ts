@@ -24,6 +24,7 @@ import type {
 import {
   type DesignLanguageName,
   designLanguages,
+  minimalLanguage,
   themeModes,
 } from "@spinjs/theme";
 
@@ -743,7 +744,7 @@ test("the checked-in token types are what the baseline generates", async () => {
   // someone else's checkout, so the freshness check lives here with the theme
   // that generates it.
   const tree = treeOf(
-    parseTokens(await readFile(new URL("minimal.json", THEMES_DIR), "utf8")),
+    parseTokens(minimalLanguage),
     "minimal.json",
   );
   const checkedIn = await readFile(

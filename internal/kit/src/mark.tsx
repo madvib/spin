@@ -1223,11 +1223,8 @@ export function Mark(props: {
 /**
  * The wordmark beside the mark.
  *
- * The lockup's voice — the brand face, bold, on the size ramp — has no
- * named style yet, so the wordmark inherits its voice from where it sits.
- * A `font-style-brand` style would voice it deliberately; until the theme
- * declares one, inheritance is the honest answer rather than handwritten
- * variables the vocabulary cannot read.
+ * Voiced in `type-brand` (`font.style.brand`) so each design language or brand
+ * renders the wordmark in its declared `font.family.brand` lockup face.
  */
 const LOGO_WORD: Record<LogoSize, { readonly gap: string }> = {
   sm: { gap: "gap-2" },
@@ -1266,7 +1263,7 @@ export function Logo(props: {
       }`}
     >
       <Web size={spec().px} class={`${spec().box} shrink-0 text-primary`} />
-      <span>spin</span>
+      <span class="type-brand">spin</span>
     </span>
   );
 }

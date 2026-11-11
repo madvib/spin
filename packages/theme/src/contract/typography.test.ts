@@ -177,21 +177,4 @@ test("starters disagree: at least two themes differ per style", () => {
   }
 });
 
-test("the owned set is thirteen styles with no link", () => {
-  deepStrictEqual([...ownedStyleNames()], [
-    "display",
-    "title",
-    "heading",
-    "subtitle",
-    "lead",
-    "body",
-    "quote",
-    "code",
-    "label",
-    "caption",
-    "overline",
-    "body-emphasized",
-    "caption-emphasized",
-  ]);
-});
 

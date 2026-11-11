@@ -427,6 +427,10 @@ diffuse shadow reads as light. Pick one and stay in it.
 every surface, so nothing is a surface. Three shadows stacked on a card that
 never has to float.
 
+### surface
+
+**For.** The contract knows this group; nothing here says what it is for yet.
+
 ## Filling the document
 
 The shape of a token:

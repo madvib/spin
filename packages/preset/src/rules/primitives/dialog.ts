@@ -1,5 +1,6 @@
 import type { SpinRule } from "../../utils/lookup.ts";
 import type { ThemeContext } from "../../utils/lookup.ts";
+import { surfaceBlur } from "./shared.ts";
 
 
 /**
@@ -80,6 +81,7 @@ export function dialogRules(
         // The panel: a card, centred, capped, scrollable within itself.
         // No `display` is stated — the element hides itself when closed, and
         // saying `display: block` would defeat exactly that.
+        const blur = surfaceBlur(ctx);
         yield {
           [ctx.symbols.selector]: () => dialog,
           margin: "auto",
@@ -89,6 +91,12 @@ export function dialogRules(
             : {}),
           ...(t.radius !== undefined ? { "border-radius": t.radius } : {}),
           ...(t.raised !== undefined ? { "background-color": t.raised } : {}),
+          ...(blur !== undefined
+            ? {
+              "backdrop-filter": `blur(${blur})`,
+              "-webkit-backdrop-filter": `blur(${blur})`,
+            }
+            : {}),
           ...(t.text !== undefined ? { color: t.text } : {}),
           ...(t.shadow !== undefined ? { "box-shadow": t.shadow } : {}),
           // Narrow enough to stay a dialog, wide enough for a form.

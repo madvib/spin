@@ -70,6 +70,10 @@ The styles the theme declares, each with what it is for and what wears it.
 Every one is spent as `type-<name>`; the set lives in the theme under
 `font.style.*`, so a designer trims or extends it there and this list follows.
 
+### type-brand
+
+**For.** The theme declares this style; nothing here says what it is for yet.
+
 ### type-display
 
 **For.** Write `<h1>` and get the page's loudest statement: the hero, the

@@ -525,13 +525,18 @@
     },
     "shadow": {
       "$type": "shadow",
-      "$description": "The resting elevation. A control sits flat on the page at rest and lifts into its hard shadow when touched.",
-      "$value": "none"
+      "$description": "The resting elevation: crisp offset ink shadow beneath every framed button.",
+      "$value": "{shadow.sm}"
     },
     "shadow-hover": {
       "$type": "shadow",
-      "$description": "The hovered elevation. The hard offset shadow appears on hover.",
-      "$value": "{shadow.sm}"
+      "$description": "The hovered elevation: deeper hard offset shadow as the control lifts.",
+      "$value": "{shadow.md}"
+    },
+    "shadow-active": {
+      "$type": "shadow",
+      "$description": "The pressed elevation: stamps flush into its shadow footprint.",
+      "$value": "none"
     },
     "radius": {
       "$type": "dimension",
@@ -544,6 +549,14 @@
     "hover-lift-y": {
       "$type": "dimension",
       "$value": "-1px"
+    },
+    "active-x": {
+      "$type": "dimension",
+      "$value": "2px"
+    },
+    "active-y": {
+      "$type": "dimension",
+      "$value": "2px"
     }
   },
   "border": {

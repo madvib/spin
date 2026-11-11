@@ -79,7 +79,7 @@ const TYPE_PROPERTY: Record<string, string> = {
 /** The property a token sets, from its type and step. */
 function propertyFor(type: string, step: string): string | undefined {
   if (type === "dimension" || type === "number") {
-    if (step.includes("hover-lift")) return "transform";
+    if (step.includes("hover-lift") || step === "active-x" || step === "active-y") return "transform";
     if (step.includes("tracking")) return "letter-spacing";
     return step;
   }
@@ -90,7 +90,7 @@ function propertyFor(type: string, step: string): string | undefined {
 function valueFor(type: string, step: string, value: string): string {
   // A dimension under a hover-lift step is a translate along that axis: the
   // x step lifts horizontally, the y step vertically, each zeroing the other.
-  if (type === "dimension" && step.includes("hover-lift")) {
+  if (type === "dimension" && (step.includes("hover-lift") || step === "active-x" || step === "active-y")) {
     if (step.endsWith("-x")) return `translate(${value}, 0)`;
     if (step.endsWith("-y")) return `translate(0, ${value})`;
     return `translate(${value})`;

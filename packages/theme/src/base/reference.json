@@ -89,6 +89,19 @@
       "loose": {
         "$value": 2
       }
+    },
+    "style": {
+      "brand": {
+        "$type": "typography",
+        "$description": "Brand — the lockup wordmark voice spending font.family.brand.",
+        "$value": {
+          "family": "{font.family.brand}",
+          "size": "{font.size.lg}",
+          "weight": "{font.weight.bold}",
+          "tracking": "{font.tracking.tight}",
+          "leading": "{font.leading.none}"
+        }
+      }
     }
   },
   "spacing": {
