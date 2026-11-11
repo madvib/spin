@@ -6,11 +6,6 @@
  */
 
 import { implement } from "@orpc/server";
-import {
-  generateCss,
-  generateThemeCss,
-  generateTypes,
-} from "../pipeline/generate.ts";
 import { parseDocument, parseTokens } from "../pipeline/parse.ts";
 import {
   removeToken,
@@ -77,37 +72,6 @@ const analyzeTheme = os.theme.analyze.handler(({ input }) =>
   analyze(input.text, input.required, input.modes)
 );
 
-const themeCss = os.theme.css.handler(({ input }) => {
-  const parsed = parseTokens(input.text);
-  if (!parsed.ok) return { error: parsed.error, css: "" };
-  return {
-    error: null,
-    css: generateCss(parsed.tree, {
-      ...(input.selector !== undefined ? { selector: input.selector } : {}),
-      ...(input.prefix !== undefined ? { prefix: input.prefix } : {}),
-    }),
-  };
-});
-
-const themesCss = os.themes.css.handler(({ input }) => {
-  const trees: Record<string, TokenTree> = {};
-  const modes: Record<string, readonly ("light" | "dark")[]> = {};
-  for (const [name, text] of Object.entries(input.themes)) {
-    const parsed = parseDocument(text);
-    if (!parsed.ok) return { error: `${name}: ${parsed.error}`, css: "" };
-    trees[name] = parsed.tree;
-    if (parsed.modes !== undefined) modes[name] = parsed.modes;
-  }
-  return {
-    error: null,
-    css: generateThemeCss(trees, {
-      ...(input.selector !== undefined ? { selector: input.selector } : {}),
-      ...(input.prefix !== undefined ? { prefix: input.prefix } : {}),
-      modes,
-    }),
-  };
-});
-
 const setTokenValue = os.theme.tokens.set.handler(({ input }) =>
   mutate(input.text, (tree) =>
     setToken(
@@ -127,12 +91,6 @@ const renameTokenValue = os.theme.tokens.rename.handler(({ input }) =>
   mutate(input.text, (tree) => renameToken(tree, input.from, input.to))
 );
 
-const themeTypes = os.theme.types.handler(({ input }) => {
-  const parsed = parseTokens(input.text);
-  if (!parsed.ok) return { error: parsed.error, types: "" };
-  return { error: null, types: generateTypes(parsed.tree) };
-});
-
 /**
  * The project root a daemon was started with. Set once, by the host that
  * owns the filesystem — `Deno.serve` in the standalone daemon, the embedding
@@ -145,15 +103,10 @@ const themeTypes = os.theme.types.handler(({ input }) => {
 export const themeRouter = os.router({
   theme: {
     analyze: analyzeTheme,
-    css: themeCss,
-    types: themeTypes,
     tokens: {
       set: setTokenValue,
       remove: removeTokenValue,
       rename: renameTokenValue,
     },
-  },
-  themes: {
-    css: themesCss,
   },
 });

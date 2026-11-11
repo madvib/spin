@@ -6,6 +6,7 @@ import {
   treeToJson,
 } from "@spinjs/theme";
 import { starterThemes } from "@spinjs/theme/themes";
+import { describeCatalog } from "@spinjs/preset";
 import {
   createSpinClient,
   componentsContract,
@@ -128,21 +129,6 @@ test("typed client talks to the router over serve", async () => {
     deepStrictEqual(analysis.error, null);
     deepStrictEqual(analysis.issues, []);
 
-    const css = await client.theme.css({ text });
-    deepStrictEqual(css.error, null);
-    assert(css.css.includes("--color-primary"), `missing var in: ${css.css}`);
-
-    const types = await client.theme.types({ text });
-    deepStrictEqual(types.error, null);
-    assert(
-      types.types.includes("ThemeTokenPath"),
-      `missing union in: ${types.types.slice(0, 120)}`,
-    );
-    assert(
-      types.types.includes("--color-primary"),
-      `missing var in: ${types.types.slice(0, 200)}`,
-    );
-
     const mutated = await client.theme.tokens.set({
       text,
       path: ["color", "primary"],
@@ -174,51 +160,10 @@ test("analyze reports broken JSON as an error", async () => {
   }
 });
 
-test("the catalog reflects the theme it is given", async () => {
+test("preset organization reports unparseable input", async () => {
   const { server, client } = serve();
   try {
-    // Roles without scales, so a scale-driven family has nothing to
-    // resolve and reports empty. That is the contract: the catalog
-    // describes the theme in hand, not the vocabulary in general.
-    const rolesOnly = structuredClone(starterThemes.minimal) as Record<string, unknown>;
-    delete rolesOnly["spacing"];
-    const bare = await client.preset.catalog({ text: JSON.stringify(rolesOnly) });
-    deepStrictEqual(bare.error, null);
-    const bareIds = bare.sections.map((section) => section.id);
-    assert(
-      bareIds.includes("background"),
-      `colors resolve with no scale: ${bareIds.join(",")}`,
-    );
-    const barePadding = bare.sections.find((s) => s.id === "padding");
-    deepStrictEqual(
-      barePadding?.utilities.length,
-      0,
-      "no spacing scale, no padding",
-    );
-
-    // One spacing step is all it takes for the family to populate. The
-    // catalog reads the document it is handed, so the step has to be in it.
-    const base = structuredClone(rolesOnly) as Record<string, unknown>;
-    const withScale = await client.preset.catalog({
-      text: JSON.stringify({
-        ...base,
-        spacing: { $type: "dimension", 4: { $value: "1rem" } },
-      }),
-    });
-    const gap = withScale.sections.find((s) => s.id === "gap");
-    assert(
-      (gap?.utilities.length ?? 0) > 0,
-      "a spacing scale populates the gap family",
-    );
-  } finally {
-    await server.stop();
-  }
-});
-
-test("preset catalog reports unparseable input", async () => {
-  const { server, client } = serve();
-  try {
-    const out = await client.preset.catalog({ text: "{nope" });
+    const out = await client.preset.organization({ text: "{nope" });
     assert(out.error !== null, "expected a parse error");
     deepStrictEqual(out.sections, []);
   } finally {
@@ -303,14 +248,16 @@ test("the organization lists the catalog under reader intent", async () => {
   const { server, client } = serve();
   try {
     const text = JSON.stringify(starterThemes.minimal, null, 2);
-    const catalog = await client.preset.catalog({ text });
+    const parsed = parseTokens(text);
+    assert(parsed.ok, "starter text must parse");
+    const catalog = describeCatalog(parsed.tree);
     const organization = await client.preset.organization({ text });
     deepStrictEqual(organization.error, null);
     // Lossless by construction: every utility the catalog emits is claimed by
     // exactly one section, so a reader can always find what they saw.
     deepStrictEqual(
       organization.sections.flatMap((s) => s.utilities).sort(),
-      catalog.sections.flatMap((s) => s.utilities).sort(),
+      catalog.flatMap((s) => s.utilities).sort(),
     );
     const colors = organization.sections.find((s) => s.id === "colors");
     assert(
@@ -332,11 +279,9 @@ test("the organization lists the catalog under reader intent", async () => {
  * Studio-called (`apps/studio/src`): `project.themes.facets`,
  * `project.config.read`, `project.config.write`, `components.tokens`,
  * `icons.collections`, `overlay.set`, `overlay.get` (via the injected
- * badge script). Daemon machinery: `overlay.clear`, `project.detect`.
- * Served API with no product caller yet: `theme.css`, `theme.types`,
- * `themes.css`, `preset.catalog`, `components.reads` — exercised by the
- * router tests, awaiting a surface. A new procedure lands here only with
- * its reason — the default is exposure, not silence.
+ * badge script). Daemon machinery: `overlay.clear`, `project.detect`. A new
+ * procedure lands here only with its reason — the default is exposure, not
+ * silence.
  */
 const INTERNAL: ReadonlySet<string> = new Set([
   "overlay.set",
@@ -346,12 +291,7 @@ const INTERNAL: ReadonlySet<string> = new Set([
   "project.themes.facets",
   "project.config.read",
   "project.config.write",
-  "theme.css",
-  "theme.types",
-  "themes.css",
-  "preset.catalog",
   "components.tokens",
-  "components.reads",
   "icons.collections",
 ]);
 

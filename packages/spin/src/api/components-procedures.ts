@@ -491,11 +491,6 @@ const copy = os.components.copy.handler(async ({ input }) => {
   }
 });
 
-const reads = os.components.reads.handler(async ({ input }) => {
-  const name = bareName(input.name);
-  return { reads: await machineReads(name) };
-});
-
 export const componentsRouter = os.router({
   components: {
     list,
@@ -503,6 +498,5 @@ export const componentsRouter = os.router({
     tokens,
     examples,
     copy,
-    reads,
   },
 });

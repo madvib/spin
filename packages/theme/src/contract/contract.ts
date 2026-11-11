@@ -54,11 +54,6 @@ const Analysis = v.object({
   tree: v.nullable(v.unknown()),
 });
 
-const CssOutput = v.object({
-  error: v.nullable(v.string()),
-  css: v.string(),
-});
-
 const MutationOutput = v.object({
   error: v.nullable(v.string()),
   /**
@@ -96,38 +91,6 @@ export const analyzeTheme = oc
     method: "POST",
     path: "/theme/analyze",
     summary: "Parse and validate a theme document",
-  });
-
-/** Emit the base-block stylesheet for one theme. */
-export const themeCss = oc
-  .input(
-    v.object({
-      text: ThemeText,
-      selector: v.optional(v.string()),
-      prefix: v.optional(v.string()),
-    }),
-  )
-  .output(CssOutput)
-  .route({
-    method: "POST",
-    path: "/theme/css",
-    summary: "Generate CSS variables for a theme",
-  });
-
-/** Emit one stylesheet covering several named themes. */
-export const themesCss = oc
-  .input(
-    v.object({
-      themes: v.record(v.string(), ThemeText),
-      selector: v.optional(v.string()),
-      prefix: v.optional(v.string()),
-    }),
-  )
-  .output(CssOutput)
-  .route({
-    method: "POST",
-    path: "/themes/css",
-    summary: "Generate CSS variables for named themes",
   });
 
 /** Set a token's base `$value` (or a mode override), creating it when absent. */
@@ -178,32 +141,13 @@ export const renameToken = oc
     summary: "Rename a token",
   });
 
-/** Emit `ThemeTokens`, `ThemeTokenPath`, and `ThemeCssVar` for a theme. */
-export const themeTypes = oc
-  .input(v.object({ text: ThemeText }))
-  .output(
-    v.object({
-      error: v.nullable(v.string()),
-      types: v.string(),
-    }),
-  )
-  .route({
-    method: "POST",
-    path: "/theme/types",
-    summary: "Generate TypeScript declarations for a theme",
-  });
 export const themeContract = {
   theme: {
     analyze: analyzeTheme,
-    css: themeCss,
-    types: themeTypes,
     tokens: {
       set: setToken,
       remove: removeToken,
       rename: renameToken,
     },
-  },
-  themes: {
-    css: themesCss,
   },
 };
