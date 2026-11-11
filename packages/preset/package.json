@@ -54,8 +54,9 @@
   },
   "scripts": {
     "test": "bun test src/",
-    "lint": "oxlint",
-    "fmt": "biome format --write ."
+    "lint": "bunx oxlint@1.85.0 --config ../../.oxlintrc.json src/",
+    "fmt": "bunx oxfmt@0.78.0 --write .",
+    "codegen": "bun run src/rules/primitives/derive.ts && bunx oxfmt@0.78.0 --write src/rules/primitives/manifest.ts"
   },
   "devDependencies": {
     "@spinjs/server": "workspace:*",

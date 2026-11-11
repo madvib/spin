@@ -49,6 +49,9 @@
     }
   },
   "scripts": {
+    "test": "bun test src/",
+    "lint": "bunx oxlint@1.85.0 --config ../../.oxlintrc.json src/",
+    "fmt": "bunx oxfmt@0.78.0 --write .",
     "schema": "bun -e \"import { writeFile } from 'node:fs/promises'; import { spinThemeJsonSchema } from './src/contract/schema.ts'; await writeFile('schema.json', JSON.stringify(spinThemeJsonSchema(), null, 2) + '\\n');\"",
     "types": "bun -e \"import { writeFile } from 'node:fs/promises'; import { parseTokens, generateTypes, minimalTheme } from './src/index.ts'; const parsed = parseTokens(minimalTheme); if (!parsed.ok) throw new Error(parsed.error); await writeFile('src/theme-types.d.ts', generateTypes(parsed.tree));\""
   },

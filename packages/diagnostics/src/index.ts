@@ -23,6 +23,7 @@
  */
 
 import { RULES } from "./rules.ts";
+import { ensureCwdWarmed } from "./generated.ts";
 
 export * from "./core.ts";
 export { factsFor, projectFacts } from "./project-vocabulary.ts";
@@ -144,6 +145,17 @@ export {
  * in `./eslint.ts` is the same rules under the same names; only the shape
  * around them differs.
  */
+// oxlint's `jsPlugins: ["@spinjs/diagnostics"]` loads this entry and runs
+// visitors synchronously; library callers (`spin lint`, `spin lsp`, bundler)
+// warm per-project or skip warming so import stays fast.
+if (
+  typeof process !== "undefined" &&
+  Array.isArray(process.argv) &&
+  process.argv.some((arg) => arg.includes("oxlint"))
+) {
+  await ensureCwdWarmed();
+}
+
 export default {
   meta: { name: "spin" },
   rules: RULES,

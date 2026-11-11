@@ -36,8 +36,8 @@
     "url": "git+https://github.com/madvib/spin.git"
   },
   "scripts": {
-    "fmt": "biome format --write .",
-    "lint": "oxlint",
+    "fmt": "bunx oxfmt@0.78.0 --write .",
+    "lint": "bunx oxlint@1.85.0 --config ../../.oxlintrc.json src/",
     "test": "bun test src/"
   },
   "type": "module",

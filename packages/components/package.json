@@ -448,8 +448,8 @@
   },
   "scripts": {
     "test": "bun test src/",
-    "lint": "oxlint",
-    "fmt": "biome format --write .",
+    "lint": "bunx oxlint@1.85.0 --config ../../.oxlintrc.json src/",
+    "fmt": "bunx oxfmt@0.78.0 --write .",
     "e2e:carousel": "bun test tests/carousel.e2e.ts",
     "e2e:menu": "bun test tests/menu.e2e.ts",
     "e2e:cascade": "bun test tests/cascade.e2e.ts",

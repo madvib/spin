@@ -19,6 +19,7 @@
 
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { readShortcuts } from "@spinjs/server/project";
 type RuntimeSyntax = Pick<
   typeof import("@spinjs/components/runtime"),
   "classTokens" | "expandVariantGroups" | "parse"
@@ -120,6 +121,11 @@ async function declaredClasses(root: string): Promise<Set<string>> {
       if (entry.isDirectory()) {
         if (!SKIPPED.has(entry.name)) stack.push(path);
         continue;
+      }
+      if (/^(?:vite|uno)\.config\.[cm]?[jt]s$/.test(entry.name)) {
+        for (const parts of Object.values(readShortcuts(dir).shortcuts)) {
+          for (const part of parts) out.add(part);
+        }
       }
       if (!SOURCE.test(entry.name)) continue;
       for (const cls of classesIn(path, runtime)) out.add(cls);
@@ -262,6 +268,18 @@ async function resolve(
  */
 let cwdClasses: ReadonlySet<string> | undefined;
 let cwdWarming: Promise<ReadonlySet<string>> | undefined;
+
+/** Whether the cwd vocabulary has finished warming. */
+export function generatedClassesReady(): boolean {
+  return cwdClasses !== undefined;
+}
+
+/** Warm the cwd vocabulary once, returning the shared promise. */
+export function ensureCwdWarmed(): Promise<ReadonlySet<string>> {
+  if (cwdClasses !== undefined) return Promise.resolve(cwdClasses);
+  cwdWarming ??= warmCwd();
+  return cwdWarming;
+}
 
 /** The cwd vocabulary, warming it in the background on first read. */
 export function generatedClassesNow(): ReadonlySet<string> {

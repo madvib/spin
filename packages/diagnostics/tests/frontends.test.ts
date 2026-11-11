@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
@@ -682,5 +682,45 @@ test("the dials reach every front end", async () => {
     deepStrictEqual(sentences(service), sentences(core));
   } finally {
     await rm(file, { recursive: true });
+  }
+});
+
+test("oxlint warms dynamic preset utilities from the project before judging", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "spin-ox-"));
+  try {
+    await mkdir(join(dir, "spin"));
+    await mkdir(join(dir, "src"));
+    const file = join(dir, "src", "app.tsx");
+    await writeFile(
+      file,
+      `export const Card = () => <div className="w-[19rem] bg-surface/80 bg-[#fff]" />;\n`,
+    );
+    const config = join(dir, ".oxlintrc.json");
+    await writeFile(config, JSON.stringify(oxlintConfig(STRICT)));
+    const proc = Bun.spawn(
+      ["bunx", "oxlint@1.85.0", "--config", config, "--format=json", file],
+      { cwd: dir, stdout: "pipe", stderr: "pipe" },
+    );
+    const [stdout, stderr, code] = await Promise.all([
+      new Response(proc.stdout).arrayBuffer(),
+      new Response(proc.stderr).arrayBuffer(),
+      proc.exited,
+    ]);
+    if (code > 1) {
+      throw new Error(
+        `oxlint exited with ${code}: ${new TextDecoder().decode(stderr)}`,
+      );
+    }
+    const report = JSON.parse(
+      new TextDecoder().decode(stdout).replace(/^[^{]*/, ""),
+    ) as { diagnostics: { message: string; code: string }[] };
+    const service = await serviceFindings(file, STRICT);
+    deepStrictEqual(
+      report.diagnostics.map((d) => d.message),
+      service.map((d) => d.message),
+    );
+    deepStrictEqual(report.diagnostics.length, 1);
+  } finally {
+    await rm(dir, { recursive: true });
   }
 });

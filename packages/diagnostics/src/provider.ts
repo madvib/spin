@@ -14,7 +14,7 @@ import { createRequire } from "node:module";
 import { dirname } from "node:path";
 import type { Facts } from "./core.ts";
 import { projectFacts } from "./project-vocabulary.ts";
-import { generatedClassesNow, vocabularyOf } from "./generated.ts";
+import { generatedClassesNow, generatedClassesReady, vocabularyOf } from "./generated.ts";
 import {
   findProjectRoot,
   findProjectRootIn,
@@ -95,7 +95,8 @@ export function factsForFile(filename: string, answers?: EngineAnswers): Facts {
   // One cache per project AND per build root: the themes and the shortcuts
   // are two different reads, and a file outside every project still belongs
   // to the build that produced it.
-  const key = `${root}\u0000${build ?? ""}`;
+  const vocabState = vocabularyOf(root) !== undefined ? "v" : generatedClassesReady() ? "c" : "0";
+  const key = `${root}\u0000${build ?? ""}\u0000${vocabState}`;
   const cached = factsByRoot.get(key);
   if (cached !== undefined) return cached;
   const facts = projectFacts(

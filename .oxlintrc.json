@@ -20,8 +20,8 @@
         "apps/docs/src/**/*.tsx",
         "apps/reference/src/**/*.ts",
         "apps/reference/src/**/*.tsx",
-        "packages/spin/src/kit/**/*.ts",
-        "packages/spin/src/kit/**/*.tsx"
+        "internal/kit/src/**/*.ts",
+        "internal/kit/src/**/*.tsx"
       ],
       "rules": {
         "no-unassigned-vars": "off"
@@ -80,7 +80,7 @@
     },
     {
       "files": [
-        "packages/spin/src/compiler/**/*.ts"
+        "packages/preset/src/**/*.ts"
       ],
       "rules": {
         "eslint/no-restricted-imports": [
@@ -131,7 +131,7 @@
     },
     {
       "files": [
-        "packages/spin/src/project/**/*.ts"
+        "packages/server/src/project/**/*.ts"
       ],
       "rules": {
         "eslint/no-restricted-imports": [
@@ -172,7 +172,7 @@
     },
     {
       "files": [
-        "packages/spin/src/animation/**/*.ts"
+        "packages/preset/src/animation/**/*.ts"
       ],
       "rules": {
         "eslint/no-restricted-imports": [
