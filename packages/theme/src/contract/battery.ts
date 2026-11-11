@@ -22,9 +22,9 @@
  * - **invariance** — a mode changes ink and focus, and nothing else. The
  *   scales and the loop are judged once, on the base document, so a mode that
  *   restates them is a second set of scales nobody checked.
- *
- * The battery is runnable against ANY document — a starter, a project's own
- * theme, a half-written file in an editor — because that is what the house
+  *
+  * The battery is runnable against ANY document — a language, a project's own
+  * theme, a half-written file in an editor — because that is what the house
  * skill tells an author to do: the gates are the battery's entry points, and
  * the battery does not care where the document came from.
  */

@@ -411,9 +411,9 @@ export function parseTokens(input: string | unknown): ParseResult {
     };
   }
 
-  // A sparse document layers over its starter before anything else reads it:
+  // A sparse document layers over its language before anything else reads it:
   // expansion is total, so every stage below sees the document it would
-  // have read had the author vendored the starter. An unknown starter is a
+  // have read had the author vendored the language. An unknown language is a
   // parse failure, not a throw — the studio reports what is wrong.
   let document: Record<string, unknown> = doc;
   if (typeof document["$extends"] === "string") {

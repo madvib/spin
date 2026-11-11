@@ -134,7 +134,7 @@ describe("the theme surface over RPC, against the fixture app", () => {
   it("reports a theme that fails a legibility floor at the boundary", async () => {
     // The floors are enforced where the theme enters, not where it is
     // generated: an author must hear about it at the edit, not at the build.
-    const doc = JSON.parse((await themeText("starter")).text ?? "{}") as {
+    const doc = JSON.parse((await themeText("birch")).text ?? "{}") as {
       color: Record<string, { $value: unknown }>;
     };
     doc.color["primary"]!["$value"] = "#ff0000"; // white ink at 4.00:1
@@ -152,7 +152,7 @@ describe("the theme surface over RPC, against the fixture app", () => {
     );
     // And the generation of the same document is refused, with the same
     // message: the analysis is the early courtesy, the generator is the
-    const generated = await preview(edited, "starter");
+    const generated = await preview(edited, "birch");
     deepStrictEqual(
       generated.error?.includes("4.00:1 — text needs 4.5:1"),
       true,
@@ -284,7 +284,7 @@ describe("the theme surface over RPC, against the fixture app", () => {
     const listed = await listThemes();
     deepStrictEqual(
       listed.filter((t) => t.file !== null).map((t) => t.file).sort(),
-      ["spin/acme", "spin/starter"],
+      ["spin/acme", "spin/birch"],
       "no machine's filesystem layout travels with a theme",
     );
     deepStrictEqual(
@@ -295,16 +295,16 @@ describe("the theme surface over RPC, against the fixture app", () => {
   });
 
   it("leaves a theme it was not asked to write untouched", async () => {
-    const untouched = (await themeText("starter")).text;
+    const untouched = (await themeText("birch")).text;
     await setToken(
       (await themeText("acme")).text as string,
       ["color", "primary"],
       "#1e40af",
     );
     deepStrictEqual(
-      (await themeText("starter")).text,
+      (await themeText("birch")).text,
       untouched,
-      "an edit to acme does not reach starter",
+      "an edit to acme does not reach birch",
     );
   });
 });

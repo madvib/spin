@@ -23,8 +23,8 @@ import { deadClasses } from "@spinjs/build";
 /**
  * The vocabulary is the project's own theme, catalogued.
  *
- * The classes these tests use are the ones the themes declare: `text-xs` is
- * a scale step the starters carry, `p-72` is a step only a project that
+  * The classes these tests use are the ones the themes declare: `text-xs` is
+  * a scale step the languages carry, `p-72` is a step only a project that
  * declares it can produce. A test here that had to spell its own utility
  * table would prove the table, not the rule.
  */
@@ -45,7 +45,7 @@ function reported(facts: Facts, classes: string): string[] {
   );
 }
 
-/** A theme that carries a scale step the starters do not. */
+/** A theme that carries a scale step the languages do not. */
 function projectTheme(): ThemeDocument {
   const minimal = designLanguages.minimal as Record<string, unknown>;
   return {
@@ -59,7 +59,7 @@ function projectTheme(): ThemeDocument {
 
 test("a class the project's theme produces is not reported", () => {
   // The step exists only in this project's theme, so only this project's
-  // vocabulary can know it. The starters alone would call it unknown.
+  // vocabulary can know it. The languages alone would call it unknown.
   const facts = factsFor([projectTheme()], engineAnswers([projectTheme()]));
   deepStrictEqual(reported(facts, "p-72"), []);
 });
@@ -90,7 +90,7 @@ test("a class nothing produces carries the edit that drops it", () => {
   deepStrictEqual(finding?.fix, { range: [0, 4], text: "" });
 });
 
-test("a scale step the starters declare is part of the vocabulary", () => {
+test("a scale step the languages declare is part of the vocabulary", () => {
   // The whole point of the union: the scaffold a theme starts from has no
   // scales at all, so a vocabulary built from it calls every step unknown.
   // TYPE-b: raw type utilities are no longer vocabulary — the named styles
@@ -124,9 +124,9 @@ test("a composition the project does not declare is unknown", () => {
   deepStrictEqual(reported(bare, "overline"), []);
 });
 
-test("with no project theme, the starters' vocabulary applies", () => {
+test("with no project theme, the languages' vocabulary applies", () => {
   // A project that has not forked a theme still renders: it serves the
-  // starters. The vocabulary is theirs, and only theirs.
+  // languages. The vocabulary is theirs, and only theirs.
   const facts = projectFacts({}, engineAnswers(Object.values(designLanguages)), new Set());
   deepStrictEqual(reported(facts, "type-body gap-2 rounded-md"), []);
   deepStrictEqual(reported(facts, "my-stack"), ["my-stack"]);
@@ -147,9 +147,9 @@ test("when nothing can be read, the rule abstains", () => {
   deepStrictEqual(reported(facts, "bg-primary p-72 stack-sm"), []);
 });
 
-test("a class the project declares is known beside the starters", () => {
-  // The project's own themes and the starters are one vocabulary: a project
-  // serves the starters it has not forked, so both are in play.
+test("a class the project declares is known beside the languages", () => {
+  // The project's own themes and the languages are one vocabulary: a project
+  // serves the languages it has not forked, so both are in play.
   const facts = projectFacts(
     { acme: projectTheme() },
     engineAnswers([...Object.values(designLanguages), projectTheme()]),

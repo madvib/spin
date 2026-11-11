@@ -63,18 +63,18 @@ export interface InitCommand {
   readonly root: string;
   /** The name of the first theme — the file stem it is written under. */
   readonly name: string;
-  /** The starter to seed the theme from. */
-  readonly starter: string;
+  /** The design language to seed the theme from. */
+  readonly language: string;
   /** The bundler the generated build config wires. Defaults to `"vite"`. */
   readonly bundler?: string;
   readonly themesDir?: string;
   readonly componentsDir?: string;
   readonly prefix?: string;
-  /** Vendor the full starter text instead of a sparse `$extends` document. */
+  /** Vendor the full design language text instead of a sparse `$extends` document. */
   readonly vendor?: boolean;
   /** The daemon to dial, when the procedures live elsewhere. */
   readonly url?: string;
-  /** Seed from an existing brand directory instead of a starter. */
+  /** Seed from an existing brand directory instead of a design language. */
   readonly from?: string;
   /** Skip the interactive prompts. */
   readonly yes: boolean;
@@ -193,14 +193,13 @@ Usage:
   component   read the components: list, contract, or copy an example
 Options for init:
   --name <name>          the first theme's file stem (default: default)
-  --starter <starter>    minimal | editorial | material | neobrutalist | neumorphic | glassmorphic (default: editorial)
+  --language <language>  minimal | editorial | material | neobrutalist | neumorphic | glassmorphic (default: editorial)
   --bundler <bundler>    vite | rspack | webpack | rollup | rolldown | esbuild | bun | unocss (default: detected)
   --themes-dir <dir>     themes directory (default: spin)
   --components-dir <dir> components directory (default: src/lib/components)
-  --prefix <prefix>      component prefix (default: derived)
-  --vendor               vendor the full starter text instead of a sparse document
+  --vendor               vendor the full design language text instead of a sparse document
   --root <dir>           the project root (default: the current directory)
-  --from <dir>           seed from an existing brand directory instead of a starter
+  --from <dir>           seed from an existing brand directory instead of a design language
   --url <url>            the daemon to dial (default: in-process)
   -y, --yes              skip the interactive prompts
   -h, --help             this text
@@ -284,7 +283,7 @@ export function parseArgs(argv: readonly string[]): Command {
 function parseInit(argv: readonly string[]): Command {
   let root = process.cwd();
   let name: string | undefined;
-  let starter: string | undefined;
+  let language: string | undefined;
   let bundler: string | undefined;
   let themesDir: string | undefined;
   let componentsDir: string | undefined;
@@ -304,8 +303,8 @@ function parseInit(argv: readonly string[]): Command {
       case "name":
         name = argument.value as string;
         break;
-      case "starter":
-        starter = argument.value as string;
+      case "language":
+        language = argument.value as string;
         break;
       case "bundler":
         bundler = argument.value as string;
@@ -343,7 +342,7 @@ function parseInit(argv: readonly string[]): Command {
     kind: "init",
     root,
     name: name ?? "default",
-    starter: starter ?? "editorial",
+    language: language ?? "editorial",
     ...(bundler === undefined ? {} : { bundler }),
     ...(themesDir === undefined ? {} : { themesDir }),
     ...(componentsDir === undefined ? {} : { componentsDir }),
@@ -733,7 +732,7 @@ function read(argv: readonly string[]): Argument[] {
     "root",
     "url",
     "name",
-    "starter",
+    "language",
     "bundler",
     "themes-dir",
     "components-dir",
@@ -1005,7 +1004,7 @@ async function runInit(
 ): Promise<number> {
   const { resolveSpinClient } = await import("../api/index.ts");
   const { detectBundler } = await import("@spinjs/server/project");
-  let { name, starter, bundler } = command;
+  let { name, language, bundler } = command;
   // Interactive when a TTY asks: prompt for what the flags did not say.
   const interactive = process.stdin.isTTY && !command.yes;
   if (interactive) {
@@ -1017,9 +1016,9 @@ async function runInit(
         const answer = (await io.question(`theme name (default): `)).trim();
         if (answer !== "") name = answer;
       }
-      if (command.starter === "editorial" && command.from === undefined) {
-        const answer = (await io.question(`starter (editorial): `)).trim();
-        if (answer !== "") starter = answer;
+      if (command.language === "editorial" && command.from === undefined) {
+        const answer = (await io.question(`design language (editorial): `)).trim();
+        if (answer !== "") language = answer;
       }
       if (command.bundler === undefined) {
         const answer = (await io.question(`bundler (${detected}): `)).trim();
@@ -1041,7 +1040,7 @@ async function runInit(
     const inited = await client.project.init({
       root: command.root,
       name,
-      starter,
+      language,
       ...(bundler === undefined ? {} : { bundler: bundler as "vite" }),
       ...(command.themesDir === undefined ? {} : { themesDir: command.themesDir }),
       ...(command.componentsDir === undefined ? {} : { componentsDir: command.componentsDir }),
@@ -1053,7 +1052,7 @@ async function runInit(
   } catch (error) {
     return fail(error instanceof Error ? error.message : String(error));
   }
-  write(`Initialized spin/${name}/tokens.json (${starter}, ${bundler})`);
+  write(`Initialized spin/${name}/tokens.json (${language}, ${bundler})`);
   return 0;
 }
 

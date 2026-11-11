@@ -55,7 +55,7 @@ spin check       the rendered checks, over a running app
 - `@spinjs/spin/compositions` — shared composition shapes.
 
 The toolchain's siblings carry the rest: `@spinjs/theme` (parsing,
-validation, gates, starters), `@spinjs/preset` (the UnoCSS preset, keyframes,
+validation, gates, design languages), `@spinjs/preset` (the UnoCSS preset,
 primitives), `@spinjs/server` (project reads/writes, procedures, daemon),
 `@spinjs/diagnostics` (the lint rules, service, and editor plugins), and
 `@spinjs/build` (the components stage, strict gate, content scan,

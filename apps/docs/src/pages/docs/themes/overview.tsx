@@ -1,6 +1,6 @@
 /**
- * Themes Overview: one brand theme with light and dark modes, the Studio vs. CLI
- * setup walkthrough, the starter switcher, and optional multi-theme skins.
+  * Themes Overview: one brand theme with light and dark modes, the Studio vs. CLI
+  * setup walkthrough, the language switcher, and optional multi-theme skins.
  */
 import { A } from "@solidjs/router";
 import { createMemo, createSignal, For, Show } from "solid-js";
@@ -124,13 +124,13 @@ const SWATCH_ROLES: readonly {
 ];
 
 export default function ThemesOverview(): JSX.Element {
-  const starters = themeSummaries();
+  const languages = themeSummaries();
   const [selectedName, setSelectedName] = createSignal<string>(
-    starters[0]?.name ?? "minimal",
+    languages[0]?.name ?? "minimal",
   );
   const selected = createMemo<ThemeSummary>(
     () =>
-      starters.find((item) => item.name === selectedName()) ?? starters[0]!,
+      languages.find((item) => item.name === selectedName()) ?? languages[0]!,
   );
 
   return (
@@ -170,7 +170,7 @@ export default function ThemesOverview(): JSX.Element {
         </p>
       </Section>
 
-      <Section id="starters" title="Six starting design languages">
+      <Section id="languages" title="Six starting design languages">
         <p class="max-w-prose">
           Spin includes six foundational design languages in{" "}
           <code>@spinjs/theme</code>. Select a design language below to
@@ -181,7 +181,7 @@ export default function ThemesOverview(): JSX.Element {
         <div class="my-4 flex flex-col gap-4 rounded-lg border bg-surface-raised p-4">
           <div class="flex flex-wrap items-center justify-between gap-2 border-b pb-3">
             <div class="flex flex-wrap items-center gap-2">
-              <For each={starters}>
+              <For each={languages}>
                 {(item) => {
                   const isSelected = () => selected().name === item.name;
                   return (
@@ -272,10 +272,10 @@ export default function ThemesOverview(): JSX.Element {
         </div>
 
         <p class="max-w-prose">
-          Starters are starting points, not copies to vendor. New projects
-          write a sparse document that names its starter in{" "}
+          Languages are starting points, not copies to vendor. New projects
+          write a sparse document that names its language in{" "}
           <code>"$extends"</code> and states only their own overrides — the
-          starter stays shipped, so a starter fix reaches every theme that
+          language stays shipped, so a language fix reaches every theme that
           layers over it:
         </p>
         <div class="my-3">
@@ -288,7 +288,7 @@ export default function ThemesOverview(): JSX.Element {
         <p class="max-w-prose">
           Pass <code>--vendor</code> to <code>npx spin init</code> only when
           you need a standalone snapshot you can edit in full. When you fork
-          a starter in the Studio and hit <strong>Save</strong>, it writes a
+          a language in the Studio and hit <strong>Save</strong>, it writes a
           copy into <code>spin/&lt;brand&gt;/tokens.json</code> that your project
           owns.
         </p>

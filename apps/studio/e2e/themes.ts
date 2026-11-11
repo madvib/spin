@@ -43,7 +43,7 @@ export interface ListedTheme {
   readonly name: string;
   /** The document, as the registry read it. */
   readonly text: string;
-  /** The project's path, or `null` for a starter the project has not forked. */
+  /** The project's path, or `null` for a language the project has not forked. */
   readonly file: string | null;
 }
 

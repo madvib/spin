@@ -1,8 +1,8 @@
 /**
  * The studio's visual check: the harness config, and nothing else.
  *
- * The studio lends the harness the app facts — its path-routed pages, the
- * starter themes, the rail chrome to hover, the page conventions it boots
+  * The studio lends the harness the app facts — its path-routed pages, the
+  * shipped languages, the rail chrome to hover, the page conventions it boots
  * with. Everything mechanical lives in `internal/check`:
  *
  *   bun run visual                                     # both layouts
@@ -89,13 +89,13 @@ async function projectThemes(): Promise<
       }
     }
   } catch {
-    // No project directory: the matrix carries the named starters alone.
+    // No project directory: the matrix carries the named languages alone.
   }
   return out;
 }
 
-/** Every theme the preview renders: the named starters, and the project's own. */
-const SERVED: Record<string, Parameters<typeof themeModes>[0]> = {
+  /** Every theme the preview renders: the named languages, and the project's own. */
+  const SERVED: Record<string, Parameters<typeof themeModes>[0]> = {
   ...THEMES,
   ...(await projectThemes()),
 };

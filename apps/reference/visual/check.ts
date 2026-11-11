@@ -1,8 +1,8 @@
 /**
  * The reference's visual check: the harness config, and nothing else.
  *
- * The reference lends the harness the app facts — its routes from the
- * primitive registry, the starter themes, the nav chrome to hover, the
+  * The reference lends the harness the app facts — its routes from the
+  * primitive registry, the shipped languages, the nav chrome to hover, the
  * geometry claims, the page conventions it boots with. Everything mechanical
  * lives in `internal/check`:
  *
@@ -126,13 +126,13 @@ async function projectThemes(): Promise<
       }
     }
   } catch {
-    // No project directory: the app serves the starters alone.
+    // No project directory: the app serves the languages alone.
   }
   return out;
 }
 
-/** Every theme the app renders: the starters, and the project's own. */
-const SERVED: Record<string, Parameters<typeof themeModes>[0]> = {
+  /** Every theme the app renders: the languages, and the project's own. */
+  const SERVED: Record<string, Parameters<typeof themeModes>[0]> = {
   ...THEMES,
   ...(await projectThemes()),
 };

@@ -2162,8 +2162,8 @@ const SHADOW_STEPS = ["shadow-sm", "shadow-md", "shadow-lg"];
  *
  * A fill without a declared pair carries its label BELOW it rather than on
  * it: `bg-secondary` and the neutral ramp have no `on-*` token, so painting
- * the class name on top of them is the reference inventing a foreground the
- * theme never declared — measured 1.2:1 to 3.3:1 across the starters. Only a
+  * the class name on top of them is the reference inventing a foreground the
+  * theme never declared — measured 1.2:1 to 3.3:1 across the languages. Only a
  * fill whose ink the theme answers gets text on it.
  */
 function ColorSpecimen() {

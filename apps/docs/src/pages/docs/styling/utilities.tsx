@@ -13,7 +13,7 @@ import {
   PropList,
   Section,
   Specimen,
-  starterDoc,
+  languageDoc,
   type PropEntry,
 } from "../../../ui/index.ts";
 import cssMd from "../../../content/css-edges.md?raw";
@@ -90,7 +90,7 @@ export default function StylingUtilities(): JSX.Element {
 
   const spacing = (): readonly string[] =>
     Object.keys(
-      (starterDoc().spacing ?? {}) as Readonly<Record<string, unknown>>,
+      (languageDoc().spacing ?? {}) as Readonly<Record<string, unknown>>,
     )
       .filter((step) => !step.startsWith("$"))
       .sort((a, b) => {

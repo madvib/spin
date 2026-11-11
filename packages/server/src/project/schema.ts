@@ -207,10 +207,10 @@ export const InitProjectOptionsSchema = v.object({
   root: v.string(),
   /** The theme name to seed. */
   name: ThemeNameSchema,
-  /** The starter to seed the theme from. */
-  starter: v.pipe(
+  /** The design language to seed the theme from. */
+  language: v.pipe(
     v.string(),
-    v.description("The starter to seed the theme from."),
+    v.description("The design language to seed the theme from."),
   ),
   /** The bundler to scaffold a config for. */
   bundler: v.optional(BundlerKindSchema),
@@ -222,11 +222,11 @@ export const InitProjectOptionsSchema = v.object({
   prefix: v.optional(v.string()),
   /** Vendor the theme into the project rather than extending it. */
   vendor: v.optional(v.boolean()),
-  /** Seed from an existing brand directory instead of a starter. */
+  /** Seed from an existing brand directory instead of a design language. */
   from: v.optional(
     v.pipe(
       v.string(),
-      v.description("Seed from an existing brand directory instead of a starter."),
+      v.description("Seed from an existing brand directory instead of a design language."),
     ),
   ),
 });

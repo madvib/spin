@@ -20,7 +20,7 @@ import {
   handleMessage,
   readableLanguage,
 } from "../../src/lsp/index.ts";
-import spinStarter from "../../../theme/src/languages/editorial.json" with {
+import shippedLanguage from "../../../theme/src/languages/editorial.json" with {
   type: "json",
 };
 
@@ -28,7 +28,7 @@ import spinStarter from "../../../theme/src/languages/editorial.json" with {
 async function project(): Promise<{ root: string; uri: string; text: string }> {
   const root = await mkdtemp(join(tmpdir(), "spin-lsp-"));
   await mkdir(`${root}/spin`);
-  await writeFile(`${root}/spin/spin.json`, JSON.stringify(spinStarter));
+  await writeFile(`${root}/spin/spin.json`, JSON.stringify(shippedLanguage));
   await mkdir(`${root}/src`);
   const text = `export const App = () => (
   <p className="type-body">Hello</p>
@@ -107,7 +107,7 @@ test("a removed type utility offers its style as the quick fix", async () => {
   const root = await mkdtemp(join(tmpdir(), "spin-lsp-"));
   try {
     await mkdir(`${root}/spin`);
-    await writeFile(`${root}/spin/spin.json`, JSON.stringify(spinStarter));
+    await writeFile(`${root}/spin/spin.json`, JSON.stringify(shippedLanguage));
     await mkdir(`${root}/src`);
     const uri = `file://${root}/src/app.tsx`;
     const text = `export const App = () => (

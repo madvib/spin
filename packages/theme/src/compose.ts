@@ -1,7 +1,7 @@
 /**
  * Brand composition: sparse layers over a named parent, judged as one document.
  *
- * A brand is authored as fragments — a starter name plus the tokens the
+  * A brand is authored as fragments — a language name plus the tokens the
  * brand owns — and the build serves one document. Fragments judge
  * permissively on their own terms (soundness, no required-set claim), while
  * the composed document owes everything a theme owes. This module is where
@@ -65,7 +65,7 @@ export function compose(
 
   // A layer judges against the floor it composes over — the parent plus the
   // layers before it — not alone: a layer that re-points an alias the
-  // starter declares is sound only beside that parent, and judging it alone
+  // layer declares is sound only beside that parent, and judging it alone
   // would cry dangling where composition resolves.
   let floor: ThemeDocument = {};
   if (parent !== undefined) {

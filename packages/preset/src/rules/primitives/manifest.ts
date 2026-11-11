@@ -36,7 +36,7 @@ export interface PrimitiveContract {
    *
    * The union comes from the DEFAULT theme on purpose. A component may only
    * spend a token the default states, because that is the one surface every
-   * consumer is guaranteed to have; a token that exists only in one starter is
+   * consumer is guaranteed to have; a token that exists only in one language is
    * a token most consumers cannot use.
    */
   reads: readonly ThemeCssVar[];

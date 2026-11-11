@@ -161,10 +161,10 @@ test("a theme created from the studio lands on disk, in the registry, and seated
         card.includes(`spin/${name}.json`),
         `the card does not name the project's file: ${card}`,
       );
-      const starter = await cardText(page, "minimal");
+      const source = await cardText(page, "minimal");
       assert(
-        starter.includes("the brand"),
-        `the card does not name the starter's home: ${starter}`,
+        source.includes("the brand"),
+        `the card does not name the language's home: ${source}`,
       );
     } finally {
       await take(file);
@@ -547,7 +547,7 @@ test("a theme with two modes renders the mode the control names", async () => {
 // The Blank template was removed when factory.ts deleted scaffoldTheme():
 // creation starts from a registry theme, never from required roles. This
 // test waits on the Blank template coming back, or on being rewritten to
-// assert the copy-from-starter flow instead.
+// assert the copy-from-language flow instead.
 test.skip("a theme scaffolded from the required roles lands on disk and builds", async () => {
   await withPage(async (page) => {
     const name = "e2e-scaffold";
@@ -672,7 +672,7 @@ test("a theme file that is not valid JSON is reported, not swallowed", async () 
   });
 });
 
-test("saving an un-forked starter opens Save as project theme instead of overwriting starter", async () => {
+test("saving an un-forked language opens Save as project theme instead of overwriting the language", async () => {
   await withPage(async (page) => {
     const copyName = "e2e-minimal-saved";
     const root = await openProject(page);
@@ -697,10 +697,10 @@ test("saving an un-forked starter opens Save as project theme instead of overwri
       const dialogOpen = await page.eval<boolean>(
         `document.querySelector('dialog[aria-label="Save as project theme"]') !== null`,
       );
-      assert(dialogOpen, "Save on starter did not open Save as project theme dialog");
+      assert(dialogOpen, "Save on a language did not open Save as project theme dialog");
       assert(
         !(await there(minimalFile)),
-        "Save on starter wrote spin/minimal.json before confirmation",
+        "Save on a language wrote spin/minimal.json before confirmation",
       );
       await page.eval<void>(
         `(() => {

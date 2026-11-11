@@ -6,11 +6,11 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 
 /**
  * Layer one document over another, without mutating either.
- *
- * Token groups recurse so a sparse override keeps the starter's siblings;
- * a leaf (anything carrying `$value`) replaces so an override is total;
- * `$extensions` merges so a theme keeps the starter's fonts while adding its
- * own; `modes` replaces because the served modes are one decision.
+  *
+  * Token groups recurse so a sparse override keeps the language's siblings;
+  * a leaf (anything carrying `$value`) replaces so an override is total;
+  * `$extensions` merges so a theme keeps the language's fonts while adding its
+  * own; `modes` replaces because the served modes are one decision.
  * `$extends` itself is skipped — expansion strips it, and a plain merge
  * never carries it forward.
  */

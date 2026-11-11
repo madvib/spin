@@ -135,10 +135,10 @@ test("an illegible pair fails legibility", () => {
   assert(issues.some((issue) => issue.path === "color.text"));
 });
 
-test("every role documents itself with a starter value", () => {
+test("every role documents itself with a language value", () => {
   assert(
     BASE_ROLES.every((role) => role.doc.length > 0 && role.value.length > 0),
-    "every role documents itself with a starter value",
+    "every role documents itself with a language value",
   );
 });
 
@@ -184,11 +184,11 @@ function resolve(vars: Record<string, string>, name: string): string {
   throw new Error(`${name} did not resolve to a literal value`);
 }
 
-test("every starter declares the dead pair, and it reads in every mode", () => {
+test("every language declares the dead pair, and it reads in every mode", () => {
   // A disabled control is not a dimmer control: dimming spends opacity on the
   // whole element, so the ink dims with the fill, and a white label on a
   // blue button lands at 1.56:1. The pair is what keeps a dead control
-  // legible — so every starter states both halves, and the ink clears the
+  // legible — so every language states both halves, and the ink clears the
   // text floor on the fill in every mode the theme serves.
   for (const [name, doc] of Object.entries(designLanguages)) {
     const parsed = parseTokens(doc);

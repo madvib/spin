@@ -205,10 +205,10 @@ const initFlags = (): readonly PropEntry[] => [
     ),
   },
   {
-    name: "--starter",
+    name: "--language",
     defaultValue: "editorial",
     description:
-      "The shipped starter design language to seed from (minimal, editorial, material, neobrutalist, neumorphic, glassmorphic).",
+      "The shipped design language to seed from (minimal, editorial, material, neobrutalist, neumorphic, glassmorphic).",
   },
   {
     name: "--bundler",
@@ -244,12 +244,12 @@ const initFlags = (): readonly PropEntry[] => [
   {
     name: "--vendor",
     description:
-      "Vendor the full starter text instead of a sparse $extends document.",
+      "Vendor the full design language text instead of a sparse $extends document.",
   },
   {
     name: "--from",
     description:
-      "Seed from an existing brand directory instead of a starter.",
+      "Seed from an existing brand directory instead of a design language.",
   },
   {
     name: "--url",

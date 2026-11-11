@@ -106,8 +106,8 @@ interface Assembled extends PreflightProvider {
  * `$extensions.spin.fonts`, and the sheet carries the union. The merge exists
  * because a theme's name must never decide whether its type loads — an
  * earlier assembler read `documents.light` and silently shipped no faces for
- * a project whose themes were named anything else, which is every project
- * after the starters stopped being called `light`.
+  * a project whose themes were named anything else, which is every project
+  * after the languages stopped being called `light`.
  */
 function declaredFaces(
   documents: Record<string, ThemeDocument>,

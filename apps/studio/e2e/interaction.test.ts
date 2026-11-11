@@ -668,7 +668,7 @@ test("the keyboard drives undo, redo and save", async () => {
         "the file on disk does not hold the edit the keyboard saved",
       );
     } finally {
-      // Put the checkout back: a forked starter loses the file, a project
+      // Put the checkout back: a forked language loses the file, a project
       // theme gets its original text.
       if (forked && original.text !== null) {
         await rpc(page, "/project/themes/write", {
@@ -803,13 +803,13 @@ test("the theme and mode survive a reload", async () => {
 });
 
 /**
- * A shipped starter forks into the project from its own card.
- *
- * A starter is read-only: the save forks it, but an author looking at one has
- * no obvious way to start, and a theme that is only ever edited in memory
- * never reaches a build. The card offers the fork and names the copy.
- */
-test("a shipped starter forks into the project from its own card", async () => {
+  * A shipped language forks into the project from its own card.
+  *
+  * A language is read-only: the save forks it, but an author looking at one has
+  * no obvious way to start, and a theme that is only ever edited in memory
+  * never reaches a build. The card offers the fork and names the copy.
+  */
+test("a shipped language forks into the project from its own card", async () => {
   await withPage(async (page) => {
     let made: string | undefined;
     try {
@@ -819,7 +819,7 @@ test("a shipped starter forks into the project from its own card", async () => {
       const lit = await page.chooseMode("light");
       assert(lit === "pressed", `light never chose: ${lit}`);
 
-      const starter = await page.eval<string>(
+      const source = await page.eval<string>(
         `(() => {
           const card = [...document.querySelectorAll('article[data-testid="theme-card"]')].find((article) =>
             article.querySelector("studio-theme-menu")
@@ -827,13 +827,13 @@ test("a shipped starter forks into the project from its own card", async () => {
           return card ? (card.querySelector('button[title="Switch to this theme"]')?.textContent ?? "").trim() : "";
         })()`,
       );
-      assert(starter !== "", "no theme card offers a menu");
+      assert(source !== "", "no theme card offers a menu");
 
       await page.eval<string>(
         `(async () => {
           const wait = (ms) => new Promise((r) => setTimeout(r, ms));
           const card = [...document.querySelectorAll('article[data-testid="theme-card"]')].find((article) =>
-            (article.querySelector('button[title="Switch to this theme"]')?.textContent ?? "").trim() === ${JSON.stringify(starter)}
+            (article.querySelector('button[title="Switch to this theme"]')?.textContent ?? "").trim() === ${JSON.stringify(source)}
           );
           const menu = card ? card.querySelector("studio-theme-menu") : null;
           const trigger = menu ? menu.querySelector("button") : null;
@@ -853,11 +853,11 @@ test("a shipped starter forks into the project from its own card", async () => {
         "/project/themes/list",
       );
       const forked = listed.find((theme) =>
-        theme.file !== null && theme.name.startsWith(`${starter}-copy`)
+        theme.file !== null && theme.name.startsWith(`${source}-copy`)
       );
       assert(
         forked !== undefined,
-        `no project file for ${starter}: [${
+        `no project file for ${source}: [${
           listed.map((theme) => `${theme.name}:${theme.file}`)
         }]`,
       );

@@ -55,7 +55,7 @@ import {
   registry,
   reloadFromDisk,
   revertToSaved,
-  saveStarterAsProjectTheme,
+  saveLanguageAsProjectTheme,
   saveThemeToDisk,
   undo,
 } from "../lib/store.ts";
@@ -121,7 +121,7 @@ export default function TopBar() {
   async function submitCopy(): Promise<void> {
     const source = pendingSaveCopy();
     if (source === null) return;
-    const outcome = await saveStarterAsProjectTheme(source, copyName());
+    const outcome = await saveLanguageAsProjectTheme(source, copyName());
     if (!outcome.written) {
       setCopyProblem(outcome.problem ?? "Could not save copy.");
       return;

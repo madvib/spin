@@ -31,14 +31,14 @@ function element(classes: string, tag = "div"): ClassFacts {
   return { tag, classes: names, tokens, position: { line: 1, column: 1 } };
 }
 
-function starterFacts(): Facts {
+function shippedFacts(): Facts {
   return factsFor(Object.values(designLanguages), engineAnswers(Object.values(designLanguages)));
 }
 
 test("a removed size utility is unknown with a type-<style> suggestion", () => {
   // text-sm is no longer vocabulary: no catalog section names it and no rule
   // emits it. The finding writes the style in place and the remedy names it.
-  const findings = checkClosedVocabulary(starterFacts(), element("text-sm"));
+  const findings = checkClosedVocabulary(shippedFacts(), element("text-sm"));
   deepStrictEqual(
     findings.map((finding) => finding.data["cls"]),
     ["text-sm"],
@@ -56,7 +56,7 @@ test("a removed size utility is unknown with a type-<style> suggestion", () => {
 test("every removed size step carries a style suggestion", () => {
   // The guarantee is total: whatever size step an author reaches for, the
   // error says which style to wear instead.
-  const facts = starterFacts();
+  const facts = shippedFacts();
   for (
     const cls of [
       "text-2xs",
@@ -84,7 +84,7 @@ test("every removed size step carries a style suggestion", () => {
 });
 
 test("every removed family and weight carries a style suggestion", () => {
-  const facts = starterFacts();
+  const facts = shippedFacts();
   for (
     const cls of [
       "font-sans",
@@ -114,7 +114,7 @@ test("every removed tracking and leading step carries a style suggestion", () =>
   // TYPE-c (styles own type): the ladder atoms are removed too — every
   // `tracking-*`/`leading-*` error carries a style suggestion or the stage
   // fails its own UX contract.
-  const facts = starterFacts();
+  const facts = shippedFacts();
   for (
     const cls of [
       "tracking-tighter",
@@ -148,7 +148,7 @@ test("every removed tracking and leading step carries a style suggestion", () =>
 test("the suggestion shares the removed utility's value", () => {
   // text-xs is the caption step and font-mono is the code face: the remedy
   // names the style that reads that way, not an arbitrary style.
-  const facts = starterFacts();
+  const facts = shippedFacts();
   const [xs] = checkClosedVocabulary(facts, element("text-xs"));
   match(
     xs?.remedy ?? "",
@@ -179,7 +179,7 @@ test("a removed utility on a typed element suggests that element's style", () =>
   // A paragraph reads body by default: text-sm on a p suggests type-body,
   // the style the element already wears.
   const [finding] = checkClosedVocabulary(
-    starterFacts(),
+    shippedFacts(),
     element("text-sm", "p"),
   );
   match(
@@ -193,7 +193,7 @@ test("a declared style stays known", () => {
   // The removal takes the raw utilities, not the styles: type-body is
   // vocabulary and reports nothing.
   deepStrictEqual(
-    checkClosedVocabulary(starterFacts(), element("type-body")),
+    checkClosedVocabulary(shippedFacts(), element("type-body")),
     [],
   );
 });
@@ -202,7 +202,7 @@ test("a removed utility is reported once, by the vocabulary alone", () => {
   // Interplay: the semantic rules read unknown classes as dead — a removed
   // utility must not ALSO draw prefer-theme-value or prefer-element. The
   // closed-vocabulary finding is the whole answer.
-  const facts = starterFacts();
+  const facts = shippedFacts();
   const node = element("text-sm", "p");
   deepStrictEqual(
     checkClosedVocabulary(facts, node).map((finding) => finding.messageId),
@@ -214,7 +214,7 @@ test("a removed utility warns before the gate and errors after it", () => {
   // The migration window: the default finding carries a warning (the
   // shipping version predates the gate), an explicit error stays an error,
   // and anything else unknown is an error either way.
-  const facts = starterFacts();
+  const facts = shippedFacts();
   const [warned] = checkClosedVocabulary(facts, element("text-sm"));
   deepStrictEqual(
     warned?.severity,
@@ -251,7 +251,7 @@ test("a removed utility under a state variant suggests the style for its core", 
   // core and names a style — the window covers what the core was, not the
   // state it was under.
   const [finding] = checkClosedVocabulary(
-    starterFacts(),
+    shippedFacts(),
     element("aria-[pressed=true]:font-medium", "button"),
   );
   deepStrictEqual(finding?.messageId, "unknown");

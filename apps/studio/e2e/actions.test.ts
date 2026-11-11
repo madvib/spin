@@ -135,7 +135,7 @@ test("chrome: every rail link navigates, the pickers seat, the dialogs open", as
     }
     assertQuiet(noisy, "the rail walk");
 
-    // The theme picker seats each starter, then Escape-closes without change.
+    // The theme picker seats each language, then Escape-closes without change.
     for (const name of ["neumorphic", "material", "neobrutalist", "minimal", "editorial", "glassmorphic"]) {
       const seated = await seatTheme(page, name);
       assert(seated === "seated", `the picker never seated ${name}: ${seated}`);
@@ -307,7 +307,7 @@ test("overview: create by copy, fork, reload, seat, delete", async () => {
       );
       assert(seated === "seated", `the card never seated ${copy}: ${seated}`);
 
-      // Reload-from-disk and reset-to-starter answer without error. The
+      // Reload-from-disk and reset-to-language answer without error. The
       // card's verbs live behind its menu: open it, then press Reload.
       const reloaded = await page.eval<string>(
         `(async () => {

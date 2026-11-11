@@ -1,7 +1,7 @@
 /**
  * Token Reference: DTCG grammar, the live token groups, grouped required
- * roles, and per-element tokens. Every group, role, and token renders from
- * live data — the schema, the starter documents, and the preset manifest —
+  * roles, and per-element tokens. Every group, role, and token renders from
+  * live data — the schema, the language documents, and the preset manifest —
  * so a token added to the theme is listed by the same change that added
  * it. The Typography guide owns the how-to; this page owns the surface.
  */
@@ -13,7 +13,7 @@ import {
   PageHeader,
   PropList,
   Section,
-  starterDoc,
+  languageDoc,
   type PropEntry,
 } from "../../../ui/index.ts";
 import {
@@ -159,11 +159,11 @@ const ROLE_FAMILIES: readonly RoleFamily[] = [
 ];
 
 /**
- * The named type styles the active starter theme declares. Read live from
- * the active document, so the table is the theme file, not a copy of it.
+  * The named type styles the active language declares. Read live from
+  * the active document, so the table is the theme file, not a copy of it.
  */
 function fontStyleEntries(): readonly PropEntry[] {
-  const font = (starterDoc() as Record<string, unknown>)["font"] as
+  const font = (languageDoc() as Record<string, unknown>)["font"] as
     | Record<string, unknown>
     | undefined;
   const style = font?.["style"] as Record<string, unknown> | undefined;
@@ -192,7 +192,7 @@ function fontStyleEntries(): readonly PropEntry[] {
 export default function ThemesReference(): JSX.Element {
   const schema = schemaFacts();
   const elements = elementGroups();
-  const doc = createMemo(() => starterDoc() as Record<string, unknown>);
+  const doc = createMemo(() => languageDoc() as Record<string, unknown>);
 
   const floorByFg = new Map<string, (typeof FLOORS)[number]>();
   for (const floor of FLOORS) {
@@ -244,7 +244,7 @@ export default function ThemesReference(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Reference"
-        lede="Switch starter themes and every table below updates to show the groups, roles, contrast floors, and element tokens declared by the active theme."
+        lede="Switch design languages and every table below updates to show the groups, roles, contrast floors, and element tokens declared by the active theme."
       />
 
       <Section id="grammar" title="Document keys and token types">
@@ -290,7 +290,7 @@ export default function ThemesReference(): JSX.Element {
       <Section id="roles" title="Required roles by family">
         <p class="max-w-prose">
           Every theme must declare {ROLES.length} required roles. Default
-          values shown below are read live from the active starter theme.
+          values shown below are read live from the active language.
         </p>
         <For each={ROLE_FAMILIES}>
           {(family) => (
@@ -309,7 +309,7 @@ export default function ThemesReference(): JSX.Element {
           all at once, each declared as a composite{" "}
           <code>$type: "typography"</code> tuple in{" "}
           <code>font.style.&lt;name&gt;</code>. The table reads the active
-          starter theme, so switching starters rewrites it; every style, its
+          language, so switching languages rewrites it; every style, its
           element default, and a live specimen lives in the{" "}
           <A href="/docs/styling/prose">Typography guide</A>.
         </p>

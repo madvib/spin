@@ -195,7 +195,7 @@ export interface ThemeDocument {
   [key: string]: unknown;
 }
 
-export function starterDoc(): ThemeDocument {
+export function languageDoc(): ThemeDocument {
   const name = theme();
   return (isDesignLanguage(name) ? designLanguages[name] : designLanguages.editorial) as ThemeDocument;
 }

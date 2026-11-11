@@ -81,8 +81,8 @@ const SPENDERS: Record<string, string> = {
  * The groups whose tokens no rule spends.
  *
  * The switch's depth is one: the switch's elevation comes from the shared
- * `shadow.sm` scale by the switch rule's own design, so the token the
- * starters and the manifest declare is spent by nothing. The stat's number
+  * `shadow.sm` scale by the switch rule's own design, so the token the
+  * languages and the manifest declare is spent by nothing. The stat's number
  * is the stat style's business: the rule reads `font.style.stat` outright,
  * so no atom of its own survives to spend. Each is named here rather than
  * left out, because a group nothing spends is a lie and these are still
@@ -153,8 +153,8 @@ test("a theme that omits an element's token gets the shared scale's answer", asy
 
 test("a theme that omits icon and badge tokens still dresses them from the shared scales", async () => {
   // The fallbacks are a contract with the SHARED scales, and the shared scales
-  // are every starter's. A fallback that worked in silk and fell through in
-  // synthwave would be a component that changes shape with the theme.
+  // are every language's. A fallback that worked in minimal and fell through
+  // in glassmorphic would be a component that changes shape with the theme.
   for (const [name, document] of Object.entries(designLanguages)) {
     const without = structuredClone(
       document as Record<string, unknown>,

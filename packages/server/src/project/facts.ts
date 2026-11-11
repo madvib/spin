@@ -105,7 +105,7 @@ export function isWired(text: string): boolean {
 }
 
 /**
- * The `spin/` directory contents, by starter.
+ * The `spin/` directory contents, by design language.
  *
  * `spin init` is a composer: it writes what each piece knows how to write.
  * Keeping the mapping here — rather than inside either package — is what lets
@@ -118,10 +118,10 @@ export function isWired(text: string): boolean {
 export function initFiles(
   options: {
     readonly name: string;
-    readonly starter: string;
+    readonly language: string;
     readonly bundler?: string;
     readonly themesDir?: string;
-    /** Write the starter's full JSON instead of a sparse `$extends` layer. */
+    /** Write the design language's full JSON instead of a sparse `$extends` layer. */
     readonly vendor?: boolean;
   },
 ): Record<string, string> {
@@ -130,24 +130,24 @@ export function initFiles(
   });
   return {
     [`${options.name}/tokens.json`]: options.vendor === true
-      ? themeText(options.starter)
-      : JSON.stringify({ $extends: options.starter, modes: ["light", "dark"] }, null, 2) + "\n",
+      ? themeText(options.language)
+      : JSON.stringify({ $extends: options.language, modes: ["light", "dark"] }, null, 2) + "\n",
     [config.filename]: config.text,
   };
 }
 
 /**
- * A starter theme as the text written for it.
+ * A design language as the text written for it.
  *
- * A known starter resolves against the shipped registry; anything else
+ * A known language resolves against the shipped registry; anything else
  * throws naming the valid design languages, so `init` never writes a
  * document it does not know.
  */
-function themeText(starter: string): string {
-  if (!isDesignLanguage(starter)) {
+function themeText(language: string): string {
+  if (!isDesignLanguage(language)) {
     throw new Error(
-      `unknown design language "${starter}" — expected one of ${Object.keys(designLanguages).join(", ")}`,
+      `unknown design language "${language}" — expected one of ${Object.keys(designLanguages).join(", ")}`,
     );
   }
-  return JSON.stringify(designLanguages[starter], null, 2) + "\n";
+  return JSON.stringify(designLanguages[language], null, 2) + "\n";
 }

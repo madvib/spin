@@ -50,7 +50,7 @@ export interface Axis {
   readonly value: string;
 }
 
-/** Everything the catalogue shows about one starter. */
+/** Everything the catalogue shows about one language. */
 export interface ThemeSummary {
   readonly name: string;
   /** The document's own one-line statement, when it carries one. */
@@ -143,7 +143,7 @@ function leavesUnder(index: TokenIndex, group: string): TokenIndex["leaves"] {
   return out;
 }
 
-/** One starter, read. */
+/** One language, read. */
 function summarize(name: string, doc: Record<string, unknown>): ThemeSummary {
   const index = indexOf(doc);
   const palette: Swatch[] = [];
@@ -175,15 +175,15 @@ function summarize(name: string, doc: Record<string, unknown>): ThemeSummary {
   };
 }
 
-/** Every starter, read. The order is the package's. */
+/** Every language, read. The order is the package's. */
 export function themeSummaries(): readonly ThemeSummary[] {
   return Object.entries(designLanguages).map(([name, doc]) =>
     summarize(name, doc as Record<string, unknown>)
   );
 }
 
-/** One starter's document, as the package holds it. */
-export function starterDocument(
+/** One language's document, as the package holds it. */
+export function languageDocument(
   name: string,
 ): Record<string, unknown> | undefined {
   return isDesignLanguage(name) ? (designLanguages[name] as Record<string, unknown>) : undefined;

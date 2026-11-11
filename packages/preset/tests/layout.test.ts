@@ -286,7 +286,7 @@ test("a field and a button share one control height", async () => {
 test("a small field lands on the small button height", async () => {
   // The size voices are shared no longer: s-sm on a button reads the label
   // style, while s-sm on a field still reads the ladder's sm step. Both
-  // resolve to the same step in the starters, so the heights agree in
+  // resolve to the same step in the languages, so the heights agree in
   // value — through different variables, until a later slice moves the
   // field onto the same style.
   const css = await sheetFor(
@@ -397,9 +397,9 @@ test("a table's cell does not re-wrap its content", async () => {
 
 test("the layout contract holds in every theme", async () => {
   // The defects were found in one theme and are about the type scale, which
-  // is a theme's own. So the contract is read in every starter: a footer
-  // that wraps in silk wraps in console, and a table with a minimum in one
-  // has it in all of them.
+  // is a theme's own. So the contract is read in every language: a footer
+  // that wraps in minimal wraps in glassmorphic, and a table with a minimum
+  // in one has it in all of them.
   for (const [name, document] of Object.entries(designLanguages)) {
     const css = await sheetFor(
       "<card><card-header><card-title>Deploy</card-title></card-header><card-footer><button>Deploy</button></card-footer></card>" +

@@ -101,7 +101,7 @@ export default function StylingAnimation(): JSX.Element {
 
         <p class="max-w-prose">
           Change the theme&apos;s timing in the Studio or your theme file — or
-          switch starter themes in the top bar right now — and both follow
+          switch design languages in the top bar right now — and both follow
           together (see the motion scale steps in the{" "}
           <A href="/docs/themes/reference#groups">Token Reference</A>).
         </p>

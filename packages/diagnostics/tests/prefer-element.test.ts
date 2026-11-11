@@ -42,7 +42,7 @@ test("a twice-owned ink stays a suggestion", () => {
 });
 
 test("a role ink that shares a resolved hex with color.link is not a link manqué", () => {
-  // `color.link` aliases `{color.primary}` in starter themes, so their
+  // `color.link` aliases `{color.primary}` in shipped languages, so their
   // resolved hex values coincide; only the link token itself (`text-link`)
   // names `<a>`.
   deepStrictEqual(other("span", "text-primary"), []);

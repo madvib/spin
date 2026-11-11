@@ -185,13 +185,13 @@ function unreadable(surfaces: Surfaces): Facts {
 }
 
 /**
- * The facts of a project: its own themes, and the starters beside them.
- *
- * The starters are the fallback, not the owned set: a project that has forked
- * a theme still serves the others, so both are in the vocabulary. And the
- * project's own theme is read LAST, because a value is the project's
- * answer: where the project and the starter it was forked from disagree,
- * the project is what the pages render.
+  * The facts of a project: its own themes, and the design languages beside them.
+  *
+  * The languages are the fallback, not the owned set: a project that has forked
+  * a theme still serves the others, so both are in the vocabulary. And the
+  * project's own theme is read LAST, because a value is the project's
+  * answer: where the project and the language it was forked from disagree,
+  * the project is what the pages render.
  */
 export function projectFacts(
   projectThemes: Record<string, ThemeDocument>,

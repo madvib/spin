@@ -403,7 +403,7 @@
       "brand": {
         "$type": "fontFamily",
         "$value": "Bricolage Grotesque, Space Grotesk, ui-sans-serif, system-ui, sans-serif",
-        "$description": "The logotype face \u2014 one brand, every starter."
+        "$description": "The logotype face — one brand, every language."
       }
     },
     "style": {

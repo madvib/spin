@@ -2,9 +2,9 @@
  * A brand layer is a diff, never a dump: `$extends` names the parent and the
  * layer states only what it owns. This walks a composed document against its
  * parent and keeps what differs — a leaf (anything carrying `$value`) that
- * reads differently, a group that still holds a kept child, an array that is
- * not identical — so a write states the brand's own decisions and a starter
- * fix still reaches every brand layered over it.
+  * reads differently, a group that still holds a kept child, an array that is
+  * not identical — so a write states the brand's own decisions and a language
+  * fix still reaches every brand layered over it.
  *
  * `$description` never decides the diff: documentation rides on kept leaves
  * when they differ, and an identical leaf with different prose is still the

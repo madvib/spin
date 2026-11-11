@@ -151,7 +151,7 @@ describe("the brand surface over RPC, against a temp project", () => {
 
   it("keeps the seeded palette sparse", async () => {
     // A layer is a diff, never a dump: only diverged leaves land, so a
-    // starter fix still reaches every brand layered over it.
+    // language fix still reaches every brand layered over it.
     deepStrictEqual((await created("sparse")).error, null);
     deepStrictEqual((await setLanguage("sparse", "minimal")).error, null);
     const paletted = await setPalette("sparse", "#1c62c2");

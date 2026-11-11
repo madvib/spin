@@ -128,8 +128,8 @@ function iconIn(text: string, name: string): ProjectIcon | null {
 /**
  * The icons a project holds, by name.
  *
- * The project's own files only: there is no shipped set of icons and no
- * starter to fork, because a library is a choice a project makes and
+  * The project's own files only: there is no shipped set of icons and no
+  * language to fork, because a library is a choice a project makes and
  * nobody else's icons are the project's until it saves them.
  */
 export async function listIcons(root: string): Promise<ProjectIcon[]> {

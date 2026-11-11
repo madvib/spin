@@ -3,9 +3,9 @@
  *
  * An endless animation is watched, not answered: a loader's pulse, a
  * spinner, a status dot. Under this floor the loop reads as a strobe, so a
- * fast one is a defect rather than a character choice — which is why both
- * the starter themes' loop duration (`motion.duration.loop`, what every
- * endless animation in the system spends) and the browser check's own
+  * fast one is a defect rather than a character choice — which is why both
+  * the shipped languages' loop duration (`motion.duration.loop`, what every
+  * endless animation in the system spends) and the browser check's own
  * threshold hold this number.
  *
  * The floor belongs to the LOOP, not to the scale: a theme's slowest

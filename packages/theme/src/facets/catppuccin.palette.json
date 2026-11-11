@@ -1,7 +1,7 @@
 {
   "color": {
     "$type": "color",
-    "$description": "Catppuccin Latte by day, Mocha by night: the full palette as a facet over any base theme. State roles directly, so the facet survives a starter whose ramp it never shared.",
+    "$description": "Catppuccin Latte by day, Mocha by night: the full palette as a facet over any base theme. State roles directly, so the facet survives a language whose ramp it never shared.",
     "surface": {
       "$value": "#eff1f5",
       "$description": "Latte base: the page.",

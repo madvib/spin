@@ -150,7 +150,7 @@ function markRule(): SpinRule {
           : {}),
         ...(t.accent !== undefined ? { "background-color": t.accent } : {}),
         // The theme states what reads ON its accent; the page surface is
-        // what the accent sits on, and a starter whose accent is lighter
+        // what the accent sits on, and a language whose accent is lighter
         // than its surface (neobrutalist's amber) makes that pairing illegible.
         ...(t.onAccent !== undefined ? { color: t.onAccent } : {}),
       };
@@ -170,7 +170,7 @@ function insRule(): SpinRule {
         "text-decoration": "underline",
         // The hue marks the insertion in the underline; the TEXT keeps the
         // ink. A semantic colour as text is a fill's pairing worn on a
-        // glyph, and a starter whose success is lighter than its ink
+        // glyph, and a language whose success is lighter than its ink
         // (neobrutalist) fails contrast with it.
         ...(t.success !== undefined
           ? { "text-decoration-color": t.success }

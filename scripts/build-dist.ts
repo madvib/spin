@@ -54,10 +54,10 @@ const SKILL_RENDERERS: Record<string, (template: string) => string> = {
 };
 
 /**
- * The authoring skill files the package ships, rendered from the starters.
+ * The authoring skill files the package ships, rendered from the languages.
  *
  * The house skill renders through SKILL_RENDERERS above; the authoring
- * skill's style list is emitted from the starters' style set, so it ships
+ * skill's style list is emitted from the languages' style set, so it ships
  * rendered the same way, file by file.
  */
 const AUTHORING_SKILL_FILES = ["skill/spin-type.md"];

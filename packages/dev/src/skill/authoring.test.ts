@@ -5,8 +5,8 @@ import { authoringStyles, renderAuthoringSkill } from "./authoring.ts";
 import { designLanguages } from "@spinjs/theme";
 
 /**
- * The skill is the named-type vocabulary's manual, and the file an agent
- * installs is assembled from the starters: the styles it walks are the
+  * The skill is the named-type vocabulary's manual, and the file an agent
+  * installs is assembled from the languages: the styles it walks are the
  * styles the themes declare, and the guidance for each of them is the
  * guidance the file carries. These tests hold the assembly to that.
  */
@@ -29,12 +29,12 @@ function checklistStyles(text: string): readonly string[] {
   return styles;
 }
 
-/** The styles the starters declare, as the utilities that spend them. */
+/** The styles the languages declare, as the utilities that spend them. */
 function expectedStyles(): readonly string[] {
   return [...authoringStyles()].map((name) => `type-${name}`);
 }
 
-test("the skill walks exactly the styles the starters declare", async () => {
+test("the skill walks exactly the styles the languages declare", async () => {
   const template = await readFile(TEMPLATE, "utf8");
   const styles = checklistStyles(renderAuthoringSkill(template));
   assert(styles.length > 0, "the skill carries a style list");
@@ -95,7 +95,7 @@ test("everything outside the style list is the file's own text", () => {
   );
 });
 
-test("the skill's style list is the starters' style list", async () => {
+test("the skill's style list is the languages' style list", async () => {
   const template = await readFile(TEMPLATE, "utf8");
   const rendered = renderAuthoringSkill(template);
   const styles = rendered.slice(rendered.indexOf("## The styles"));

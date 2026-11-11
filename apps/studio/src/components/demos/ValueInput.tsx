@@ -294,7 +294,7 @@ export default function ValueInput(props: {
  * The reset: the token back to the value the theme declares.
  *
  * The value the theme declares is the PROJECT's document — the file the
- * project holds, or the starter it has not forked — and never the studio's
+  * project holds, or the language it has not forked — and never the studio's
  * own theme: the studio wears its own theme, and a reset that put a token
  * back to the studio's value would move the project towards the tool.
  *

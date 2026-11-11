@@ -57,8 +57,8 @@ function themeTreeOrParse(): TokenTree {
  *
  * The behaviour is the kit's: one signal pair, one document-element effect,
  * one persistence pair, and a stored choice clamped to a theme that exists.
- * The app brings only the documents it serves — the starters plus the
- * project's own `spin/*.json`.
+  * The app brings only the documents it serves — the languages plus the
+  * project's own `spin/*.json`.
  */
 function useTheme(): ThemeState {
   return createThemeState({
@@ -583,7 +583,7 @@ function Rail(props: {
           fallback={
             <p class={RAIL_EMPTY}>
               {montage()
-                ? "Every starter theme, side by side. The page compares them."
+                ? "Every language, side by side. The page compares them."
                 : `No ${
                   utilities() ? "section" : "component"
                 } matches “${props.query()}”.`}

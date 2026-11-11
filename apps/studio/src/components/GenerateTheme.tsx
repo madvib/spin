@@ -17,7 +17,7 @@ import { seedTokens } from "../lib/overview.ts";
 
 const TITLES = ["Source", "Palette", "Name"];
 
-function defaultStarter(): string {
+function defaultSource(): string {
   const all = registry() ?? [];
   for (const theme of all) {
     try {
@@ -31,14 +31,14 @@ function defaultStarter(): string {
 
 export function GenerateTheme(props: { onDone: () => void; onCancel: () => void }) {
   const [step, setStep] = createSignal(0);
-  const [starterName, setStarterName] = createSignal<string>(defaultStarter());
+  const [sourceName, setSourceName] = createSignal<string>(defaultSource());
 
-  const starterText = createMemo<string>(() => {
-    const found = (registry() ?? []).find((t) => t.name === starterName());
+  const sourceText = createMemo<string>(() => {
+    const found = (registry() ?? []).find((t) => t.name === sourceName());
     return found?.text ?? "";
   });
 
-  const seeds = createMemo(() => seedTokens(starterText()));
+  const seeds = createMemo(() => seedTokens(sourceText()));
 
   const [primary, setPrimary] = createSignal<string>(seeds().primary);
   const [secondary, setSecondary] = createSignal<string>(seeds().secondary);
@@ -56,7 +56,7 @@ export function GenerateTheme(props: { onDone: () => void; onCancel: () => void 
 
   async function create(): Promise<void> {
     const next = name().trim();
-    if (next === "" || starterName() === "") return;
+    if (next === "" || sourceName() === "") return;
     setProblem(null);
     try {
       const tokens: Record<string, unknown> = {
@@ -67,7 +67,7 @@ export function GenerateTheme(props: { onDone: () => void; onCancel: () => void 
           accent: { $value: accent() },
         },
       };
-      const created = await createFacet(starterName(), next, "palette", tokens);
+      const created = await createFacet(sourceName(), next, "palette", tokens);
       if (created.error !== null) {
         setProblem(created.error);
         return;
@@ -176,9 +176,9 @@ export function GenerateTheme(props: { onDone: () => void; onCancel: () => void 
                   <button
                     type="button"
                     class="bare min-w-0 overflow-hidden rounded-md border p-1 text-left"
-                    classList={{ "border-primary border-2": starterName() === theme.name }}
-                    aria-pressed={starterName() === theme.name}
-                    onClick={() => setStarterName(theme.name)}
+                    classList={{ "border-primary border-2": sourceName() === theme.name }}
+                    aria-pressed={sourceName() === theme.name}
+                    onClick={() => setSourceName(theme.name)}
                   >
                     <ThemePreview text={theme.text} name={theme.name} static />
                   </button>
@@ -243,7 +243,7 @@ export function GenerateTheme(props: { onDone: () => void; onCancel: () => void 
       </div>
 
       <div class="sticky top-0 min-w-0">
-        <ThemePreview text={starterText()} name={previewName()} />
+        <ThemePreview text={sourceText()} name={previewName()} />
       </div>
     </div>
   );

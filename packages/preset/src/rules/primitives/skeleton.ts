@@ -38,8 +38,8 @@ function tokens(ctx: ThemeContext | undefined) {
 /**
  * The block — the placeholder itself.
  *
- * The sunken well mixed toward the muted ink, not `field`: a placeholder is
- * the hole the content has not filled yet, and on the light starters the
+  * The sunken well mixed toward the muted ink, not `field`: a placeholder is
+  * the hole the content has not filled yet, and on the light languages the
  * field is white on a near-white page — invisible. The mix keeps the block
  * legible on a tinted surface without minting a new token.
  */

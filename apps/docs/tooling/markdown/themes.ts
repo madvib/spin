@@ -5,7 +5,7 @@ import { THEMES_SNIPPETS } from "../../src/pages/docs/themes/themes.snippets.ts"
 export function buildThemeMarkdown(routePath: string): string | undefined {
   switch (routePath) {
     case "/docs/themes/overview": {
-      const starters = themeSummaries()
+      const languages = themeSummaries()
         .map(
           (s) =>
             `- **\`${s.name}\`** (${s.modes.join(", ")}): ${s.thesis ?? ""}`,
@@ -16,11 +16,11 @@ export function buildThemeMarkdown(routePath: string): string | undefined {
         "",
         "Open the Studio (`/__spin/studio/` on Vite or `npx spin studio`) to create, fork, and edit themes visually against your live application. Edits preview in memory and save to `spin/<brand>/tokens.json` and `spin/config.json`.",
         "",
-        "## Starter Palettes",
+        "## Design Languages",
         "",
-        starters,
+        languages,
         "",
-        "New projects start from a starter without copying it: write a sparse document naming the starter in `\"$extends\"` with only your own overrides (`--vendor` writes a standalone snapshot instead):",
+        "New projects start from a design language without copying it: write a sparse document naming the language in `\"$extends\"` with only your own overrides (`--vendor` writes a standalone snapshot instead):",
         "",
         "```json",
         THEMES_SNIPPETS.sparseExtends,
@@ -137,7 +137,7 @@ export function buildThemeMarkdown(routePath: string): string | undefined {
         "",
         "## Thirteen Type Styles (`font.style.<name>`, `$type: \"typography\"`)",
         "",
-        "Each named type style is a composite tuple of family, size, weight, tracking, and leading, spent with `type-<name>`. Thirteen ship with every starter (`display`, `title`, `heading`, `subtitle`, `lead`, `body`, `body-emphasized`, `quote`, `code`, `label`, `caption`, `caption-emphasized`, `overline`):",
+        "Each named type style is a composite tuple of family, size, weight, tracking, and leading, spent with `type-<name>`. Thirteen ship with every language (`display`, `title`, `heading`, `subtitle`, `lead`, `body`, `body-emphasized`, `quote`, `code`, `label`, `caption`, `caption-emphasized`, `overline`):",
         "",
         "```json",
         THEMES_SNIPPETS.compositeStyle,

@@ -552,13 +552,13 @@ test("a theme in force beats the root theme's dark block", () => {
   // The bug this covers: the root theme's dark block was `:root[data-mode="dark"]`
   // — a pseudo-class and an attribute — while a project's theme block was a bare
   // `[data-theme="x"]`. The dark block won, so a project theme rendered the
-  // starter's palette in dark mode, and the rule "a mode you serve but do not
+  // language's palette in dark mode, and the rule "a mode you serve but do not
   // override falls back to your base" was false for every theme but the first.
-  const starter = parseTokens(minimalLanguage);
-  assert(starter.ok);
+  const minimal = parseTokens(minimalLanguage);
+  assert(minimal.ok);
   const css = generateThemeCss(
-    { starter: starter.tree, project: starter.tree },
-    { rootTheme: "starter" },
+    { minimal: minimal.tree, project: minimal.tree },
+    { rootTheme: "minimal" },
   );
 
   // The root theme's blocks are defaults: no specificity of their own, so any

@@ -82,9 +82,9 @@ export function buildRootOf(filename: string): string | undefined {
  * The facts for the file being linted.
  *
  * The project is the file's own: the nearest ancestor holding a `spin/`
- * directory. A file outside any project falls back to the tool's root, and
- * a file outside that too falls back to the starters — the vocabulary a
- * project serves before it forks a theme of its own.
+  * directory. A file outside any project falls back to the tool's root, and
+  * a file outside that too falls back to the design languages — the vocabulary a
+  * project serves before it forks a theme of its own.
  *
  * The shortcuts are the project's own too, and they come from the build
  * configuration beside the file: a class the project declared is a class

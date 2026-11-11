@@ -1887,7 +1887,7 @@
             },
             "brand": {
               "type": "object",
-              "description": "The logotype face — one brand, every starter.",
+              "description": "The logotype face — one brand, every language.",
               "additionalProperties": false,
               "required": [
                 "$value"

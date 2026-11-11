@@ -143,7 +143,7 @@ export async function deadClasses(input: Omit<StrictClassesInput, "strict" | "en
   // come from this same call, so the build error and the lint cannot
   // disagree. The oracle needs the engine's families, so they are answered
   // from the project's own themes first — the families are what the sheet
-  // was generated from, not the starters the lint falls back to.
+  // was generated from, not the languages the lint falls back to.
   const oracle = deriveVocabulary({
     trees,
     answers: engineAnswers(Object.values(input.themes)),

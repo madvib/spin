@@ -10,7 +10,7 @@
  * group nothing spends is a lie, and a token that restates a scale step is a
  * second name for it.
  *
- * Each declaration carries the path, the type, the value a starter
+ * Each declaration carries the path, the type, the value a language
  * states, the documentation an editor shows, and the GLOBAL path a theme
  * falls back to when it omits this one. The fallback is what makes a group
  * safe to leave out: a theme that says nothing about the card's corner gets
@@ -18,8 +18,8 @@
  *
  * The groups are optional. A theme may declare none of them and still be a
  * complete theme; the primitives fall back to the shared scales, and the
- * stylesheet says which one it spent. A starter states all of them,
- * because a starter is the document an author copies, and an author should
+ * stylesheet says which one it spent. A language states all of them,
+ * because a language is the document an author reads, and an author should
  * be shown the decisions rather than the gaps.
  */
 
@@ -30,7 +30,7 @@ import { aliasTarget } from "../pipeline/resolve.ts";
 import { asRecord } from "../json.ts";
 import type { TokenType } from "../pipeline/types.ts";
 
-/** One thing an element owns, and everything a starter states for it. */
+/** One thing an element owns, and everything a language states for it. */
 export interface ElementDeclaration {
   /** The group the token lives in — `card`, `alert`, `field`. */
   readonly group: string;
@@ -40,10 +40,9 @@ export interface ElementDeclaration {
   readonly path: string;
   readonly type: TokenType;
   /**
-   * What a starter states. Valid, legible, and a finished look.
+   * What a language states. Valid, legible, and a finished look.
    *
    * A literal, never an alias: the value is what the primitive wears when
-   * the theme omits this token and no global fallback answers.
    */
   readonly value: string | number | boolean;
   readonly doc: string;
@@ -117,12 +116,12 @@ function walkScalar(
 }
 
 /**
- * Starter literals for alias targets the reference scales do not state.
- *
- * Ink and elevation live in the starters, not the reference — so an alias
- * into them resolves to the value the starter states instead.
- */
-const STARTER_LITERALS: Record<string, string> = {
+  * Language literals for alias targets the reference scales do not state.
+  *
+  * Ink and elevation live in the languages, not the reference — so an alias
+  * into them resolves to the value the language states instead.
+  */
+const LANGUAGE_LITERALS: Record<string, string> = {
   "color.border": "#e5e5e5",
   "color.border-strong": "#999999",
   "color.surface-sunken": "#f0f0f0",
@@ -159,13 +158,13 @@ function resolveReference(
 }
 
 /**
- * The literal a starter states for a raw `$value`.
- *
- * Aliases resolve against the reference scales; ink and elevation aliases
- * resolve to the literals above. A literal arrives as written, except a
- * shadow literal rests at `none` — the starters state no ladder to spend.
- */
-function starterValue(
+  * The literal a language states for a raw `$value`.
+  *
+  * Aliases resolve against the reference scales; ink and elevation aliases
+  * resolve to the literals above. A literal arrives as written, except a
+  * shadow literal rests at `none` — the languages state no ladder to spend.
+  */
+function languageValue(
   type: TokenType,
   raw: unknown,
 ): string | number | boolean {
@@ -179,10 +178,10 @@ function starterValue(
     ) {
       return raw;
     }
-    throw new Error(`contract: no starter literal for ${JSON.stringify(raw)}`);
+    throw new Error(`contract: no language literal for ${JSON.stringify(raw)}`);
   }
   if (type === "shadow" || target.startsWith("shadow.")) return "none";
-  const literal = STARTER_LITERALS[target] ?? resolveReference(target);
+  const literal = LANGUAGE_LITERALS[target] ?? resolveReference(target);
   if (literal !== undefined) return literal;
   throw new Error(
     `contract: element token aliases an unknown target {${target}}`,
@@ -217,7 +216,7 @@ export const ELEMENT_ROLES: readonly ElementDeclaration[] = [
     element: leaf.path[0] as string,
     path: leaf.path.join("."),
     type: leaf.type,
-    value: starterValue(leaf.type, leaf.value),
+    value: languageValue(leaf.type, leaf.value),
     doc: leaf.doc,
     ...(target === null ? {} : { fallback: target }),
   };

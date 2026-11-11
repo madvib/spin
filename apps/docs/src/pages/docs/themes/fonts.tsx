@@ -75,7 +75,7 @@ export default function ThemesFonts(): JSX.Element {
           />
         </div>
         <p class="max-w-prose">
-          Thirteen styles ship with every starter — <code>display</code>,{" "}
+          Thirteen styles ship with every language — <code>display</code>,{" "}
           <code>title</code>, <code>heading</code>, <code>subtitle</code>,{" "}
           <code>lead</code>, <code>body</code>, <code>body-emphasized</code>,{" "}
           <code>quote</code>, <code>code</code>, <code>label</code>,{" "}

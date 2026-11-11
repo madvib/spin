@@ -47,14 +47,14 @@ test("a mode a document spells as a group is not one of its groups", () => {
   deepStrictEqual(documentGroups({ color: {}, dark: {} }), ["color"]);
 });
 
-test("every group the contract declares is one the starters state", () => {
-  // The contract is the owned set and the starters are its expression, so the two
-  // have to agree: a group the contract requires that no starter states is a
+test("every group the contract declares is one the languages state", () => {
+  // The contract is the owned set and the languages are its expression, so the two
+  // have to agree: a group the contract requires that no language states is a
   // group the product cannot spend.
   const stated = new Set(
     Object.values(designLanguages).flatMap((doc) => documentGroups(doc)),
   );
   for (const group of contractGroups()) {
-    assert(stated.has(group), `no starter states the ${group} group`);
+    assert(stated.has(group), `no language states the ${group} group`);
   }
 });

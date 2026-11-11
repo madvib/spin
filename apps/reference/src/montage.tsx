@@ -1,5 +1,5 @@
 /**
- * THE MONTAGE — every starter theme, side by side.
+  * THE MONTAGE — every design language, side by side.
  *
  * A theme is judged by what it does to the same content, so the content is
  * held still: one screen, one set of words, one set of sizes, rendered once
@@ -234,7 +234,7 @@ export function MontagePage() {
         <span class={BADGE}>{THEMES.length} themes</span>
       </header>
       <p class={LEAD}>
-        Every starter theme, side by side: one screen in each, the same words at
+        Every design language, side by side: one screen in each, the same words at
         the same sizes, so the themes can be compared rather than admired one at
         a time. A theme that serves a dark mode shows both of its renderings.
       </p>

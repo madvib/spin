@@ -163,8 +163,8 @@ export interface EngineAnswers {
  * What a caller states about the documents it hands over.
  *
  * Composed themes owe the full contract (the default); fragments owe
- * nothing — a documentation specimen's layer is read for what it says, not
- * for what the starter beside it already declares. Callers state which.
+  * nothing — a documentation specimen's layer is read for what it says, not
+  * for what the language beside it already declares. Callers state which.
  */
 export interface SurfacesOptions {
   /** The dotted paths every document must declare. Defaults to the full contract. */

@@ -114,7 +114,7 @@ test("a floor that holds offers nothing: there is nothing to fix", () => {
  *
  * The success green clears the floor on white and disappears on ink; the
  * base declares both, so the base is the light side and dark is the
- * restatement — the arrangement every two-mode starter has.
+  * restatement — the arrangement every two-mode language has.
  */
 function darkFailure(): string {
   return JSON.stringify({

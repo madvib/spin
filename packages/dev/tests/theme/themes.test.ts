@@ -31,21 +31,19 @@ import {
 /**
  * The battery, run over the themes this package ships — and over a theme a
  * PROJECT ships, which is the one the skill tells an author to write.
- *
- * A starter is what a consumer copies, so what matters here is not that its
+ * A language is what a consumer reads, so what matters here is not that its
  * particular hexes are pleasant but that the shape a real theme has survives
  * the pipeline end to end: two files parse, both validate, one stylesheet
  * comes out with a light block and a dark block, and a dark-mode consumer
  * reads different colors and the same spacing.
  *
  * The battery itself lives in the package (`themeGates`), because it has to
- * run against ANY document — a starter, a project's own theme, a file an
+ * run against ANY document — a language, a project's own theme, a file an
  * author is halfway through. A battery that only runs against the shipped
- * starters cannot answer the question the skill asks: "does MY theme pass?".
+ * languages cannot answer the question the skill asks: "does MY theme pass?".
  */
-
-// The SHIPPED starter themes, not fixtures: these are the product, and
-// a consumer picks one and customises it rather than writing a theme
+// The SHIPPED design languages, not fixtures: these are the product, and
+// a consumer picks one and extends it rather than writing a theme
 // from scratch.
 const THEMES_DIR = new URL("../../../theme/src/languages/", import.meta.url);
 
@@ -316,11 +314,11 @@ test("the example theme's light document validates on its own", async () => {
 });
 
 /**
- * What each starter serves, as a fixture decision.
- *
- * `satisfies` against the registry's own key type is the totality audit: a
- * starter added to the package cannot compile until its mode posture is
- * written down here, so this list can never quietly skip a theme.
+  * What each language serves, as a fixture decision.
+  *
+  * `satisfies` against the registry's own key type is the totality audit: a
+  * language added to the package cannot compile until its mode posture is
+  * written down here, so this list can never quietly skip a theme.
  */
 const DECLARED_MODES = {
   minimal: ["light", "dark"],
@@ -337,7 +335,7 @@ test("a theme states its modes at the root", async () => {
   // this theme carry a dark override set?" cannot tell a base-that-is-dark
   // from a theme that never declares one. `modes` says what it serves.
   for (const [name, modes] of Object.entries(DECLARED_MODES)) {
-    // The served document, not the sparse file: a starter layers over the
+    // The served document, not the sparse file: a language layers over the
     // base, and the modes it serves are what the resolved document states.
     const doc = designLanguages[name as DesignLanguageName] as Record<string, unknown>;
     deepStrictEqual(
@@ -379,10 +377,10 @@ test("a theme that serves a mode it does not override is valid", async () => {
 });
 
 test("a theme declares the modes it actually has", async () => {
-  // Not "every starter carries a dark group" — that was the wrong property,
-  // and it was wrong for console, whose BASE is already dark: a terminal
-  // palette has no light mode, and generating a `dark` group from its own
-  // base restated it and added nothing.
+  // Not "every language carries a dark group" — that was the wrong property,
+  // and it was wrong for dark-first palettes, whose BASE is already dark: a
+  // terminal palette has no light mode, and generating a `dark` group from its
+  // own base restated it and added nothing.
   //
   // The set of modes a theme reports is what it DECLARES at its root, so a
   // theme that drops the field answers nothing rather than answering from a
@@ -761,13 +759,13 @@ test("the checked-in token types are what the baseline generates", async () => {
 /* ------------------------------------------------------------- the battery -- */
 
 /**
- * The battery, over every starter this package ships.
- *
- * The starters are the product, so they are held to the same gates a
- * project's own theme is: the completeness of the document, the floors in
- * every mode it serves, the ladders, the loop, and the modes.
- */
-test("every starter passes the battery", async () => {
+  * The battery, over every language this package ships.
+  *
+  * The languages are the product, so they are held to the same gates a
+  * project's own theme is: the completeness of the document, the floors in
+  * every mode it serves, the ladders, the loop, and the modes.
+  */
+test("every language passes the battery", async () => {
   for (const name of Object.keys(designLanguages) as DesignLanguageName[]) {
     const text = await readFile(
       new URL(`${name}.json`, THEMES_DIR),
@@ -786,7 +784,7 @@ test("every starter passes the battery", async () => {
 /**
  * A PROJECT's theme: a document written for a product, not for the package.
  *
- * It is built from a starter because that is how a project usually starts —
+  * It is built from a language because that is how a project usually starts —
  * a fork — and then broken in the ways a theme breaks: an unreadable badge, a
  * ladder that descends, a loop under the strobe floor, a dark mode that
  * restates nothing, ink that cannot be read on a raised sheet, a fill with no

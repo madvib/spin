@@ -1,5 +1,5 @@
 /**
- * The authoring skill's style list, emitted from the starters' style set.
+  * The authoring skill's style list, emitted from the languages' style set.
  */
 
 import { designLanguages, type ThemeDocument } from "@spinjs/theme";
@@ -14,7 +14,7 @@ const UNDESCRIBED =
   "**For.** The theme declares this style; nothing here says what it is for yet.";
 
 /**
- * The styles the starters declare, in the order the documents read them.
+  * The styles the languages declare, in the order the documents read them.
  */
 export function authoringStyles(): readonly string[] {
   const styles: string[] = [];
@@ -39,7 +39,7 @@ function documentStyles(document: ThemeDocument): readonly string[] {
 }
 
 /**
- * The skill, assembled from the template and the starters.
+  * The skill, assembled from the template and the languages.
  */
 export function renderAuthoringSkill(template: string): string {
   const lines = template.split("\n");

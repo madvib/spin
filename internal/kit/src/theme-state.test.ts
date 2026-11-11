@@ -1,20 +1,20 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
+import { createRoot } from "solid-js";
 import { designLanguages } from "@spinjs/theme";
 import { createThemeState } from "./theme-state.ts";
-
 /**
  * The theme state an app creates over its own documents.
- *
- * The default state knows the shipped starters. The reference app serves the
- * project's `spin/*.json` beside them, so it builds its own — and the rules a
+  *
+  * The default state knows the shipped languages. The reference app serves the
+  * project's `spin/*.json` beside them, so it builds its own — and the rules a
  * control needs are the same: a name the app does not hold is not served, and
  * a mode the theme does not declare is not rendered.
  */
 
 /** A storage pair no other test shares, so one state cannot seed another. */
 function storage(name: string) {
-  return { theme: `kit-test-${name}:theme`, mode: `kit-test-${name}:mode` };
+  return { theme: `kit-test-${name}:theme`, mode: `kit-test-${name}:mode`, palette: `kit-test-${name}:palette`, spacing: `kit-test-${name}:spacing` };
 }
 
 test("a stored theme the app does not hold falls back to one it does", () => {
@@ -69,4 +69,76 @@ test("a two-mode theme keeps the mode the reader asked for", () => {
   deepStrictEqual(state.mode(), "dark");
   state.setMode("light");
   deepStrictEqual(state.mode(), "light");
+});
+
+test("default theme state exposes demo palette and spacing axes while custom document maps default facets to empty", () => {
+  const defaults = createThemeState({
+    storage: storage("default-facets"),
+    followSystem: false,
+  });
+  deepStrictEqual(defaults.palettes, ["catppuccin", "terracotta"]);
+  deepStrictEqual(defaults.spacings, ["compact", "spacious"]);
+  deepStrictEqual(defaults.palette(), "");
+  deepStrictEqual(defaults.spacing(), "");
+
+  const custom = createThemeState({
+    documents: { minimal: designLanguages.minimal },
+    storage: storage("custom-no-facets"),
+    followSystem: false,
+  });
+  deepStrictEqual(custom.palettes, []);
+  deepStrictEqual(custom.spacings, []);
+});
+
+test("palette and spacing selections clamp unknown names and sync data-palette and data-spacing on documentElement", () => {
+  const dataset: Record<string, string | undefined> = {};
+  const store = new Map<string, string>();
+  const previousDoc = (globalThis as Record<string, unknown>)["document"];
+  const previousStorage = (globalThis as Record<string, unknown>)["localStorage"];
+  (globalThis as Record<string, unknown>)["document"] = {
+    documentElement: { dataset },
+  };
+  (globalThis as Record<string, unknown>)["localStorage"] = {
+    getItem: (key: string) => store.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      store.set(key, value);
+    },
+    removeItem: (key: string) => {
+      store.delete(key);
+    },
+  };
+  try {
+    createRoot((dispose) => {
+      const state = createThemeState({
+        initialTheme: "editorial",
+        initialMode: "dark",
+        palettes: ["catppuccin", "terracotta"],
+        spacings: ["compact", "spacious"],
+        storage: storage("dom-facets"),
+        followSystem: false,
+      });
+      state.setPalette("catppuccin");
+      state.setSpacing("spacious");
+      deepStrictEqual(state.palette(), "catppuccin");
+      deepStrictEqual(state.spacing(), "spacious");
+
+      state.setPalette("unknown-palette");
+      state.setSpacing("unknown-spacing");
+      deepStrictEqual(state.palette(), "catppuccin");
+      deepStrictEqual(state.spacing(), "spacious");
+      state.flush();
+      deepStrictEqual(dataset["palette"], "catppuccin");
+      deepStrictEqual(dataset["spacing"], "spacious");
+
+      state.setPalette("");
+      state.setSpacing("");
+      state.flush();
+      deepStrictEqual(dataset["palette"], undefined);
+      deepStrictEqual(dataset["spacing"], undefined);
+      dispose();
+    });
+  } finally {
+    (globalThis as Record<string, unknown>)["document"] = previousDoc;
+    (globalThis as Record<string, unknown>)["localStorage"] = previousStorage;
+  }
 });

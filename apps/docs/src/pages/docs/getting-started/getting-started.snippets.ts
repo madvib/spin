@@ -3,7 +3,7 @@
  */
 export const GETTING_STARTED_SNIPPETS = {
   install: `npm install -D @spinjs/dev\nnpm install @spinjs/components`,
-  init: `npx spin init --name acme --starter minimal`,
+  init: `npx spin init --name acme --language minimal`,
   brandTree: `spin/
   brand.json              # { "name": "acme" }
   acme/

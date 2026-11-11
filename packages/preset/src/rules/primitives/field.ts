@@ -138,7 +138,7 @@ export function fieldBox(): SpinRule {
         width: "100%",
         // The control-height floor, from the same three theme values the
         // button derives it from: a field beside a button is the same object
-        // at the same height, in every starter, whatever the theme's leading.
+        // at the same height, in every language, whatever the theme's leading.
         ...(fontSize !== undefined && spacing2 !== undefined &&
             borderWidth !== undefined
           ? {

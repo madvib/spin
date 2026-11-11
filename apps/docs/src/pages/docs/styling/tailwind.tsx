@@ -9,7 +9,7 @@ import { A } from "@solidjs/router";
 import { createSignal, For } from "solid-js";
 import type { JSX } from "solid-js";
 import { mode, theme } from "@spinjs/kit";
-import { PageHeader, Section, Specimen, starterDoc } from "../../../ui/index.ts";
+import { PageHeader, Section, Specimen, languageDoc } from "../../../ui/index.ts";
 
 const TRANSFERS_SNIPPET = `<div class="rounded-lg border bg-surface p-4">
   <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -172,7 +172,7 @@ function readThemeToken(
   step: string,
   fallback: string,
 ): string {
-  const doc = starterDoc() as Record<string, unknown>;
+  const doc = languageDoc() as Record<string, unknown>;
   const table = doc[group] as Record<string, { $value?: unknown }> | undefined;
   const raw = table?.[step]?.$value;
   return typeof raw === "string" || typeof raw === "number"

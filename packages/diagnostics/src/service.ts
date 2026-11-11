@@ -308,7 +308,7 @@ export async function lintFiles(
     }
     // A theme document is judged by the battery, gate by gate: each gate's
     // issues land as their own findings, located at the token they name. A
-    // brand layer is a fragment — the brand's own voice over its starter —
+    // brand layer is a fragment — the brand's own voice over its language —
     // so it owes soundness, never the parent's declarations: the required
     // set is empty inside a brand directory, the full contract elsewhere.
     if (file.endsWith(".json")) {
@@ -340,8 +340,8 @@ export async function lintFiles(
  * Whether a theme file is a brand layer rather than a composed document.
  *
  * A brand directory holds the brand's own voice in layers — `tokens.json`,
- * `reference.json`, `elements.json`, `primitives/*.json` — and each layer
- * is a fragment over the starter the brand names. Flat `spin/<name>.json`
+  * `reference.json`, `elements.json`, `primitives/*.json` — and each layer
+  * is a fragment over the design language the brand names. Flat `spin/<name>.json`
  * files beside them are composed documents, and owe the full contract.
  */
 function isBrandLayer(file: string): boolean {

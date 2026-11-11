@@ -12,7 +12,7 @@ import {
   PropList,
   Section,
   Specimen,
-  starterDoc,
+  languageDoc,
   type PropEntry,
 } from "../../../ui/index.ts";
 
@@ -313,7 +313,7 @@ function readComponentToken(
   fallbackStep: string,
   defaultLiteral: string,
 ): string {
-  const doc = starterDoc() as Record<string, unknown>;
+  const doc = languageDoc() as Record<string, unknown>;
   const primaryTable = doc[group] as
     | Record<string, { $value?: unknown }>
     | undefined;
@@ -338,7 +338,7 @@ function readStyleToken(
   fallbackStep: string,
   defaultLiteral: string,
 ): string {
-  const doc = starterDoc() as Record<string, unknown>;
+  const doc = languageDoc() as Record<string, unknown>;
   const font = doc["font"] as Record<string, unknown> | undefined;
   const styles = font?.["style"] as
     | Record<string, Record<string, { $value?: unknown }>>
@@ -374,7 +374,7 @@ export default function StylingElements(): JSX.Element {
           how a control looks once in <code>spin/&lt;brand&gt;/tokens.json</code>,
           every <code>&lt;button&gt;</code>, <code>&lt;card&gt;</code>, and{" "}
           <code>&lt;input&gt;</code> across your application agrees without a
-          utility list repeated on every tag. Switch starter themes or toggle
+          utility list repeated on every tag. Switch design languages or toggle
           light and dark mode in the top bar to see the live controls below
           update together:
         </p>
@@ -557,7 +557,7 @@ export default function StylingElements(): JSX.Element {
                 </div>
                 <div class="flex flex-col gap-2 border-t pt-3">
                   <small>
-                    Active starter component tokens on <code>&lt;button&gt;</code>{" "}
+                    Active language component tokens on <code>&lt;button&gt;</code>{" "}
                     and <code>&lt;card&gt;</code>:
                   </small>
                   <div class="flex flex-wrap items-center gap-2">

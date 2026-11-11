@@ -35,7 +35,13 @@ import {
   Mark,
   type MarkPluckEvent,
   mode,
+  palette,
+  palettes,
+  setPalette,
+  setSpacing,
   setTheme,
+  spacing,
+  spacings,
   languageList,
   theme,
 } from "@spinjs/kit";
@@ -199,10 +205,12 @@ export default function Home(): JSX.Element {
 
   /** The custom property a token path resolves to. */
   const cssVarOf = (path: string): string => `--${path.replaceAll(".", "-")}`;
-  /** The value the active theme and mode paint, read from the document. */
+  /** The value the active appearance paints, read from the document. */
   const liveTokenValue = (path: string): string => {
     theme();
     mode();
+    palette();
+    spacing();
     if (typeof document === "undefined") return "";
     return getComputedStyle(document.documentElement)
       .getPropertyValue(cssVarOf(path))
@@ -612,25 +620,67 @@ export default function Home(): JSX.Element {
                 </button>
               </div>
 
-              <div class="hidden max-w-full flex-wrap items-center gap-1 sm:flex">
-                <span class="pr-1 type-code text-muted">
-                  Theme:
-                </span>
-                <For each={languageList}>
-                  {(name) => (
-                    <button
-                      type="button"
-                      onClick={() => setTheme(name)}
-                       class={`bare rounded-full border px-2 py-1 transition-colors duration-fast ${
-                        theme() === name
-                          ? "border-primary bg-primary type-body-emphasized text-on-primary"
-                          : "border bg-surface-raised type-code text-muted hover:border-strong"
-                      }`}
-                    >
-                      {name}
-                    </button>
-                  )}
-                </For>
+              <div class="hidden max-w-full flex-col gap-2 sm:flex">
+                <div class="flex max-w-full flex-wrap items-center gap-1">
+                  <span class="pr-1 type-code text-muted">
+                    Language:
+                  </span>
+                  <For each={languageList}>
+                    {(name) => (
+                      <button
+                        type="button"
+                        onClick={() => setTheme(name)}
+                         class={`bare rounded-full border px-2 py-1 transition-colors duration-fast ${
+                          theme() === name
+                            ? "border-primary bg-primary type-body-emphasized text-on-primary"
+                            : "border bg-surface-raised type-code text-muted hover:border-strong"
+                        }`}
+                      >
+                        {name}
+                      </button>
+                    )}
+                  </For>
+                </div>
+                <div class="flex max-w-full flex-wrap items-center gap-1">
+                  <span class="pr-1 type-code text-muted">
+                    Palette:
+                  </span>
+                  <For each={[{ value: "", label: "Default" }, ...palettes.map((name) => ({ value: name, label: name }))]}>
+                    {(option) => (
+                      <button
+                        type="button"
+                        onClick={() => setPalette(option.value)}
+                         class={`bare rounded-full border px-2 py-1 transition-colors duration-fast ${
+                          palette() === option.value
+                            ? "border-primary bg-primary type-body-emphasized text-on-primary"
+                            : "border bg-surface-raised type-code text-muted hover:border-strong"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    )}
+                  </For>
+                </div>
+                <div class="flex max-w-full flex-wrap items-center gap-1">
+                  <span class="pr-1 type-code text-muted">
+                    Density:
+                  </span>
+                  <For each={[{ value: "", label: "Default" }, ...spacings.map((name) => ({ value: name, label: name }))]}>
+                    {(option) => (
+                      <button
+                        type="button"
+                        onClick={() => setSpacing(option.value)}
+                        class={`bare rounded-full border px-2 py-1 transition-colors duration-fast ${
+                          spacing() === option.value
+                            ? "border-primary bg-primary type-body-emphasized text-on-primary"
+                            : "border bg-surface-raised type-code text-muted hover:border-strong"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    )}
+                  </For>
+                </div>
               </div>
             </section>
           </Match>
@@ -645,7 +695,7 @@ export default function Home(): JSX.Element {
               class="pointer-events-auto my-auto flex w-full min-w-0 max-w-full flex-col items-start gap-2 sm:gap-3"
             >
               <span class="type-code uppercase text-primary">
-                01 · Themes · Multi-Brand &amp; Dark Mode
+                01 · Appearance · Language · Palette · Density · Mode
               </span>
               <div class="flex max-w-full flex-col gap-1 rounded-md bg-surface/40 py-1 backdrop-blur-xs sm:gap-2">
                 <h2>

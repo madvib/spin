@@ -18,7 +18,7 @@ triggers:
 A spin theme is one JSON document of design tokens. The build reads it and
 writes CSS custom properties; every utility and every element in the library
 resolves against those properties. A theme is written, not generated: the
-starter can give you the look, and no tool can decide what the product should
+design language can give you the look, and no tool can decide what the product should
 look like.
 
 This file is the method. It is written to be followed.
@@ -462,10 +462,10 @@ The shape of a token:
   and then there is nothing to restate. A theme that serves dark and restates
   half of it is half a theme.
 
-Start a new document from a starter with `{ "$extends": "minimal" }` plus the
-tokens the project owns, or vendor a starter whole. The starter's values are
+Start a new document from a design language with `{ "$extends": "minimal" }` plus the
+tokens the project owns, or vendor a language whole. The language's values are
 valid, legible, and a finished look — every token they state is a decision
-the starter made, and every token the document adds is one the project owns.
+the language made, and every token the document adds is one the project owns.
 
 ## The gates
 
@@ -498,10 +498,10 @@ What the failures mean:
   ever see. A promise nothing keeps.
 - **group has no tokens**: a branch of the document that says nothing.
 
-And the one the validator cannot see: **a starter value left in place.** The
-validator says the document is valid, because a starter's values are valid.
+And the one the validator cannot see: **a design language value left in place.** The
+validator says the document is valid, because a language's values are valid.
 Read the document and ask of every token: did the project decide this, or did
-the starter decide it?
+the language decide it?
 
 ### Gate two: legibility
 
@@ -564,7 +564,7 @@ What the battery adds to the two gates above:
   the loop are judged once, on the base document, so a mode that restates the
   spacing or the type scale is a second set of decisions nobody measured.
 
-Run it against the document you just wrote — a project theme, not a starter:
+Run it against the document you just wrote — a project theme, not a design language:
 
 ```sh
 bun -e "
@@ -634,7 +634,7 @@ What to look for, in this order.
 
 1. **Distinctness.** Could this be any other theme with different hexes? If so
    it is a default, not a theme. Cover the product's name and look again.
-2. **Completeness.** Every token decided, no starter value left unowned, every declared
+2. **Completeness.** Every token decided, no design language value left unowned, every declared
    mode restated.
 3. **Legibility in every state.** Rest, hover, focus, active, disabled, in every
    mode. A fill always has an ink.

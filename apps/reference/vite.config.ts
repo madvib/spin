@@ -37,9 +37,9 @@ export default defineConfig({
   plugins: [
     solid(),
     spin.vite({
-      // The reference renders every starter, forked by `spin/*.json` at
+      // The reference renders every language, forked by `spin/*.json` at
       // this root — the same files the studio edits — so a theme change
-      // in the studio re-themes this app. Starters arrive as values
+      // in the studio re-themes this app. Languages arrive as values
       // through `extends`, never by silent merge.
       extends: { themes: designLanguages },
       shortcuts: referenceShortcuts,

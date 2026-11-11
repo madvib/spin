@@ -139,7 +139,7 @@ test("init makes a project: themes, a theme, and a wired config", async () => {
   const made = await initProject({
     root: dir,
     name: "acme",
-    starter: "minimal",
+    language: "minimal",
   });
   deepStrictEqual(made.error, null);
 
@@ -173,12 +173,12 @@ test("init makes a project: themes, a theme, and a wired config", async () => {
   });
 });
 
-test("init with vendor:true writes the full starter text", async () => {
+test("init with vendor:true writes the full design language text", async () => {
   const dir = await root();
   const made = await initProject({
     root: dir,
     name: "acme",
-    starter: "minimal",
+    language: "minimal",
     vendor: true,
   });
   deepStrictEqual(made.error, null);
@@ -196,7 +196,7 @@ test("init refuses a root it cannot make a project in", async () => {
   const made = await initProject({
     root: join(dir, "occupied", "under"),
     name: "acme",
-    starter: "minimal",
+    language: "minimal",
   });
   assert(made.error !== null, "a refused init says why");
 });
@@ -467,7 +467,7 @@ test("init codemods an existing unwired vite.config.ts in place", async () => {
   const made = await initProject({
     root: dir,
     name: "acme",
-    starter: "minimal",
+    language: "minimal",
   });
   deepStrictEqual(made.error, null);
 
@@ -488,7 +488,7 @@ test("init codemods an existing vite.config.js without a plugins array in place"
   const made = await initProject({
     root: dir,
     name: "acme",
-    starter: "minimal",
+    language: "minimal",
   });
   deepStrictEqual(made.error, null);
 
@@ -504,7 +504,7 @@ test("init and configuration respect custom themesDir, componentsDir, and prefix
   const made = await initProject({
     root: dir,
     name: "acme",
-    starter: "minimal",
+    language: "minimal",
     themesDir: "design/themes",
     componentsDir: "src/ui",
     prefix: "coffee",
@@ -607,7 +607,7 @@ test("config.json is not served as a theme", async () => {
   deepStrictEqual(report.themes, ["halide.json"]);
 });
 
-test("a brand directory composes its layers over its starter", async () => {
+test("a brand directory composes its layers over its design language", async () => {
   const dir = await root();
   const brand = join(dir, "spin", "acme");
   await mkdir(join(brand, "primitives"), { recursive: true });
@@ -647,7 +647,7 @@ test("a brand directory composes its layers over its starter", async () => {
     walk(parsed.tree);
     return leaves.find((leaf) => leaf.path.join(".") === path)?.value;
   };
-  // The layers land in order: the starter's voice, re-pointed per layer.
+  // The layers land in order: the language's voice, re-pointed per layer.
   deepStrictEqual(at("element.h1.type.family"), "{font.style.title.family}");
   deepStrictEqual(at("button.radius"), "0px");
   deepStrictEqual(at("button.type.family"), "{font.style.label.family}");

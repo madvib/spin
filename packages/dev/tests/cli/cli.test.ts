@@ -328,7 +328,7 @@ test("the init command seeds its defaults", () => {
   deepStrictEqual(command.kind, "init");
   if (command.kind !== "init") return;
   deepStrictEqual(command.name, "default");
-  deepStrictEqual(command.starter, "editorial");
+  deepStrictEqual(command.language, "editorial");
   deepStrictEqual(command.bundler, undefined);
   deepStrictEqual(command.yes, false);
 });
@@ -338,7 +338,7 @@ test("the init command carries its flags", () => {
     "init",
     "--name",
     "brand",
-    "--starter",
+    "--language",
     "nordic",
     "--bundler",
     "rspack",
@@ -349,7 +349,7 @@ test("the init command carries its flags", () => {
   deepStrictEqual(command.kind, "init");
   if (command.kind !== "init") return;
   deepStrictEqual(command.name, "brand");
-  deepStrictEqual(command.starter, "nordic");
+  deepStrictEqual(command.language, "nordic");
   deepStrictEqual(command.bundler, "rspack");
   deepStrictEqual(command.root, "/tmp/x");
   deepStrictEqual(command.yes, true);
@@ -451,7 +451,7 @@ test("init writes a theme and a bundler config into a fresh root", async () => {
   try {
     const lines: string[] = [];
     const code = await run(
-      ["init", "--root", dir, "--name", "brand", "--starter", "neobrutalist", "--bundler", "rspack", "--yes"],
+      ["init", "--root", dir, "--name", "brand", "--language", "neobrutalist", "--bundler", "rspack", "--yes"],
       (line) => lines.push(line),
       () => {},
     );
@@ -474,7 +474,7 @@ test("init refuses an unknown design language", async () => {
   try {
     const warns: string[] = [];
     const code = await run(
-      ["init", "--root", dir, "--name", "brand", "--starter", "nordic", "--yes"],
+      ["init", "--root", dir, "--name", "brand", "--language", "nordic", "--yes"],
       () => {},
       (line) => warns.push(line),
     );

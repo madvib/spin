@@ -256,7 +256,7 @@ export function sliderRange(value: string, group: readonly string[]): Range {
     ? fromCanonical(scaled, own.unit)
     : (FLOOR[own.unit] ?? 16);
   // A value the theme wrote below zero — a tight tracking is the one the
-  // starters spell — needs track below it, or the thumb pins at the floor
+  // languages spell — needs track below it, or the thumb pins at the floor
   // and every drag climbs away from the authored value. Its own magnitude
   // doubled is the room it gets: the mirror of the positive headroom.
   const floor = ownCanonical < 0

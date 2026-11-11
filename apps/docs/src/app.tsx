@@ -118,7 +118,7 @@ function buildRoutes(): RouteDefinition[] {
           component: redirect("/docs/themes/reference"),
         },
         {
-          path: "themes/starters",
+          path: "themes/languages",
           component: redirect("/docs/themes/overview"),
         },
         {

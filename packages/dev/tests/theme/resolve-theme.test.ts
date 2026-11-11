@@ -4,7 +4,7 @@ import { minimalLanguage, resolveTheme } from "@spinjs/theme";
 
 test("an alias resolves to the value it names", () => {
   const light = resolveTheme(minimalLanguage, "light");
-  // `color.selected` is `{color.text}` in the starter; the map hands over the
+  // `color.selected` is `{color.text}` in the language; the map hands over the
   // resolved value, not the reference string.
   assert.deepStrictEqual(
     light.values["color.selected"],

@@ -144,7 +144,7 @@ test("typed client talks to the router over serve", async () => {
     assert(refused.error !== null, "expected a group refusal");
 
     const copied = parseTokens(JSON.stringify(designLanguages.minimal, null, 2));
-    assert(copied.ok, "starter text must parse");
+    assert(copied.ok, "design language text must parse");
   } finally {
     await server.stop();
   }
@@ -249,7 +249,7 @@ test("the organization lists the catalog under reader intent", async () => {
   try {
     const text = JSON.stringify(designLanguages.minimal, null, 2);
     const parsed = parseTokens(text);
-    assert(parsed.ok, "starter text must parse");
+    assert(parsed.ok, "design language text must parse");
     const catalog = describeCatalog(parsed.tree);
     const organization = await client.preset.organization({ text });
     deepStrictEqual(organization.error, null);

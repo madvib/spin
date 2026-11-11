@@ -993,7 +993,7 @@ export async function saveThemeToDisk(name: string): Promise<SaveOutcome> {
   return { written: true, problem: null };
 }
 
-export async function saveStarterAsProjectTheme(
+export async function saveLanguageAsProjectTheme(
   sourceName: string,
   targetName: string,
 ): Promise<SaveOutcome> {

@@ -53,7 +53,7 @@ test("ink on a paired fill must be the ink the palette pairs with it", () => {
 });
 
 test("an alias is not the ink the palette declares", () => {
-  // `on-danger` is the legacy alias the starters kept for the error fill;
+  // `on-danger` is the legacy alias the languages kept for the error fill;
   // the domain's answer is `on-semantic-error`, and two names for one ink is
   // the disagreement the lint exists to stop shipping.
   const [report] = reportsFor("bg-semantic-error text-on-danger");

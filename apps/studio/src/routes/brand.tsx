@@ -404,7 +404,7 @@ export default function BrandPage() {
       <Section
         title="Parent Design Language"
         fact={currentExtends() ?? "none"}
-        note="The built-in starting physics ($extends) your brand layers over. Tokens omitted by your brand inherit from this design language."
+        note="The built-in design language ($extends) your brand layers over. Tokens omitted by your brand inherit from this design language."
       >
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <For each={Object.keys(designLanguages)}>

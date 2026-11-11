@@ -49,8 +49,8 @@ function inlineStyleLiterals(doc: ThemeDocument): void {
 }
 
 
-test("every starter implements the owned names", () => {
-  // The owned set is the styles a theme must declare: every starter implements
+test("every language implements the owned names", () => {
+  // The owned set is the styles a theme must declare: every language implements
   // every name, and the names are the contract's own list rather than a
   // roster written down here.
   for (const [theme, doc] of Object.entries(designLanguages)) {
@@ -59,7 +59,7 @@ test("every starter implements the owned names", () => {
     for (const name of ownedStyleNames()) {
       assert(
         style[name] !== undefined,
-        `${theme}: the starter must implement the ${name} style`,
+        `${theme}: the language must implement the ${name} style`,
       );
     }
   }
@@ -162,9 +162,9 @@ test("no two styles share a tuple", () => {
   }
 });
 
-test("starters disagree: at least two themes differ per style", () => {
-  // The starters are five directions, not five copies: a style that reads
-  // the same everywhere is a style no starter owns. Two differing tuples
+test("languages disagree: at least two themes differ per style", () => {
+  // The languages are six directions, not six copies: a style that reads
+  // the same everywhere is a style no language owns. Two differing tuples
   // per style keeps the set honest without pinning which theme differs.
   for (const name of ownedStyleNames()) {
     const tuples = new Set(
@@ -172,7 +172,7 @@ test("starters disagree: at least two themes differ per style", () => {
     );
     assert(
       tuples.size >= 2,
-      `${name} reads the same in every starter — a style no starter owns`,
+      `${name} reads the same in every language — a style no language owns`,
     );
   }
 });

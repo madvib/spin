@@ -1,8 +1,8 @@
 /**
  * What a theme must declare, declared once.
  *
- * Each entry below carries everything a role is: the path that names it, the
- * type it must have, the value a starter writes for it, the documentation an
+  * Each entry below carries everything a role is: the path that names it, the
+  * type it must have, the value a language writes for it, the documentation an
  * editor shows, and the contrast floors it owes — one, or more where a role is
  * read against more than one surface. Everything else derives:
  * `requiredPaths()` for validation and `themeSchema()` for the JSON Schema.
@@ -84,7 +84,7 @@ export interface RoleDeclaration {
   /** Dotted path, e.g. `color.semantic.error`. */
   readonly path: string;
   readonly type: TokenType;
-  /** What a starter writes. Valid, legible, and a finished look. */
+  /** What a language writes. Valid, legible, and a finished look. */
   readonly value: string;
   readonly doc: string;
   /**
@@ -190,7 +190,7 @@ function readDeclaredRoles(): ReadonlyArray<Omit<RoleDeclaration, "floor">> {
       }
       const value = record.$value;
       if (typeof value !== "string") {
-        throw new Error(`contract: role ${path.join(".")} has no string starter value`);
+        throw new Error(`contract: role ${path.join(".")} has no string language value`);
       }
       const doc = typeof record.$description === "string"
         ? record.$description
@@ -259,8 +259,8 @@ export interface BaselineScale {
 }
 
 /**
- * Minimal's scale steps, with type and value: the shared ruler the starters
- * agree on. Same exclusions as the required paths — a step excluded there
+  * Minimal's scale steps, with type and value: the shared ruler the languages
+  * agree on. Same exclusions as the required paths — a step excluded there
  * is excluded here, so the two cannot disagree about what a theme owes.
  */
 export function baselineScales(): readonly BaselineScale[] {
@@ -467,7 +467,7 @@ export function themeSchema(): Record<string, unknown> {
     },
   };
   // `$extends` is document metadata like `modes`: the document this sparse
-  // document layers over — a starter, or the `base` foundation the starters
+  // document layers over — a language, or the `base` foundation the languages
   // themselves layer over. Listed and constrained to the shipped names so
   // an unknown name fails the schema, not the build.
   properties["$extends"] = {

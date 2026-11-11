@@ -478,7 +478,7 @@ export async function initProject(
     }
     const files = initFiles({
       name: options.name,
-      starter: options.starter,
+      language: options.language,
       bundler,
       themesDir,
       vendor: options.vendor,
@@ -530,7 +530,7 @@ export async function initProject(
       const stamped = await setBrandDesignLanguage(
         options.root,
         options.name,
-        options.starter,
+        options.language,
         themesDir,
       );
       if (stamped.error !== null) return stamped;

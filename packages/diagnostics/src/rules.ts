@@ -1107,8 +1107,8 @@ const preferElement: GateRule = {
 /**
  * Disallow classes the project's own theme cannot produce.
  *
- * The vocabulary is the project's theme, catalogued, unioned with the
- * starters — so a class the theme can produce is known, and a class nothing
+  * The vocabulary is the project's theme, catalogued, unioned with the
+  * languages — so a class the theme can produce is known, and a class nothing
  * produces is not. A class nothing produces styles nothing, so dropping it
  * changes nothing: the rule drops it.
  */
@@ -1270,8 +1270,8 @@ const noHandwrittenTokens: GateRule = {
 /**
  * Disallow an ink the palette does not pair with the fill underneath it.
  *
- * A fill's foreground is a fact of the palette, not a convention a call site
- * invents: the starters pair `bg-primary` with `text-on-primary`. A stated
+  * A fill's foreground is a fact of the palette, not a convention a call site
+  * invents: the languages pair `bg-primary` with `text-on-primary`. A stated
  * ink against a declared pairing contradicts; a missing ink inherits, which
  * may be exactly right, and a fill the palette gives no ink to is the
  * theme's gap, not the author's. An explicitly unpainted box

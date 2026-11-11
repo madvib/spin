@@ -313,7 +313,7 @@ function switchRule(): SpinRule {
           : {}),
         ...(raised !== undefined ? { "background-color": raised } : {}),
         // The theme's own physical language: `shadow.sm` is a soft lift in
-        // one starter, a hard offset edge in another, a phosphor ring in
+        // one language, a hard offset edge in another, a phosphor ring in
         // the third — so a switch reads as its theme's object rather than
         // as one control's private idea of depth.
         ...(shadow !== undefined ? { "box-shadow": shadow } : {}),

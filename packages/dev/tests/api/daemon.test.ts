@@ -53,7 +53,7 @@ describe("daemon project.themes over HTTP", () => {
   });
 
   it("keeps the fixtures in the shape the pipeline currently speaks", async () => {
-    // Sparse brands over a shipped starter: the composed document is what
+    // Sparse brands over a shipped design language: the composed document is what
     // parses, serves modes, and carries dark values — the layer text is a
     // diff, never judged alone. A guard, because a stale fixture is exactly
     // the kind of thing that passes every other test.
@@ -89,7 +89,7 @@ describe("daemon project.themes over HTTP", () => {
       listed.map((t) => [t.name, t.file]),
       [
         ["acme", "spin/acme"],
-        ["starter", "spin/starter"],
+        ["birch", "spin/birch"],
       ],
       "a brand carries its identity path; a fixture with no brand lists nothing else",
     );
@@ -182,7 +182,7 @@ describe("daemon project.themes over HTTP", () => {
     const report = await client.project.detect({ root: dir });
     deepStrictEqual(report.spin, true, "the fixture's spin directory is seen");
     deepStrictEqual(report.uno, false, "the fixture has no uno config");
-    deepStrictEqual(report.themes, ["acme", "starter"]);
+    deepStrictEqual(report.themes, ["acme", "birch"]);
 
     const bare = mkdtempSync(join(tmpdir(), "spin-bare-"));
     const empty = await client.project.detect({ root: bare });
@@ -210,7 +210,7 @@ describe("daemon project.themes over HTTP", () => {
     const report = await client.project.current({});
     deepStrictEqual(report.root, dir);
     deepStrictEqual(report.spin, true);
-    deepStrictEqual(report.themes, ["acme", "starter"]);
+    deepStrictEqual(report.themes, ["acme", "birch"]);
   });
 
   it("serves two projects from one daemon, named per call", async () => {
@@ -234,7 +234,7 @@ describe("daemon project.themes over HTTP", () => {
     const mine = await client.project.themes.list({});
     deepStrictEqual(mine.map((t) => t.name), [
       "acme",
-      "starter",
+      "birch",
     ]);
     rmSync(other, { recursive: true, force: true });
   });
@@ -247,7 +247,7 @@ describe("daemon project.themes over HTTP", () => {
     const init = await client.project.init({
       root: fresh,
       name: "first",
-      starter: "minimal",
+      language: "minimal",
     });
     deepStrictEqual(init.error, null);
     const detect = await client.project.detect({ root: fresh });
@@ -282,7 +282,7 @@ describe("daemon project.themes over HTTP", () => {
     deepStrictEqual(
       JSON.parse(seeded.text ?? "{}").$extends,
       "minimal",
-      "the seeded theme extends its starter, not an empty file",
+      "the seeded theme extends its design language, not an empty file",
     );
     rmSync(fresh, { recursive: true, force: true });
   });
@@ -292,7 +292,7 @@ describe("daemon project.themes over HTTP", () => {
     // made on the way rather than demanded of the caller — the failure this
     // replaces was an ENOENT surfacing as a dialog on a fresh checkout.
     const fresh = mkdtempSync(join(tmpdir(), "spin-write-"));
-    const source = await client.project.themes.read({ name: "starter" });
+    const source = await client.project.themes.read({ name: "birch" });
     const written = await client.project.themes.write({
       name: "first",
       text: source.text as string,
@@ -305,9 +305,9 @@ describe("daemon project.themes over HTTP", () => {
     rmSync(fresh, { recursive: true, force: true });
   });
 
-  it("copies a starter into a new theme", async () => {
+  it("copies a brand into a new theme", async () => {
     const copied = await client.project.themes.copy({
-      from: "starter",
+      from: "birch",
       to: "acme-dark",
     });
     deepStrictEqual(copied.error, null);
@@ -318,7 +318,7 @@ describe("daemon project.themes over HTTP", () => {
       "the copy appears in the list",
     );
     const read = await client.project.themes.read({ name: "acme-dark" });
-    const source = await client.project.themes.read({ name: "starter" });
+    const source = await client.project.themes.read({ name: "birch" });
     deepStrictEqual(read.text, source.text);
   });
 
@@ -374,13 +374,13 @@ describe("daemon project.themes over HTTP", () => {
     // the write lands in spin/config.json and the read names the file, so a
     // client can tell an author their values are written rather than default.
     const wrote = await client.project.config.write({
-      config: { activeTheme: "acme", themeOrder: ["acme", "starter"] },
+      config: { activeTheme: "acme", themeOrder: ["acme", "birch"] },
     });
     deepStrictEqual(wrote.error, null);
     const read = await client.project.config.read({});
     deepStrictEqual(read.config, {
       activeTheme: "acme",
-      themeOrder: ["acme", "starter"],
+      themeOrder: ["acme", "birch"],
     });
     deepStrictEqual(read.file, "spin/config.json");
   });

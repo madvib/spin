@@ -180,7 +180,7 @@ export default function StylingColor(): JSX.Element {
           Write <code>bg-primary</code>, <code>text-muted</code>, and{" "}
           <code>border</code> to name the job an element performs on the
           page, never the pigment it wears. The theme chooses what primary is;
-          your markup chooses where primary goes. Switch starter themes or
+          your markup chooses where primary goes. Switch design languages or
           toggle light and dark mode in the top bar and every swatch below
           repaints from the active palette without changing a class name:
         </p>

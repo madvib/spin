@@ -107,9 +107,9 @@ if (dead.length > 0) {
 }
 
 // A class that matches but reads a variable no theme declares is dead in
-// the browser: `rounded-xl` emits `var(--radius-xl)` and only one starter
+// the browser: `rounded-xl` emits `var(--radius-xl)` and only one language
 // declares it. Every `var()` a matched rule reads without a fallback must
-// be declared by EVERY starter theme.
+// be declared by EVERY language.
 const declaredBy = new Map<string, Set<string>>();
 for (const [name, doc] of Object.entries(designLanguages)) {
   const scoped = await createGenerator({
@@ -134,7 +134,7 @@ for (const name of [...undeclared]) {
 }
 if (undeclared.size > 0) {
   console.error(
-    `uno: ${undeclared.size} variable(s) read but not declared by every starter theme:`,
+    `uno: ${undeclared.size} variable(s) read but not declared by every language:`,
   );
   for (const name of [...undeclared].sort()) console.error(`  ${name}`);
   process.exit(1);

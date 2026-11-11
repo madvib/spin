@@ -5,7 +5,7 @@ import baseRoles from "./base/roles.json" with { type: "json" };
 import { mergeThemeDocuments } from "./merge.ts";
 import type { ThemeDocument } from "./pipeline/types.ts";
 
-/** The shared foundation every starter layers over. */
+/** The shared foundation every language layers over. */
 export const baseDocument: ThemeDocument = mergeThemeDocuments(
   mergeThemeDocuments(
     mergeThemeDocuments(

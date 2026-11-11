@@ -32,8 +32,8 @@ function isDirectory(path: string): boolean {
 /**
  * The project root a file belongs to, if there is one.
  *
- * The nearest ancestor holding a `spin/` directory wins. A file outside any
- * project has no root, and the vocabulary falls back to the starters.
+  * The nearest ancestor holding a `spin/` directory wins. A file outside any
+  * project has no root, and the vocabulary falls back to the design languages.
  */
 export function findProjectRoot(from: string): string | undefined {
   return findProjectRootIn(dirname(from));
@@ -85,7 +85,7 @@ export function findConfigRoot(from: string): string | undefined {
 /**
  * The project's own themes, by name: the text of each file in `spin/`.
  *
- * The starters are not here: a project inherits them rather than
+  * The design languages are not here: a project inherits them rather than
  * restating them, and the set they come from is the theme package's. A file
  * that cannot be read is skipped rather than thrown on — a half written
  * theme in an editor must not cost the reader the themes the project has.

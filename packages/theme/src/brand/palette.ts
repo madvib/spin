@@ -5,9 +5,9 @@
  * ink story over the design language the brand already names: the neutral
  * ramp tinted by the seed's hue, the semantic fills darkened out of the
  * seed toward their own hues where they are too close, every fill paired
- * with readable ink in both modes, and the `modes` root declaring both.
- * The result is a sparse `color.*` layer over the starter, never a full
- * document: the caller sets `$extends` and writes only what this returns.
+  * with readable ink in both modes, and the `modes` root declaring both.
+  * The result is a sparse `color.*` layer over the language, never a full
+  * document: the caller sets `$extends` and writes only what this returns.
  *
  * Floors are validated before write — a seeded palette that fails its own
  * contrast never lands — and the refusal carries the issues in the judge's
@@ -137,9 +137,9 @@ function inkOn(fill: string): string {
  *
  * The neutral ramp follows the neutral seed (or the primary when none is
  * named); the semantics follow the seed's chroma but keep their own hues.
- * Every leaf carries its dark `$modes` value, because the composition serves
- * both modes. The layer is diffed against the starter — only diverged leaves
- * are kept — so two brands from one design language leave with different
+  * Every leaf carries its dark `$modes` value, because the composition serves
+  * both modes. The layer is diffed against the language — only diverged leaves
+  * are kept — so two brands from one design language leave with different
  * palettes.
  */
 export function seedPalette(

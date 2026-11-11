@@ -11,18 +11,18 @@ import {
   PageHeader,
   PropList,
   Section,
-  starterDoc,
+  languageDoc,
   type PropEntry,
 } from "../../../ui/index.ts";
 
 /**
- * The named type styles the active starter theme declares, in document
- * order. Read live on every render, so switching starters rewrites the
- * list — a style added to the theme is listed by the same change that
- * added it.
+  * The named type styles the active design language declares, in document
+  * order. Read live on every render, so switching languages rewrites the
+  * list — a style added to the theme is listed by the same change that
+  * added it.
  */
 function typeStyleNames(): readonly string[] {
-  const font = (starterDoc() as Record<string, unknown>)["font"] as
+  const font = (languageDoc() as Record<string, unknown>)["font"] as
     | Record<string, unknown>
     | undefined;
   const style = font?.["style"] as Record<string, unknown> | undefined;
@@ -40,9 +40,9 @@ interface UtilityGroupSpec {
 }
 
 function useReferenceGroups(): readonly UtilityGroupSpec[] {
-  // Reactive on the active starter: switching themes rewrites the style
+  // Reactive on the active language: switching themes rewrites the style
   // and step lists below without a remount.
-  void starterDoc();
+  void languageDoc();
   const groups: readonly UtilityGroupSpec[] = [
   {
     id: "layout",

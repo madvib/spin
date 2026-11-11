@@ -57,7 +57,7 @@ import { STROBE_FLOOR_MS } from "@spinjs/theme";
 const MIN_CONTRAST = 4.5;
 /**
  * An endless animation below this is a strobe: a sweep nobody can follow.
- * The number is the theme contract's (`STROBE_FLOOR_MS`): every starter's
+  * The number is the theme contract's (`STROBE_FLOOR_MS`): every language's
  * loop duration holds it, and this check holds what rendered to it.
  */
 const STROBE_MS = STROBE_FLOOR_MS;
@@ -101,7 +101,7 @@ const CHECKS: readonly CheckName[] = [
  *
  * A check earns fatality by being right: it fails on nothing, so a failure
  * means something. Every check in `CHECKS` — `state-contrast` included — has
- * earned fatality across all five starters and their modes.
+  * earned fatality across all six languages and their modes.
  */
 const ADVISORY_CHECKS: readonly CheckName[] = [];
 
@@ -1287,7 +1287,7 @@ export async function runCheck(
     chrome: last(args.values.get("chrome")),
     firefox: last(args.values.get("firefox")),
     // The state-contrast pass drives every control in every state it can be
-    // in. It used to be opt-in while the starters were being held to it; they
+    // in. It used to be opt-in while the languages were being held to it; they
     // now pass it across every theme and mode, so it is part of the default
     // run. `--no-state-contrast` is the escape hatch for a quick measurement.
     stateContrast: !args.present.has("no-state-contrast"),

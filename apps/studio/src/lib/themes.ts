@@ -71,9 +71,9 @@ export async function currentProject(): Promise<ProjectReport> {
 export async function initProject(
   root: string,
   name: string,
-  starter: string,
+  language: string,
 ): Promise<{ error: string | null }> {
-  const made = await (await spinClient()).project.init({ root, name, starter });
+  const made = await (await spinClient()).project.init({ root, name, language });
   return { error: made.error ?? null };
 }
 
@@ -196,7 +196,7 @@ export async function brandFacts(root: string, theme: string): Promise<BrandFact
   };
 }
 
-/** Duplicates a theme — a project file, or an unforked starter. The copy's name is the new theme's name. */
+/** Duplicates a theme — a project file, or an unforked design language. The copy's name is the new theme's name. */
 export async function copyTheme(
   from: string,
   to: string,

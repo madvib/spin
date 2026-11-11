@@ -184,8 +184,8 @@ export async function createBrand(options: BrandCreateOptions): Promise<BrandWri
  *
  * The `spin/<brand>/` directory moves, the config's `activeTheme` and
  * `themeOrder` entries naming the old brand move with it, the `brand.json`
- * `name` moves, and any layer `$extends` naming the old brand moves too
- * (brands extend starters, so usually a no-op — still walked, refusing
+  * `name` moves, and any layer `$extends` naming the old brand moves too
+  * (brands extend design languages, so usually a no-op — still walked, refusing
  * nothing). A missing source and a colliding target are refused in the
  * create voice.
  */
@@ -264,8 +264,8 @@ export async function renameBrand(
  *
  * The chain is `base → design language → brand tokens.json`: the brand
  * names one parent and transitivity handles the rest. An unknown language
- * is refused naming the valid set, the way `initFiles` refuses an unknown
- * starter.
+  * is refused naming the valid set, the way `initFiles` refuses an unknown
+  * language.
  */
 export async function setBrandDesignLanguage(
   root: string,

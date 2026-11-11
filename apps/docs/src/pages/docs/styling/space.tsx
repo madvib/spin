@@ -11,7 +11,7 @@ import {
   PageHeader,
   Section,
   Specimen,
-  starterDoc,
+  languageDoc,
 } from "../../../ui/index.ts";
 
 interface SpacingLadderStep {
@@ -138,7 +138,7 @@ const BARE_ESCAPE_SNIPPET = `<!-- Standard ghost button: keeps button height, pa
 </button>`;
 
 function readGroupStep(group: string, step: string, fallback: string): string {
-  const doc = starterDoc() as Record<string, unknown>;
+  const doc = languageDoc() as Record<string, unknown>;
   const table = doc[group] as Record<string, { $value?: unknown }> | undefined;
   const raw = table?.[step]?.$value;
   return typeof raw === "string" || typeof raw === "number"
@@ -230,7 +230,7 @@ export default function StylingSpace(): JSX.Element {
         </div>
 
         <p class="max-w-prose">
-          Switch starter themes in the top bar (<code>material</code> widens the
+          Switch design languages in the top bar (<code>material</code> widens the
           ramp, <code>neumorphic</code> tightens it) and watch every bar and gap
           resize together. Browse every directional axis (<code>px-*</code>,{" "}
           <code>py-*</code>, <code>ps-*</code>, <code>pe-*</code>,{" "}

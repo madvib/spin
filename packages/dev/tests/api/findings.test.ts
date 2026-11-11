@@ -14,7 +14,7 @@ import { test } from "bun:test";
 
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { createSpinClient, setProjectRoot } from "../../src/api/index.ts";
-import spinStarter from "../../../theme/src/languages/editorial.json" with {
+import shippedLanguage from "../../../theme/src/languages/editorial.json" with {
   type: "json",
 };
 import { RPCHandler } from "@orpc/server/fetch";
@@ -41,7 +41,7 @@ function serve(root: string) {
 async function project(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), "spin-"));
   await mkdir(`${root}/spin`);
-  await writeFile(`${root}/spin/spin.json`, JSON.stringify(spinStarter));
+  await writeFile(`${root}/spin/spin.json`, JSON.stringify(shippedLanguage));
   await mkdir(`${root}/src`);
   await writeFile(
     `${root}/src/app.tsx`,

@@ -4,8 +4,8 @@ export {
   PageHeader,
   Probe,
   Section,
+  languageDoc,
   serializeMainToMarkdown,
-  starterDoc,
   type ThemeDocument,
 } from "./page-header.tsx";
 export { PropList, type PropEntry } from "./prop-list.tsx";

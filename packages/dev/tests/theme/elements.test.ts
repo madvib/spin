@@ -15,10 +15,10 @@ import { designLanguages, themeModes } from "@spinjs/theme";
  * The per-element contract, held to the same gates as the base one.
  *
  * A per-element group is a decision an ELEMENT owns, and the theme is what
- * makes it. So the gates are the same three the base roles answer to: every
- * starter declares the groups the contract knows, silk states them
- * all, and the ink the danger surfaces wear is a role the contract asks for
- * rather than a name nothing reads.
+  * makes it. So the gates are the same three the base roles answer to: every
+  * language declares the groups the contract knows, minimal states them
+  * all, and the ink the danger surfaces wear is a role the contract asks for
+  * rather than a name nothing reads.
  */
 
 /** Every leaf in a tree, by its dotted path. */
@@ -35,10 +35,10 @@ function pathsOf(nodes: readonly TokenNode[]): Set<string> {
   return out;
 }
 
-test("every starter declares every per-element token the contract knows", () => {
-  // The groups are the theme's own decisions, so a starter that leaves one
-  // out is a starter that has not made the decision: the primitive falls
-  // back to the shared scale and the theme's voice is missing. The starters
+test("every language declares every per-element token the contract knows", () => {
+  // The groups are the theme's own decisions, so a language that leaves one
+  // out is a language that has not made the decision: the primitive falls
+  // back to the shared scale and the theme's voice is missing. The languages
   // are the product, and the product shows what it decided.
   for (const [name, doc] of Object.entries(designLanguages)) {
     const parsed = parseTokens(doc);
@@ -47,15 +47,15 @@ test("every starter declares every per-element token the contract knows", () => 
     for (const path of elementPaths()) {
       assert(
         declared.has(path),
-        `${name}: the starter must declare ${path}`,
+        `${name}: the language must declare ${path}`,
       );
     }
   }
 });
 
-test("silk states every per-element token", () => {
-  // The starters are the documents an author copies, and the studio copies
-  // them when a theme is created. A per-element token missing from silk is
+test("minimal states every per-element token", () => {
+  // The languages are the documents an author reads, and the studio reads
+  // them when a theme is created. A per-element token missing from minimal is
   // a decision the author is never shown — and a rule that falls back to
   // the shared scale because the document was too empty to say otherwise.
   const parsed = parseTokens(designLanguages.minimal);
@@ -66,9 +66,9 @@ test("silk states every per-element token", () => {
   }
 });
 
-test("a silk document validates with every per-element group in it", () => {
-  // Silk's values must be sound: a starter that does not validate is a
-  // document the studio copies and the validator rejects.
+test("a minimal document validates with every per-element group in it", () => {
+  // minimal's values must be sound: a language that does not validate is a
+  // document the studio reads and the validator rejects.
   const parsed = parseTokens(designLanguages.minimal);
   if (!parsed.ok) throw new Error(parsed.error);
   const report = validateTokens(parsed.tree, { required: requiredPaths() });
@@ -97,7 +97,7 @@ test("the ink the danger surfaces wear is a role the contract asks for", () => {
     if (!parsed.ok) throw new Error(`${name}: ${parsed.error}`);
     assert(
       pathsOf(parsed.tree).has("color.on-semantic-error"),
-      `${name}: the starter must carry the ink on the error fill`,
+      `${name}: the language must carry the ink on the error fill`,
     );
   }
 });

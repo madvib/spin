@@ -358,8 +358,8 @@ test("treeToJson serializes a style tuple as the compact composite", () => {
   deepStrictEqual(leafValues(treeOf(parseTokens(doc))), leafValues(tree));
 });
 
-test("parseTokens resolves $extends to the complete starter document", () => {
-  // A sparse document layers one override over its starter; the tree reads
+test("parseTokens resolves $extends to the complete language document", () => {
+  // A sparse document layers one override over its language; the tree reads
   // as the document the author would have vendored.
   const tree = treeOf(parseTokens({
     $extends: "minimal",

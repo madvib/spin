@@ -240,7 +240,7 @@ describe("docs-to-catalog currency", () => {
       );
       if (!hit) {
         throw new Error(
-          `${path} is stated by the docs but resolves in no starter tree node`,
+          `${path} is stated by the docs but resolves in no shipped language tree node`,
         );
       }
     }

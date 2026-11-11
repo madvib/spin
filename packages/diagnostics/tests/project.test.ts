@@ -11,8 +11,8 @@ import { findProjectRoot, readProjectThemes } from "../src/project.ts";
  * A spin project is marked by a `spin/` directory at its root — the same
  * marker the daemon reads. The lint walks up from the file being linted and
  * takes the nearest ancestor that holds one, so a file in a project is
- * judged by that project's theme and a file outside every project falls
- * back to the starters.
+  * judged by that project's theme and a file outside every project falls
+  * back to the languages.
  */
 
 test("the nearest ancestor holding a spin directory is the project", async () => {

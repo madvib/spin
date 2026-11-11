@@ -19,7 +19,7 @@ const commandItems = (): readonly PropEntry[] => [
       </>
     ),
     detail:
-      "Flags: --name, --starter, --bundler, --themes-dir, --components-dir, --prefix, --vendor, --root, --from, --url, -y / --yes",
+      "Flags: --name, --language, --bundler, --themes-dir, --components-dir, --prefix, --vendor, --root, --from, --url, -y / --yes",
   },
   {
     name: "spin studio",

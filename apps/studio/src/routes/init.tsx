@@ -79,7 +79,7 @@ export default function InitPage() {
     return undefined;
   });
 
-  const starters = createMemo(() =>
+  const languages = createMemo(() =>
     (Object.keys(designLanguages) as DesignLanguageName[]).map((key) => ({
       name: key,
       text: JSON.stringify(designLanguages[key]),
@@ -248,7 +248,7 @@ export default function InitPage() {
           </Show>
           <Show when={step() === 1}>
             <LanguageScreen
-              starters={starters()}
+              languages={languages()}
               language={language()}
               busy={busy()}
               onPick={setLanguage}
@@ -258,7 +258,7 @@ export default function InitPage() {
           </Show>
           <Show when={step() === 2}>
             <ColorScreen
-              starterText={starters().find((entry) => entry.name === language())?.text ?? ""}
+              languageText={languages().find((entry) => entry.name === language())?.text ?? ""}
               primary={primary()}
               neutral={neutral()}
               modes={modes()}
@@ -385,7 +385,7 @@ function BrandScreen(props: {
 }
 
 function LanguageScreen(props: {
-  starters: readonly { name: string; text: string; caption: string }[];
+  languages: readonly { name: string; text: string; caption: string }[];
   language: string;
   busy: boolean;
   onPick: (name: string) => void;
@@ -395,20 +395,20 @@ function LanguageScreen(props: {
   return (
     <Section title="Design language" fact="pick one look">
       <div class="grid gap-3 sm:grid-cols-2">
-        <For each={props.starters}>
-          {(starter) => (
+        <For each={props.languages}>
+          {(entry) => (
             <button
               type="button"
               class="bare stack-sm rounded-lg border p-3 text-left"
               classList={{
-                "border-primary": props.language === starter.name,
+                "border-primary": props.language === entry.name,
               }}
-              aria-pressed={props.language === starter.name}
-              onClick={() => props.onPick(starter.name)}
+              aria-pressed={props.language === entry.name}
+              onClick={() => props.onPick(entry.name)}
             >
-              <ThemePreview text={starter.text} name={starter.name} static />
-              <span class="block capitalize type-label">{starter.name}</span>
-              <span class="block type-caption text-muted">{starter.caption}</span>
+              <ThemePreview text={entry.text} name={entry.name} static />
+              <span class="block capitalize type-label">{entry.name}</span>
+              <span class="block type-caption text-muted">{entry.caption}</span>
             </button>
           )}
         </For>
@@ -426,7 +426,7 @@ function LanguageScreen(props: {
 }
 
 function ColorScreen(props: {
-  starterText: string;
+  languageText: string;
   primary: string;
   neutral: string;
   modes: "light" | "dark" | "both";
@@ -488,7 +488,7 @@ function ColorScreen(props: {
             Use the design language palette
           </button>
         </div>
-        <ThemePreview text={props.starterText} name="preview" static />
+        <ThemePreview text={props.languageText} name="preview" static />
       </div>
       <div class="row-sm">
         <button type="button" class="secondary" onClick={props.onBack}>

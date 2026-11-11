@@ -2,15 +2,15 @@
  * A project's brand: one directory of layered theme documents.
  *
  * A brand is a directory under the project's themes directory holding the
- * brand's decisions in layers: `tokens.json` (identity: faces, styles,
- * palette, modes, and the `$extends` starter), `reference.json` (scale
+  * brand's decisions in layers: `tokens.json` (identity: faces, styles,
+  * palette, modes, and the `$extends` design language), `reference.json` (scale
  * overrides), `elements.json` (element voice overrides),
  * `primitives/*.json` (per-component overrides), `themes/*.palette.json`
  * and `themes/*.spacing.json` (runtime facets), and `icons/` (saved SVGs
  * the icon operations own — never read here).
  *
- * The layers merge in that order over the starter the brand names, so a
- * brand is a sparse diff and the starter stays shipped. Flat
+  * The layers merge in that order over the design language the brand names, so a
+  * brand is a sparse diff and the language stays shipped. Flat
  * `spin/<name>.json` files keep working unchanged beside brand
  * directories: a file is a theme, a directory is a brand, and the two
  * never collide because a directory has no `.json` suffix.
@@ -59,8 +59,8 @@ async function readJson(file: string): Promise<ThemeDocument | undefined> {
 /**
  * One brand directory, composed to the document the build serves.
  *
- * The brand names its starter in `tokens.json` (falling back to
- * `reference.json`); the starter itself is the parent the layers compose
+  * The brand names its design language in `tokens.json` (falling back to
+  * `reference.json`); the language itself is the parent the layers compose
  * over — what is composed here is the brand's own layers, in order:
  * reference, tokens, elements, then each primitive file in sorted name
  * order. A composition that does not hold is refused naming the brand, the
@@ -116,7 +116,7 @@ async function composeBrand(dir: string): Promise<ThemeDocument | undefined> {
     const details = result.issues
       .map((issue) => {
         const file = issue.layer === "parent"
-          ? `starter "${parentName}"`
+          ? `design language "${parentName}"`
           : issue.layer === "composed"
           ? "composed"
           : tagged[Number(issue.layer.slice("layer[".length, -1))]?.file ??

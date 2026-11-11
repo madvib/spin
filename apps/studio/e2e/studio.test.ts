@@ -335,9 +335,9 @@ test("one step dragged lands the whole scale", async () => {
  * Save writes the document to disk and the dirty set empties.
  *
  * The edit is made and saved against the theme the status line names, and
- * the checkout is left exactly as it was found: a project file goes back
- * byte for byte, and a shipped starter the save forked is un-forked by
- * removing the file again. The assertion reads the button and the overlay,
+  * the checkout is left exactly as it was found: a project file goes back
+  * byte for byte, and a shipped language the save forked is un-forked by
+  * removing the file again. The assertion reads the button and the overlay,
  * not the file: the claim is about the studio's own state after its own
  * write.
  */

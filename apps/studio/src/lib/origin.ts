@@ -1,10 +1,10 @@
 /**
- * Which layer states a leaf: the brand's files, or the starter under them.
+ * Which layer states a leaf: the brand's files, or the language under them.
  *
  * Composition merges every layer into one document and keeps no provenance,
  * so the studio answers origin by walking the layers top-down itself: the
  * brand's component files first, then its elements layer, then its tokens
- * layer, then the starter the tokens layer extends. The first layer that
+ * layer, then the design language the tokens layer extends. The first layer that
  * states the leaf's path owns it. A composite's tuple children inherit the
  * composite's origin — the expansion is the parse's, not a layer's.
  */
@@ -13,7 +13,7 @@ import { designLanguages, isDesignLanguage } from "@spinjs/theme";
 
 /** Where a leaf's value comes from. */
 export type LeafOrigin =
-  | "starter"
+  | "language"
   | "tokens"
   | "elements"
   | "component"
@@ -22,7 +22,7 @@ export type LeafOrigin =
 
 /** The layers a brand report carries, keyed by relative file. */
 export interface OriginLayers {
-  readonly starter: string;
+  readonly language: string;
   readonly tokens: Record<string, unknown> | undefined;
   readonly elements: Record<string, unknown> | undefined;
   readonly components: ReadonlyArray<{
@@ -53,7 +53,7 @@ export function layersOf(
     if (doc !== undefined) components.push({ file, doc });
   }
   return {
-    starter: designLanguage ?? "minimal",
+    language: designLanguage ?? "minimal",
     tokens: docOf(layers["tokens.json"]),
     elements: docOf(layers["elements.json"]),
     components,
@@ -71,8 +71,8 @@ function states(doc: Record<string, unknown> | undefined, path: readonly string[
   return true;
 }
 
-/** The starter document behind a brand, by its `$extends` name. */
-function starterDoc(name: string): Record<string, unknown> | undefined {
+/** The design language document behind a brand, by its `$extends` name. */
+function languageDoc(name: string): Record<string, unknown> | undefined {
   if (!isDesignLanguage(name)) return undefined;
   return designLanguages[name] as Record<string, unknown>;
 }
@@ -92,7 +92,7 @@ export function leafOrigin(path: readonly string[], layers: OriginLayers): LeafO
     }
     if (states(layers.elements, prefix)) return "elements";
     if (states(layers.tokens, prefix)) return "tokens";
-    if (states(starterDoc(layers.starter), prefix)) return "starter";
+    if (states(languageDoc(layers.language), prefix)) return "language";
   }
   return "unknown";
 }
@@ -103,7 +103,7 @@ export function originFile(
   path: readonly string[],
   layers: OriginLayers,
 ): string {
-  if (origin === "starter") return `${layers.starter}.json`;
+  if (origin === "language") return `${layers.language}.json`;
   if (origin === "tokens") return "tokens.json";
   if (origin === "elements") return "elements.json";
   if (origin === "component") {
@@ -120,9 +120,9 @@ export function originFile(
 
 /** The chip's one word for an origin. */
 export function originLabel(origin: LeafOrigin): string {
-  if (origin === "starter") return "starter";
+  if (origin === "language") return "language";
   if (origin === "tokens" || origin === "elements") return "brand";
   if (origin === "component") return "component";
   if (origin === "facet") return "facet";
-  return "starter";
+  return "language";
 }

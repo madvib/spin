@@ -2,9 +2,9 @@
  * The stdio entry point: what an editor launches.
  *
  * No configuration file required: the server reads the project the way
- * the linters do — the nearest ancestor holding a `spin/` directory —
- * and a file outside any project falls back to the starters. The root
- * flag only says where the server was started; stdin carries the rest.
+  * the linters do — the nearest ancestor holding a `spin/` directory —
+  * and a file outside any project falls back to the design languages. The root
+  * flag only says where the server was started; stdin carries the rest.
  *
  *   spin lsp [--root <dir>]
  */

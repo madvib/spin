@@ -30,8 +30,7 @@ function flatten(value: unknown): unknown[] {
 
 test("the generated vite config imports a plugin the package exports", async () => {
   const dir = await root();
-  const made = await initProject({ root: dir, name: "acme", starter: "minimal" });
-  deepStrictEqual(made.error, null);
+  const made = await initProject({ root: dir, name: "acme", language: "minimal" });
   const module = await load(join(dir, "vite.config.ts"));
   const config = module.default as { plugins?: unknown };
   const plugins = flatten(config.plugins);
@@ -51,7 +50,7 @@ test("a codemodded existing vite.config.ts imports and invokes spin.vite()", asy
     "export default {\n  plugins: [],\n};\n",
     "utf8",
   );
-  const made = await initProject({ root: dir, name: "acme", starter: "minimal" });
+  const made = await initProject({ root: dir, name: "acme", language: "minimal" });
   deepStrictEqual(made.error, null);
   const module = await load(join(dir, "vite.config.ts"));
   const config = module.default as { plugins?: unknown };
@@ -73,7 +72,7 @@ test("the generated esbuild config imports a plugin with a setup hook", async ()
   const made = await initProject({
     root: dir,
     name: "acme",
-    starter: "minimal",
+    language: "minimal",
     bundler: "esbuild",
   });
   deepStrictEqual(made.error, null);
@@ -93,7 +92,7 @@ test("the generated webpack config is an ESM module with an apply hook", async (
   const made = await initProject({
     root: dir,
     name: "acme",
-    starter: "minimal",
+    language: "minimal",
     bundler: "webpack",
   });
   deepStrictEqual(made.error, null);
@@ -115,7 +114,7 @@ test("the generated rollup config is an ESM module with both spin stages", async
   const made = await initProject({
     root: dir,
     name: "acme",
-    starter: "minimal",
+    language: "minimal",
     bundler: "rollup",
   });
   deepStrictEqual(made.error, null);
@@ -135,7 +134,7 @@ test("the generated rspack config carries a plugin with an apply hook", async ()
   const made = await initProject({
     root: dir,
     name: "acme",
-    starter: "minimal",
+    language: "minimal",
     bundler: "rspack",
   });
   deepStrictEqual(made.error, null);
@@ -166,7 +165,7 @@ test("the generated rolldown config is an ESM module with both spin stages", asy
   const made = await initProject({
     root: dir,
     name: "acme",
-    starter: "minimal",
+    language: "minimal",
     bundler: "rolldown",
   });
   deepStrictEqual(made.error, null);
@@ -202,7 +201,7 @@ test("the generated bun config imports a plugin with a setup hook", async () => 
   const made = await initProject({
     root: dir,
     name: "acme",
-    starter: "minimal",
+    language: "minimal",
     bundler: "bun",
   });
   deepStrictEqual(made.error, null);
@@ -222,7 +221,7 @@ test("init refuses to pass a preset-only config off as a spin project", async ()
   const made = await initProject({
     root: dir,
     name: "acme",
-    starter: "minimal",
+    language: "minimal",
     bundler: "unocss",
   });
   deepStrictEqual(
@@ -239,7 +238,7 @@ test("init refuses a CommonJS webpack config before writing anything", async () 
   const made = await initProject({
     root: dir,
     name: "acme",
-    starter: "minimal",
+    language: "minimal",
     bundler: "webpack",
   });
   deepStrictEqual(

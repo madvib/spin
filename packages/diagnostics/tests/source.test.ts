@@ -16,7 +16,7 @@ import { test } from "bun:test";
  * The sheet the order is read from is the project's own.
  */
 
-import spinStarter from "../../theme/src/languages/editorial.json" with {
+import shippedLanguage from "../../theme/src/languages/editorial.json" with {
   type: "json",
 };
 
@@ -38,7 +38,7 @@ async function project(
   await mkdir(`${root}/spin`);
   await mkdir(`${root}/src`);
   await writeFile(`${root}/src/app.tsx`, source);
-  await writeFile(`${root}/spin/spin.json`, JSON.stringify(spinStarter));
+  await writeFile(`${root}/spin/spin.json`, JSON.stringify(shippedLanguage));
   await writeFile(`${root}/vite.config.ts`, config);
   return root;
 }
@@ -499,7 +499,7 @@ test("markup files report style blocks and inline theme styles, not document she
   try {
     await mkdir(`${root}/spin`);
     await mkdir(`${root}/src`);
-    await writeFile(`${root}/spin/spin.json`, JSON.stringify(spinStarter));
+    await writeFile(`${root}/spin/spin.json`, JSON.stringify(shippedLanguage));
     await writeFile(`${root}/vite.config.ts`, `export default {};`);
     await writeFile(
       `${root}/src/card.html`,
