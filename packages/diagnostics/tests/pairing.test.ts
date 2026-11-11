@@ -69,19 +69,65 @@ test("a paired ink in the same state settles the fill", () => {
 });
 
 test("surfaces are the page, not a fill", () => {
-  // Body ink sits on a surface by definition — every floor is measured
-  // there — so a sunken panel with no named ink is complete, not missing.
-  deepStrictEqual(reportsFor("bg-surface"), []);
-  deepStrictEqual(reportsFor("bg-surface-raised"), []);
-  deepStrictEqual(reportsFor("bg-surface-sunken"), []);
+  // Surface tokens wear any role ink without pairing; pairing fires only on
+  // the non-surface fill beside them.
+  for (const surface of ["bg-surface", "bg-surface-raised", "bg-surface-sunken"]) {
+    deepStrictEqual(
+      reportsFor(`${surface} text-primary hover:bg-accent hover:text-primary`),
+      [
+        {
+          messageId: "mismatch",
+          data: {
+            ink: "text-primary",
+            fill: "accent",
+            expected: "text-on-accent",
+          },
+        },
+      ],
+    );
+  }
 });
 
-test("two paired fills merged in resting stay silent", () => {
-  // A fail-closed guard for the merge the adapters cannot scope: two fills
-  // in one static list means either could be the one on screen (a variant
-  // group, a pasted pair), so the rule names no pairing rather than the
-  // wrong one.
-  deepStrictEqual(reportsFor("bg-primary bg-accent"), []);
+test("two paired fills merged in one state stand down without silencing other states", () => {
+  deepStrictEqual(
+    reportsFor("bg-primary bg-accent text-primary hover:bg-accent hover:text-primary"),
+    [
+      {
+        messageId: "mismatch",
+        data: {
+          ink: "text-primary",
+          fill: "accent",
+          expected: "text-on-accent",
+        },
+      },
+    ],
+  );
+});
+
+test("bg-transparent clears an earlier fill in its own state only", () => {
+  deepStrictEqual(
+    reportsFor("bg-primary bg-transparent text-primary hover:bg-accent hover:text-primary"),
+    [
+      {
+        messageId: "mismatch",
+        data: {
+          ink: "text-primary",
+          fill: "accent",
+          expected: "text-on-accent",
+        },
+      },
+    ],
+  );
+  deepStrictEqual(reportsFor("bg-transparent bg-primary text-primary"), [
+    {
+      messageId: "mismatch",
+      data: {
+        ink: "text-primary",
+        fill: "primary",
+        expected: "text-on-primary",
+      },
+    },
+  ]);
 });
 
 test("a fill and its ink arriving in the same conditional branch pair", () => {
