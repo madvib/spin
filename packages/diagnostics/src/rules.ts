@@ -77,8 +77,7 @@ export interface GateContext {
      *
      * The rule's stance is the default — a problem is an error, a
      * suggestion a warning — and a finding that carries its own stance
-     * overrides it. `prefer-element` is the one rule that needs this: a
-     * single owner is an error, several owners a suggestion.
+     * overrides it.
      */
     severity?: "error" | "warning";
   }): void;
@@ -1068,12 +1067,10 @@ const preferThemeValue: GateRule = {
  * class that carries that decision on an element the theme does not type is
  * the markup asking for something the theme already answered elsewhere.
  *
- * The stance is split, and the line is drawn by ownership: exactly one
- * element carrying the value for the text's own decisions (size, typeface,
- * tracking, ink) is an error naming that element; several elements carrying
- * it stay advisory, because which one the author meant is a question the
- * lint cannot answer. Inline text stays silent: a span inside prose is
- * already typed by the column, so there is no reach.
+ * Advisory throughout: a single typographic carrier names the element
+ * directly (`single`); multi-carrier or ink matches offer the element or
+ * dropping the class (`element`). Inline text stays silent: a span inside
+ * prose is already typed by the column, so there is no reach.
  */
 const preferElement: GateRule = {
   meta: {
@@ -1084,7 +1081,7 @@ const preferElement: GateRule = {
     },
     schema: SEMANTIC_SCHEMA,
     messages: {
-      error:
+      single:
         "the theme gives `<{{element}}>` that {{decision}}; `<{{tag}}>` is not the element that carries it. Put the class on `<{{element}}>`.",
       element:
         "the theme gives `<{{element}}>` that {{decision}}; `<{{tag}}>` is not the element that carries it.",

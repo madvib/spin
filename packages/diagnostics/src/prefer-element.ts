@@ -7,16 +7,13 @@
  * element that carries it is named, because the advice is only useful if it
  * says which element to reach for.
  *
- * The stance is split, and the line is drawn by ownership:
+ * Both single-carrier and multi-carrier matches stay advisory warnings:
  *
- * - Exactly one element carries the value (single-carrier) for a
- *   typographic decision (size/face/tracking/ink): the class is a
- *   paragraph wearing a heading's size, a box wearing a quotation's face —
- *   and that is an ERROR with the element named as the remedy.
- * - Several elements carry the value (multi-carrier): the theme offers more
- *   than one way to say it, and which one the author meant is a question
- *   the lint cannot answer. The rule names one and stays advisory — a
- *   suggestion, not a ban.
+ * - One element carries a typographic decision (`single`): the remedy names
+ *   that element directly.
+ * - Otherwise (`element`): more than one element may carry the decision or
+ *   the decision is ink, so the remedy offers putting the class on the
+ *   element or dropping it.
  *
  * Inline text stays silent: a `span` inside a paragraph is emphasis, not a
  * paragraph manqué — the prose already types it, so there is no reach.
@@ -80,7 +77,7 @@ export function checkPreferElement(
     const element = carriers[0] as string;
     const single = carriers.length === 1 && isTypography(decision);
     out.push({
-      messageId: single ? "error" : "element",
+      messageId: single ? "single" : "element",
       data: {
         tag,
         cls: reading.cls,

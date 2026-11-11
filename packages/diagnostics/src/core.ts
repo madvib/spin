@@ -59,9 +59,7 @@ export interface Finding {
    *
    * The rule's stance is the default — a problem is an error, a
    * suggestion a warning — and a finding that carries its own stance
-   * overrides it. `prefer-element` is the one rule that needs this: a
-   * single owner is an error, several owners a suggestion, and the two
-   * travel under one rule so one configuration covers both.
+   * overrides it.
    */
   readonly severity?: "error" | "warning";
 }
