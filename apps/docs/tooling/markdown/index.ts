@@ -8,7 +8,7 @@ import { buildThemeMarkdown } from "./themes.ts";
 
 export { buildLlmsTxt };
 
-const DOCS_ROOT = resolve(import.meta.dir, "../..");
+const DOCS_ROOT = resolve(import.meta.dirname, "../..");
 
 const CONTENT_MD_FOR_ROUTE: Readonly<Record<string, string>> = {
   "/docs/getting-started/overview": "start.md",

@@ -5,7 +5,7 @@ import { describeCatalog, SECTIONS, utilitiesFor } from "@spinjs/preset";
 import { configurationIn } from "../../../../packages/server/src/project/index.ts";
 import { animationContract } from "@spinjs/preset";
 
-const DOCS_ROOT = resolve(import.meta.dir, "../..");
+const DOCS_ROOT = resolve(import.meta.dirname, "../..");
 
 /**
  * The shortcuts the docs declare, read from the file the lint reads rather
