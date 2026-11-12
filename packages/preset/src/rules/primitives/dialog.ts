@@ -127,7 +127,7 @@ export function dialogRules(
           // The heading grows and the close control is out of flow, so the row
           // has exactly one item to lay out and nothing to distribute.
           "justify-content": "flex-start",
-          ...(pad !== undefined ? { "padding-block-start": pad } : {}),
+          ...(pad !== undefined ? { "padding-block-start": pad, "margin-block-end": pad } : {}),
           ...(pad !== undefined
             ? { "margin-block-start": `calc(${pad} * -1)` }
             : {}),
@@ -194,6 +194,7 @@ export function dialogRules(
           ...(t.spacing2 !== undefined ? { gap: t.spacing2 } : {}),
           ...(pad !== undefined
             ? {
+              "margin-block-start": pad,
               "margin-block-end": `calc(${pad} * -1)`,
               "margin-inline-start": `calc(${pad} * -1)`,
               "margin-inline-end": `calc(${pad} * -1)`,

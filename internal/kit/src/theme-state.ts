@@ -13,7 +13,7 @@
  * a mode the theme does not serve falls back to one it does, and the
  * document element is the one place the rendering is declared.
  */
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, createRoot, createSignal } from "solid-js";
 import type { Accessor } from "solid-js";
 import {
   demoSpacings,
@@ -269,6 +269,7 @@ export function createThemeState(
     }
   };
 
+  flush();
   createEffect(() => {
     themeName();
     want();
@@ -277,6 +278,11 @@ export function createThemeState(
     spacingName();
     flush();
   });
+
+  const updateWant: ThemeState["setWant"] = (next) => {
+    setWant(next);
+    flush();
+  };
 
   return {
     theme: themeName,
@@ -287,23 +293,30 @@ export function createThemeState(
       if (paletteName() !== "" && !nextAllowed.includes(paletteName())) {
         setPaletteName("");
       }
+      flush();
     },
     want,
-    setWant,
+    setWant: updateWant,
     mode,
-    setMode: setWant,
+    setMode: updateWant,
     get palettes() {
       return palettesFor(themeName());
     },
     paletteOptions,
     palette: paletteName,
     setPalette: (name) => {
-      if (name === "" || palettesFor(themeName()).includes(name)) setPaletteName(name);
+      if (name === "" || palettesFor(themeName()).includes(name)) {
+        setPaletteName(name);
+        flush();
+      }
     },
     spacings,
     spacing: spacingName,
     setSpacing: (name) => {
-      if (name === "" || spacings.includes(name)) setSpacingName(name);
+      if (name === "" || spacings.includes(name)) {
+        setSpacingName(name);
+        flush();
+      }
     },
     flush,
     names,
@@ -325,7 +338,10 @@ export function createThemeState(
  */
 let defaultState: ThemeState | undefined;
 function defaultStateOf(): ThemeState {
-  return (defaultState ??= createThemeState());
+  if (defaultState === undefined) {
+    defaultState = createRoot(() => createThemeState());
+  }
+  return defaultState;
 }
 
 export const defaultThemeState: ThemeState = new Proxy({} as ThemeState, {

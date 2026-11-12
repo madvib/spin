@@ -176,7 +176,6 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     name: "bare",
     inked: false,
     body: (ctx) => ({
-      cursor: "pointer",
       "min-height": "0",
       ...variantType(ctx, "bare"),
     }),
@@ -367,6 +366,7 @@ const VARIANT_HOVER: Record<string, {
       "background-color": "transparent",
       "border-color": "transparent",
       "box-shadow": "none",
+      transform: "none",
       color: ctx?.theme?.color?.text,
     }),
   },
@@ -552,8 +552,9 @@ export function buttonRules(roots: readonly string[]): SpinRule[] {
         const buttonTokens = ctx?.theme?.button as
           | Record<string, string | undefined>
           | undefined;
-        const liftX = buttonTokens?.["hover-lift-x"];
-        const liftY = buttonTokens?.["hover-lift-y"];
+        const hasButtonGroup = ctx?.theme?.button !== undefined;
+        const liftX = buttonTokens?.["hover-lift-x"] ?? (hasButtonGroup ? "var(--button-hover-lift-x)" : undefined);
+        const liftY = buttonTokens?.["hover-lift-y"] ?? (hasButtonGroup ? "var(--button-hover-lift-y)" : undefined);
         yield {
           [ctx.symbols.selector]: () =>
             `${BUTTON}:hover${ALIVE}:not([aria-busy="true"])`,
@@ -561,14 +562,12 @@ export function buttonRules(roots: readonly string[]): SpinRule[] {
             ? { "box-shadow": ctx.theme.button["shadow-hover"] }
             : {}),
           ...(liftX !== undefined && liftY !== undefined
-            ? { transform: `translate(${liftX}, ${liftY})` }
+            ? { transform: `translate(${varFallback(liftX, "0")}, ${varFallback(liftY, "0")})` }
             : {}),
         };
-        // Active presses into the control's footprint when active-x/y or
-        // shadow-active are declared, or cancels hover lift back to rest.
-        const activeX = buttonTokens?.["active-x"];
-        const activeY = buttonTokens?.["active-y"];
-        const shadowActive = buttonTokens?.["shadow-active"];
+        const activeX = buttonTokens?.["active-x"] ?? (hasButtonGroup ? "var(--button-active-x)" : undefined);
+        const activeY = buttonTokens?.["active-y"] ?? (hasButtonGroup ? "var(--button-active-y)" : undefined);
+        const shadowActive = buttonTokens?.["shadow-active"] ?? (hasButtonGroup ? "var(--button-shadow-active)" : undefined);
         const resolvedActiveShadow = varFallback(shadowActive, ctx?.theme?.button?.shadow);
         yield {
           [ctx.symbols.selector]: () =>

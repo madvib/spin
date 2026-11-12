@@ -51,6 +51,7 @@ const GALLERY_VIGNETTES: Readonly<Record<string, string>> = {
   "floating-panel": `<div class="w-56 overflow-hidden rounded-lg border bg-surface-raised shadow-md"><div class="flex items-center justify-between border-b px-3 py-2"><span class="type-caption-emphasized">Inspector</span><span class="i-lucide-x icon-sm text-muted"></span></div><div class="p-3 type-caption text-muted">Draggable, resizable workspace tool window.</div></div>`,
   breadcrumbs: `<nav aria-label="Breadcrumb"><ol class="breadcrumbs"><li><a href="#actions">Workspace</a></li><li><a href="#actions">Billing</a></li><li aria-current="page">Invoices</li></ol></nav>`,
   table: `<table class="w-full type-caption"><thead><tr><th>Service</th><th>Status</th></tr></thead><tbody><tr><td>api-edge</td><td><badge variant="primary">Healthy</badge></td></tr><tr><td>worker</td><td>24ms</td></tr></tbody></table>`,
+  pagination: `<div class="inline-flex items-center gap-1"><button type="button" class="ghost icon s-sm"><span class="i-lucide-chevron-left icon-sm"></span></button><button type="button" class="primary s-sm">1</button><button type="button" class="secondary s-sm">2</button><button type="button" class="secondary s-sm">3</button><button type="button" class="ghost icon s-sm"><span class="i-lucide-chevron-right icon-sm"></span></button></div>`,
 };
 
 const GROUPS: readonly Group[] = UNIFIED_COMPONENT_GROUPS.map((group) => ({
@@ -67,31 +68,29 @@ const GROUPS: readonly Group[] = UNIFIED_COMPONENT_GROUPS.map((group) => ({
         icon: COMPONENT_ICONS[name] ?? "i-lucide-box",
         href: `/components/machine-${name}`,
         mountHtml: GALLERY_VIGNETTES[name] ?? `<${name}-${first}></${name}-${first}>`,
-        meta: "Interactive",
+        meta: "Stateful UI",
         kind: "machine",
       }];
     }
     const contract = primitiveContracts[member];
     if (contract === undefined) return [];
     const example = examplesFor(member);
-    const variants = contract.variants.length;
+    const firstTag = contract.tags[0];
     return [{
       name: member,
       icon: ELEMENT_ICONS.get(member) ?? COMPONENT_ICONS[member] ?? "i-lucide-box",
       href: `/components/${member}`,
       mountHtml: GALLERY_VIGNETTES[member] ?? example?.rows[0]?.html ?? "",
-      meta: variants > 0
-        ? `${variants} ${variants === 1 ? "variant" : "variants"}`
-        : "HTML",
+      meta: firstTag !== undefined ? `<${firstTag}>` : "HTML",
       kind: "primitive",
     }];
   }),
 })).filter((group) => group.rows.length > 0);
 
-const KINDS: readonly { readonly id: "all" | Kind; readonly label: string; readonly href: string }[] = [
-  { id: "all", label: "All", href: "/components" },
-  { id: "primitive", label: "HTML Elements", href: "/components?kind=primitives" },
-  { id: "machine", label: "Interactive", href: "/components?kind=machines" },
+const KINDS: readonly { readonly id: "all" | Kind; readonly label: string; readonly note: string; readonly href: string }[] = [
+  { id: "all", label: "All", note: "Native HTML elements & stateful UI components", href: "/components" },
+  { id: "primitive", label: "HTML Elements", note: "Styled native HTML tags — CSS only, zero JS (@spinjs/dev)", href: "/components?kind=primitives" },
+  { id: "machine", label: "Interactive UI", note: "Accessible stateful components — copyable markup + statecharts (@spinjs/components)", href: "/components?kind=machines" },
 ];
 
 /** The groups the current filter keeps, in the taxonomy's order. */
@@ -144,27 +143,31 @@ export default function ComponentsIndex(): JSX.Element {
         markup, and styling tokens.
       </p>
 
-      <nav
-        class="mt-5 inline-flex flex-wrap items-center gap-1 rounded-lg border bg-surface-raised p-1"
-        aria-label="component kind"
-      >
-        <For each={KINDS}>
-          {(entry) => (
-            <A
-              href={entry.href}
-              class={`inline-flex h-7 items-center gap-2 rounded-md px-3 no-underline transition-colors duration-fast ${
-                kind() === entry.id
-                  ? "bg-primary text-on-primary type-caption-emphasized"
-                  : "text-muted hover:bg-surface type-caption"
-              }`}
-            >
-              <span>{entry.label}</span>
-              <span class="opacity-75">{countOf(entry.id)}</span>
-            </A>
-          )}
-        </For>
-      </nav>
-
+      <div class="mt-5 flex flex-wrap items-center gap-3">
+        <nav
+          class="inline-flex flex-wrap items-center gap-1 rounded-lg border bg-surface-raised p-1"
+          aria-label="component kind"
+        >
+          <For each={KINDS}>
+            {(entry) => (
+              <A
+                href={entry.href}
+                class={`inline-flex h-7 items-center gap-2 rounded-md px-3 no-underline transition-colors duration-fast ${
+                  kind() === entry.id
+                    ? "bg-primary text-on-primary type-caption-emphasized"
+                    : "text-muted hover:bg-surface type-caption"
+                }`}
+              >
+                <span>{entry.label}</span>
+                <span class="opacity-75">{countOf(entry.id)}</span>
+              </A>
+            )}
+          </For>
+        </nav>
+        <span class="type-caption text-muted">
+          {KINDS.find((entry) => entry.id === kind())?.note}
+        </span>
+      </div>
       <GroupNav groups={groups()} />
 
       <For each={groups()}>
@@ -206,7 +209,7 @@ export default function ComponentsIndex(): JSX.Element {
                         />
                         <span class="truncate">{row.name}</span>
                       </span>
-                      <span class="shrink-0 rounded-sm border bg-surface px-2 py-1 type-caption text-muted">
+                      <span class="shrink-0 rounded-sm border bg-surface px-2 py-0 type-code text-muted">
                         {row.meta}
                       </span>
                     </div>

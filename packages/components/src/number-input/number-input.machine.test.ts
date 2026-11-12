@@ -1246,7 +1246,7 @@ test("Given an input / When its bag is read / Then the spinbutton contract holds
   deepStrictEqual(bag["aria-valuemin"], 0, "the minimum");
   deepStrictEqual(bag["aria-valuemax"], 100, "the maximum");
   deepStrictEqual(bag["aria-valuenow"], 12, "the current value");
-  deepStrictEqual(bag["aria-invalid"], false, "an in-range value is valid");
+  deepStrictEqual(bag["aria-invalid"], undefined, "an in-range value announces nothing");
   deepStrictEqual(bag["type"], "text", "the input is a text field");
   deepStrictEqual(bag["inputMode"], "decimal", "with the decimal keypad");
   deepStrictEqual(bag["pattern"], "-?[0-9]*(.[0-9]+)?", "and the default pattern");
@@ -1299,7 +1299,7 @@ test("Given a control / When its bag is read / Then the group contract holds", (
   const bag = h.bag("control");
   deepStrictEqual(bag["role"], "group", "the control groups the field");
   deepStrictEqual(bag["aria-disabled"], true, "and reports disabled");
-  deepStrictEqual(bag["aria-invalid"], false, "while the value is valid");
+  deepStrictEqual(bag["aria-invalid"], undefined, "while the value is valid");
   deepStrictEqual(
     bag["id"],
     "number-input:number-input:control",

@@ -307,7 +307,7 @@ export const def = {
           "data-invalid": scope.attr(invalidOf(context)),
           "data-scrubbing": scope.attr(scope.state === "scrubbing"),
           "aria-disabled": disabledOf(context),
-          "aria-invalid": invalidOf(context),
+          "aria-invalid": invalidOf(context) ? true : undefined,
           "use:autoplay": {
             interval: context.spin === "repeat" ? SPIN_REPEAT : SPIN_DWELL,
             enabled: spinning,
@@ -349,7 +349,7 @@ export const def = {
           disabled: disabledOf(context),
           readOnly: context.readOnly,
           required: context.required,
-          "aria-invalid": invalidOf(context),
+          "aria-invalid": invalidOf(context) ? true : undefined,
           "aria-valuemin": context.min,
           "aria-valuemax": context.max,
           "aria-valuenow": Number.isNaN(number) ? undefined : number,

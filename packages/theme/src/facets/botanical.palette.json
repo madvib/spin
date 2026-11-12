@@ -43,12 +43,12 @@
       "$modes": { "dark": "#0b2215" }
     },
     "secondary": {
-      "$value": "#2c3b32",
-      "$modes": { "dark": "#d4dfd7" }
+      "$value": "#e6e2d4",
+      "$modes": { "dark": "#252f29" }
     },
     "on-secondary": {
-      "$value": "#f5f3eb",
-      "$modes": { "dark": "#131815" }
+      "$value": "#18211b",
+      "$modes": { "dark": "#e9ede8" }
     },
     "accent": {
       "$value": "#8a5a14",

@@ -710,6 +710,10 @@ function defaultIconsPreset(
     };
   };
   return presetIcons({
+    extraProperties: {
+      display: "inline-block",
+      "vertical-align": "middle",
+    },
     collections: {
       carbon: lazy("carbon"),
       lucide: lazy("lucide"),

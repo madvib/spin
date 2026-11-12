@@ -35,8 +35,7 @@ ${inner}
  * own square is the hit area.
  */
 const close =
-  `<button class="icon" aria-label="Close" onclick="this.closest('dialog').close()"><i class="i-lucide-x button-icon"></i></button>`;
-
+  `<button class="ghost icon s-sm" aria-label="Close" onclick="this.closest('dialog').close()"><i class="i-lucide-x button-icon"></i></button>`;
 export const dialogFixtureNote =
   "A native modal: focus trapping, Escape and inertness are the platform's. Ours is a card that looks like every other card.";
 
@@ -118,7 +117,7 @@ export const DIALOG_EXAMPLES: readonly DialogExample[] = [
             </form>
             <footer>
               <button class="ghost" onclick="this.closest('dialog').close()">Cancel</button>
-              <button class="secondary">Save</button>
+              <button class="primary">Save</button>
             </footer>
           </dialog>`,
     ),

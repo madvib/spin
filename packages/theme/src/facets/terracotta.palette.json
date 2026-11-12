@@ -72,17 +72,17 @@
       }
     },
     "secondary": {
-      "$value": "#4a372b",
-      "$description": "Charred walnut: secondary actions.",
+      "$value": "#ebe0d4",
+      "$description": "Warm stoneware fill for quiet secondary controls.",
       "$modes": {
-        "dark": "#dcc2b0"
+        "dark": "#2e231d"
       }
     },
     "on-secondary": {
-      "$value": "#ffffff",
+      "$value": "#2b1d16",
       "$description": "The ink on the secondary fill.",
       "$modes": {
-        "dark": "#17110e"
+        "dark": "#f5ebe2"
       }
     },
     "accent": {

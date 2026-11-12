@@ -121,9 +121,9 @@ export default function ComponentPage(): JSX.Element {
         fallback={<MachineDetail name={machineId() ?? ""} prev={prev()} next={next()} />}
       >
         <main class="mx-auto w-full max-w-screen-lg px-6 py-8">
-          <Show when={category()}>
-            <span class="block type-overline uppercase text-muted">{category()}</span>
-          </Show>
+          <span class="block type-overline uppercase text-muted">
+            {category() ? `${category()} · HTML Element` : "HTML Element"}
+          </span>
           <div class="mt-1 flex flex-wrap items-baseline justify-between gap-3">
             <h1>{params.id}</h1>
             <Show when={contract()!.tags.length > 0}>
@@ -284,9 +284,9 @@ function MachineDetail(props: { name: string; prev?: string; next?: string }): J
 
   return (
     <main class="mx-auto min-w-0 w-full max-w-screen-lg px-6 py-8">
-      <Show when={category()}>
-        <span class="block type-overline uppercase text-muted">{category()}</span>
-      </Show>
+      <span class="block type-overline uppercase text-muted">
+        {category() ? `${category()} · Interactive UI` : "Interactive UI"}
+      </span>
       <div class="mt-1 flex flex-wrap items-center justify-between gap-3">
         <h1>{props.name}</h1>
         <div class="flex flex-wrap items-center gap-2">

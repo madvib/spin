@@ -35,9 +35,9 @@ const COPIED_MS = 1200;
 const CODE_PRE =
   "max-h-[22rem] max-w-full whitespace-pre-wrap overflow-y-auto overflow-x-auto bg-surface p-4 type-code text-muted";
 const SPECIMEN_PANEL =
-  "min-h-32 flex items-center justify-center bg-surface p-6 sm:p-8";
+  "min-h-24 flex items-center justify-center bg-surface px-5 py-5 sm:px-6 sm:py-6";
 const SPECIMEN_PANEL_OVERLAY =
-  "min-h-32 flex items-center justify-center overflow-visible bg-surface p-6 sm:p-8";
+  "min-h-24 flex items-center justify-center overflow-visible bg-surface px-5 py-5 sm:px-6 sm:py-6";
 export interface SpecimenProps {
   /** The example's name, as the row's heading reads it. */
   readonly name: string;
@@ -127,7 +127,7 @@ export function Specimen(props: SpecimenProps): JSX.Element {
 
   return (
     <section
-      class={`mb-6 rounded-lg border bg-surface-raised shadow-sm ${
+      class={`mb-4 rounded-lg border bg-surface-raised shadow-sm ${
         props.overlay === true ? "overflow-visible" : "overflow-hidden"
       }`}
     >

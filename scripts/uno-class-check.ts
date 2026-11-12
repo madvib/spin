@@ -90,7 +90,10 @@ const SCOPED = new Set(["spin-preview"]);
 const uno = await createGenerator({
   presets: [
     spinPreset({ themes: designLanguages, shortcuts: { ...spinCompositions } }),
-    presetIcons({ collections: { lucide } as never }),
+    presetIcons({
+      extraProperties: { display: "inline-block", "vertical-align": "middle" },
+      collections: { lucide } as never,
+    }),
   ],
 });
 

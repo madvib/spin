@@ -116,6 +116,7 @@ export default defineConfig(({ command }) => ({
       // glyph is generated only for a name somebody wrote down.
       presets: [
         presetIcons({
+          extraProperties: { display: "inline-block", "vertical-align": "middle" },
           collections: {
             lucide,
           } as never,

@@ -36,19 +36,19 @@
     },
     "primary": {
       "$value": "#1d4ed8",
-      "$modes": { "dark": "#60a5fa" }
+      "$modes": { "dark": "#facc15" }
     },
     "on-primary": {
       "$value": "#ffffff",
-      "$modes": { "dark": "#081226" }
+      "$modes": { "dark": "#0d0e11" }
     },
     "secondary": {
-      "$value": "#facc15",
-      "$modes": { "dark": "#facc15" }
+      "$value": "#eae8df",
+      "$modes": { "dark": "#232630" }
     },
     "on-secondary": {
       "$value": "#0d0e11",
-      "$modes": { "dark": "#0d0e11" }
+      "$modes": { "dark": "#f5f6f8" }
     },
     "accent": {
       "$value": "#be123c",

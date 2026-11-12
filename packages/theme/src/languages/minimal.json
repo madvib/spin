@@ -38,10 +38,10 @@
       }
     },
     "secondary": {
-      "$value": "#1a2434",
-      "$description": "Brand accent: secondary actions and highlights.",
+      "$value": "#e8ecf2",
+      "$description": "Quiet neutral control fill one step off the surface.",
       "$modes": {
-        "dark": "#dadee5"
+        "dark": "#1f2735"
       }
     },
     "accent": {
@@ -212,9 +212,9 @@
     },
     "on-secondary": {
       "$type": "color",
-      "$value": "#ffffff",
+      "$value": "#0f172a",
       "$modes": {
-        "dark": "#111923"
+        "dark": "#f1f5f9"
       }
     },
     "on-accent": {

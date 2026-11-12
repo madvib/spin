@@ -37,9 +37,9 @@
       }
     },
     "secondary": {
-      "$value": "#1f1c19",
+      "$value": "#ebe7dd",
       "$modes": {
-        "dark": "#e6e1d8"
+        "dark": "#262420"
       }
     },
     "accent": {
@@ -193,9 +193,9 @@
       }
     },
     "on-secondary": {
-      "$value": "#faf7f0",
+      "$value": "#11110f",
       "$modes": {
-        "dark": "#121210"
+        "dark": "#f7f4ed"
       }
     },
     "on-accent": {
@@ -284,15 +284,15 @@
       }
     },
     "secondary-hover": {
-      "$value": "#332f2a",
+      "$value": "#dfd9cb",
       "$modes": {
-        "dark": "#f7f4ed"
+        "dark": "#32302a"
       }
     },
     "secondary-active": {
-      "$value": "#4d4740",
+      "$value": "#d2cbb9",
       "$modes": {
-        "dark": "#cbc4ba"
+        "dark": "#3d3a33"
       }
     },
     "link-hover": {
@@ -499,15 +499,15 @@
     "$type": "shadow",
     "$description": "Elevation, as CSS box-shadow values.",
     "sm": {
-      "$value": "2px 2px 0 0 rgb(17 17 15 / 0.85)",
+      "$value": "2px 2px 0 0 #11110f",
       "$modes": {
-        "dark": "2px 2px 0 0 rgb(244 241 234 / 0.65)"
+        "dark": "2px 2px 0 0 #e6e1d8"
       }
     },
     "md": {
-      "$value": "4px 4px 0 0 rgb(17 17 15 / 0.9)",
+      "$value": "4px 4px 0 0 #11110f",
       "$modes": {
-        "dark": "4px 4px 0 0 rgb(244 241 234 / 0.7)"
+        "dark": "4px 4px 0 0 #e6e1d8"
       }
     },
     "lg": {
@@ -530,12 +530,12 @@
     },
     "shadow-hover": {
       "$type": "shadow",
-      "$description": "The hovered elevation: presses halfway into its shadow so the offset shrinks.",
-      "$value": "{shadow.sm}"
+      "$description": "The hovered elevation: shadow collapses as the button translates onto its footprint.",
+      "$value": "none"
     },
     "shadow-active": {
       "$type": "shadow",
-      "$description": "The pressed elevation: stamps flush onto its shadow footprint.",
+      "$description": "The pressed elevation: stays flush on its shadow footprint.",
       "$value": "none"
     },
     "radius": {
@@ -544,11 +544,11 @@
     },
     "hover-lift-x": {
       "$type": "dimension",
-      "$value": "2px"
+      "$value": "4px"
     },
     "hover-lift-y": {
       "$type": "dimension",
-      "$value": "2px"
+      "$value": "4px"
     },
     "active-x": {
       "$type": "dimension",

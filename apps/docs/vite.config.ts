@@ -42,12 +42,19 @@ export default defineConfig({
         row: "flex items-center gap-4",
         split: "flex items-center justify-between gap-4",
       },
-      presets: [presetIcons({ collections: { lucide } as never })],
+      presets: [
+        presetIcons({
+          extraProperties: { display: "inline-block", "vertical-align": "middle" },
+          collections: { lucide } as never,
+        }),
+      ],
       content: {
         filesystem: [
           resolve(here, "src/**/*.{tsx,ts}"),
           resolve(here, "src/lib/components/**/*.html"),
           resolve(here, "../../internal/kit/src/**/*.{tsx,ts}"),
+          resolve(here, "../../packages/components/src/**/examples/*.html"),
+          resolve(here, "../../packages/preset/src/rules/primitives/*.examples.ts"),
         ],
         pipeline: {
           include: [/\.(tsx?|html)($|\?)/],

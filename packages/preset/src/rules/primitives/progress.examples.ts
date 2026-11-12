@@ -30,11 +30,6 @@ export interface ProgressExample {
   readonly html: string;
 }
 
-const row = (inner: string): string =>
-  `<div class="flex flex-wrap items-center justify-center gap-2">
-${inner}
-        </div>`;
-
 export const progressFixtureNote =
   "A native bar with a real value and a real indeterminate state. An indeterminate bar sweeps, because a static empty bar reads as a failure to load.";
 
@@ -49,8 +44,8 @@ export const PROGRESS_EXAMPLES: readonly ProgressExample[] = [
   },
   {
     name: "Indeterminate · the class",
-    html: row(
-      `          <progress class="progress-indeterminate"></progress>`,
-    ),
+    html: `<div class="flex flex-col gap-2">
+          <label><span>Rebalancing shard replicas</span><progress class="progress-indeterminate"></progress></label>
+        </div>`,
   },
 ];

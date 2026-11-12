@@ -8,14 +8,14 @@ export interface ThemeTokens {
   "color.surface-raised": "#ffffff";
   "color.border": "{color.neutral.200}";
   "color.primary": "#1c62c2";
-  "color.secondary": "#1a2434";
+  "color.secondary": "#e8ecf2";
   "color.accent": "#006974";
   "color.semantic.success": "#26753e";
   "color.semantic.warning": "#886108";
   "color.semantic.error": "#a6312b";
   "color.semantic.info": "#0e629a";
   "color.on-primary": "#ffffff";
-  "color.on-secondary": "#ffffff";
+  "color.on-secondary": "#0f172a";
   "color.on-accent": "#ffffff";
   "color.selected": "{color.text}";
   "color.on-selected": "{color.surface}";

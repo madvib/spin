@@ -72,17 +72,17 @@
       }
     },
     "secondary": {
-      "$value": "#8839ef",
-      "$description": "Latte mauve: secondary actions, readable as text on the page and behind white ink as a fill.",
+      "$value": "#e6e9ef",
+      "$description": "Latte mantle fill for quiet secondary controls.",
       "$modes": {
-        "dark": "#cba6f7"
+        "dark": "#313244"
       }
     },
     "on-secondary": {
-      "$value": "#ffffff",
+      "$value": "#1e1e2e",
       "$description": "The ink on the secondary fill.",
       "$modes": {
-        "dark": "#11111b"
+        "dark": "#cdd6f4"
       }
     },
     "accent": {

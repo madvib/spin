@@ -43,7 +43,12 @@ export default defineConfig({
       // through `extends`, never by silent merge.
       extends: { themes: designLanguages },
       shortcuts: referenceShortcuts,
-      presets: [presetIcons({ collections: { lucide } as never })],
+      presets: [
+        presetIcons({
+          extraProperties: { display: "inline-block", "vertical-align": "middle" },
+          collections: { lucide } as never,
+        }),
+      ],
       // Example modules carry the tokens (App → primitives registry →
       // package examples). Filesystem scanning reads them directly; the
       // pipeline include admits plain .ts because examples are data

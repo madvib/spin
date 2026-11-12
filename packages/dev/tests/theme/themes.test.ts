@@ -420,7 +420,7 @@ test("the light block of the example theme carries the light document's values",
   const root = blockWithSelector(generateCss(tree), ":root");
 
   deepStrictEqual(root.declarations["--color-primary"], "#1c62c2");
-  deepStrictEqual(root.declarations["--color-secondary"], "#1a2434");
+  deepStrictEqual(root.declarations["--color-secondary"], "#e8ecf2");
   deepStrictEqual(root.declarations["--color-accent"], "#006974");
   deepStrictEqual(root.declarations["--color-semantic-error"], "#a6312b");
   deepStrictEqual(root.declarations["--spacing-4"], "1rem");
@@ -494,7 +494,7 @@ test("a dark-mode consumer reads the dark document's colors", async () => {
   const vars = varsInMode(generateCss(tree), "dark");
 
   deepStrictEqual(vars["--color-primary"], "#8db9fa");
-  deepStrictEqual(vars["--color-secondary"], "#dadee5");
+  deepStrictEqual(vars["--color-secondary"], "#1f2735");
   deepStrictEqual(vars["--color-accent"], "#71c7d1");
   deepStrictEqual(vars["--color-semantic-success"], "#72cf88");
   deepStrictEqual(vars["--color-semantic-error"], "#f38277");

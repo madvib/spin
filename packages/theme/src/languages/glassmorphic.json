@@ -38,10 +38,10 @@
       }
     },
     "secondary": {
-      "$value": "#223148",
-      "$description": "Deep slate: secondary actions and highlights.",
+      "$value": "rgb(225 233 245 / 0.85)",
+      "$description": "Tinted frosted slate for quiet secondary controls.",
       "$modes": {
-        "dark": "#d7dee9"
+        "dark": "rgb(30 43 68 / 0.85)"
       }
     },
     "accent": {
@@ -212,9 +212,9 @@
     },
     "on-secondary": {
       "$type": "color",
-      "$value": "#ffffff",
+      "$value": "#0f172a",
       "$modes": {
-        "dark": "#111923"
+        "dark": "#eef2ff"
       }
     },
     "on-accent": {

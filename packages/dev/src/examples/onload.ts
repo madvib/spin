@@ -531,7 +531,7 @@ export const EXAMPLE_ONLOAD: Record<string, string> = {
           const btn = document.createElement("button");
           btn.type = "button";
           btn.setAttribute("data-note", String(index));
-          btn.className = "grid justify-items-start gap-1 whitespace-normal rounded-md p-3 text-left hover:bg-surface";
+          btn.className = "bare grid justify-items-start gap-1 whitespace-normal rounded-md p-3 text-left hover:bg-surface";
           const t = document.createElement("p");
           t.className = "m-0 type-label text-muted";
           t.textContent = "Untitled Note";

@@ -13,11 +13,12 @@ const machine = cascade({
 
   <div class="flex items-center gap-1" {...machine.getControlProps()}>
     <button
-      class={["secondary s-sm flex min-w-0 flex-1 items-center gap-2", { "bg-surface": machine.open, "ring-2 ring-border-strong": machine.focused, "opacity-50 cursor-not-allowed": machine.disabled }]}
+      class={["bare flex h-8 min-w-0 flex-1 items-center gap-2 rounded-md border bg-field px-3 type-label transition-colors duration-fast ease-decelerate hover:border-strong", { "border-strong bg-surface-raised": machine.open, "ring-2 ring-border-strong": machine.focused, "opacity-50 cursor-not-allowed": machine.disabled }]}
       {...machine.getTriggerProps()}
     >
       <span class="min-w-0 flex-1 truncate text-left"
         {...machine.getValueTextProps()}>
+        <span class="text-muted" hidden={machine.value.length > 0}>Select region…</span>
         <template for={machine.getValueTextRows()} as={row} key={row.value}>
           <span>{row.value}</span>
         </template>
@@ -26,14 +27,15 @@ const machine = cascade({
         aria-hidden="true"
         class={["shrink-0 text-muted transition-transform duration-fast ease-decelerate", { "rotate-180": machine.open }]}
         {...machine.getIndicatorProps()}
-      ><span class="i-lucide-chevron-down type-caption" aria-hidden="true"></span></span>
+      ><span class="i-lucide-chevron-down icon-sm" aria-hidden="true"></span></span>
     </button>
     <button
       aria-hidden="true"
       tabindex="-1"
-      class="ghost icon s-sm flex h-6 w-6 shrink-0 items-center justify-center"
+      hidden={machine.value.length === 0}
+      class="ghost icon s-sm flex h-6 w-6 shrink-0 items-center justify-center text-muted hover:bg-surface"
       {...machine.getClearTriggerProps()}
-    ><span class="i-lucide-x type-caption" aria-hidden="true"></span></button>
+    ><span class="i-lucide-x icon-sm" aria-hidden="true"></span></button>
   </div>
 
   <div

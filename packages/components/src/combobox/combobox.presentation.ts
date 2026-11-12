@@ -4,7 +4,6 @@ import {
   ariaHidden,
   ariaInvalid,
   ariaLabelledBy,
-  ariaState,
   comboboxInput,
   type ComponentDef,
   defineComponent,
@@ -569,7 +568,7 @@ export const def = {
           // The field is controlled: the bag binds the machine's text, and
           // an inline completion rides on top of it.
           value: display,
-          ...ariaInvalid(ariaState(scope.context.invalid)),
+          ...ariaInvalid(scope.context.invalid === true ? true : undefined),
           ...comboboxInput(scope, {
             autocomplete: ctx.inputBehavior === "autocomplete"
               ? "both"

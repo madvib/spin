@@ -35,7 +35,7 @@ function ruleDeclarations(
   return out;
 }
 
-test("neobrutalist buttons wear a strong frame, resting offset shadow, and active stamp press", async () => {
+test("neobrutalist buttons wear a strong frame, resting offset shadow, and collapse shadow onto footprint on hover and active", async () => {
   const css = await generateFor(
     '<button class="primary">Launch</button><button class="secondary">Docs</button><button class="danger">Stop</button><button class="ghost">Cancel</button><button class="bare">Raw</button>',
     designLanguages.neobrutalist,
@@ -43,10 +43,10 @@ test("neobrutalist buttons wear a strong frame, resting offset shadow, and activ
   const root = ruleDeclarations(css, ":root");
   deepStrictEqual(root["--button-edge"], "var(--color-border-strong)");
   deepStrictEqual(root["--button-shadow"], "var(--shadow-md)");
-  deepStrictEqual(root["--button-shadow-hover"], "var(--shadow-sm)");
+  deepStrictEqual(root["--button-shadow-hover"], "none");
   deepStrictEqual(root["--button-shadow-active"], "none");
-  deepStrictEqual(root["--button-hover-lift-x"], "2px");
-  deepStrictEqual(root["--button-hover-lift-y"], "2px");
+  deepStrictEqual(root["--button-hover-lift-x"], "4px");
+  deepStrictEqual(root["--button-hover-lift-y"], "4px");
   deepStrictEqual(root["--button-active-x"], "4px");
   deepStrictEqual(root["--button-active-y"], "4px");
   const primary = ruleDeclarations(css, (s) => s.endsWith('[variant~="primary"]'));
@@ -56,6 +56,12 @@ test("neobrutalist buttons wear a strong frame, resting offset shadow, and activ
   const danger = ruleDeclarations(css, (s) => s.endsWith('[variant~="danger"]'));
   deepStrictEqual(danger["border-color"], "var(--button-edge, var(--color-semantic-error))");
 
+  const hover = ruleDeclarations(css, (s) => s.startsWith(":is(button") && !s.includes(".ghost") && !s.includes(".bare") && s.includes(":hover"));
+  deepStrictEqual(hover["box-shadow"], "var(--button-shadow-hover)");
+  deepStrictEqual(
+    hover["transform"],
+    "translate(var(--button-hover-lift-x, 0), var(--button-hover-lift-y, 0))",
+  );
   const active = ruleDeclarations(css, (s) => s.startsWith(":is(button") && !s.includes(".ghost") && !s.includes(".bare") && s.includes(":active"));
   deepStrictEqual(active["box-shadow"], "var(--button-shadow-active, var(--button-shadow))");
   deepStrictEqual(
@@ -125,6 +131,11 @@ test("multi-theme stylesheets preserve fallback borders for edge-free languages 
   const primary = ruleDeclarations(css, (s) => s.endsWith('[variant~="primary"]'));
   deepStrictEqual(primary["border-color"], "var(--button-edge, var(--color-primary))");
 
+  const hover = ruleDeclarations(css, (s) => s.startsWith(":is(button") && !s.includes(".ghost") && !s.includes(".bare") && s.includes(":hover"));
+  deepStrictEqual(
+    hover["transform"],
+    "translate(var(--button-hover-lift-x, 0), var(--button-hover-lift-y, 0))",
+  );
   const brand = ruleDeclarations(css, ".type-brand");
   deepStrictEqual(brand["font-family"], "var(--font-style-brand-family)");
   deepStrictEqual(brand["font-size"], "var(--font-style-brand-size)");

@@ -20,7 +20,12 @@ export default defineConfig({
   plugins: [
     solid(),
     spin.vite({
-      presets: [presetIcons({ collections: { lucide } as never })],
+      presets: [
+        presetIcons({
+          extraProperties: { display: "inline-block", "vertical-align": "middle" },
+          collections: { lucide } as never,
+        }),
+      ],
       apiBase: "/__spin",
       // The studio, while it is being worked on. SPIN_STUDIO_DEV points at
       // the studio's own dev server (the one in apps/studio), and the

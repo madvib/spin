@@ -177,10 +177,7 @@ export const def = {
           "data-dragging": scope.attr(scope.state === "dragging"),
           "data-resizing": scope.attr(scope.state === "resizing"),
           "data-disabled": dataAttr(scope.context.disabled),
-          // The panel is the dismissable surface itself: an outside press
-          // closes it, and the escape hatch reaches the machine.
           "use:dismissable": {
-            onOutside: (): void => scope.send({ type: "CLOSE" }),
             onEscape: (): void => scope.send({ type: "ESCAPE" }),
           },
         };

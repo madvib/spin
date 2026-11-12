@@ -2,7 +2,7 @@ import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import { createRoot } from "solid-js";
 import { designLanguages } from "@spinjs/theme";
-import { createThemeState } from "./theme-state.ts";
+import { createThemeState, defaultThemeState } from "./theme-state.ts";
 /**
  * The theme state an app creates over its own documents.
   *
@@ -139,17 +139,51 @@ test("palette and spacing selections clamp unknown names and sync data-palette a
       state.setSpacing("unknown-spacing");
       deepStrictEqual(state.palette(), "catppuccin");
       deepStrictEqual(state.spacing(), "spacious");
-      state.flush();
       deepStrictEqual(dataset["palette"], "catppuccin");
       deepStrictEqual(dataset["spacing"], "spacious");
 
       state.setPalette("");
       state.setSpacing("");
-      state.flush();
       deepStrictEqual(dataset["palette"], undefined);
       deepStrictEqual(dataset["spacing"], undefined);
       dispose();
     });
+  } finally {
+    (globalThis as Record<string, unknown>)["document"] = previousDoc;
+    (globalThis as Record<string, unknown>)["localStorage"] = previousStorage;
+  }
+});
+
+test("defaultThemeState updates documentElement dataset live even after initial component root disposes", () => {
+  const dataset: Record<string, string | undefined> = {};
+  const store = new Map<string, string>();
+  const previousDoc = (globalThis as Record<string, unknown>)["document"];
+  const previousStorage = (globalThis as Record<string, unknown>)["localStorage"];
+  (globalThis as Record<string, unknown>)["document"] = {
+    documentElement: { dataset },
+  };
+  (globalThis as Record<string, unknown>)["localStorage"] = {
+    getItem: (key: string) => store.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      store.set(key, value);
+    },
+    removeItem: (key: string) => {
+      store.delete(key);
+    },
+  };
+  try {
+    createRoot((dispose) => {
+      void defaultThemeState.theme();
+      dispose();
+    });
+    defaultThemeState.setTheme("neobrutalist");
+    defaultThemeState.setPalette("bauhaus");
+    defaultThemeState.setSpacing("compact");
+    defaultThemeState.setMode("dark");
+    deepStrictEqual(dataset["theme"], "neobrutalist");
+    deepStrictEqual(dataset["palette"], "bauhaus");
+    deepStrictEqual(dataset["spacing"], "compact");
+    deepStrictEqual(dataset["mode"], "dark");
   } finally {
     (globalThis as Record<string, unknown>)["document"] = previousDoc;
     (globalThis as Record<string, unknown>)["localStorage"] = previousStorage;
