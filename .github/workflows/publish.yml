@@ -1,0 +1,63 @@
+name: publish
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Git tag or ref to publish (e.g. v0.2.0-alpha.1)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - run: bun install --frozen-lockfile
+      - run: bun run check
+      - run: bun run lint:ox
+      - run: bun run test
+      - run: bun run build:studio
+      - run: bun run build:dist
+      - run: bun run check:dist
+      - run: bun run pack
+
+      - name: Determine npm dist-tag
+        id: dist_tag
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          if [[ "$TAG" == *-alpha.* ]]; then
+            echo "tag=alpha" >> "$GITHUB_OUTPUT"
+          elif [[ "$TAG" == *-preview.* ]]; then
+            echo "tag=preview" >> "$GITHUB_OUTPUT"
+          elif [[ "$TAG" == *-beta.* ]]; then
+            echo "tag=beta" >> "$GITHUB_OUTPUT"
+          elif [[ "$TAG" == *-rc.* ]]; then
+            echo "tag=rc" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish @spinjs/components and @spinjs/dev
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm --version
+          npm publish dist-tarballs/spinjs-components-*.tgz --access public --tag "${{ steps.dist_tag.outputs.tag }}" --provenance
+          npm publish dist-tarballs/spinjs-dev-*.tgz --access public --tag "${{ steps.dist_tag.outputs.tag }}" --provenance
