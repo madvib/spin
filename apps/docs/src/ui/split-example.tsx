@@ -3,7 +3,7 @@
  * Playground handoff, driven by the `<docs-view-tabs>` Spin component.
  */
 import { A } from "@solidjs/router";
-import { createEffect, createSignal, Show } from "solid-js";
+import { createEffect, createSignal, onCleanup, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import { createSpinComponent } from "@spinjs/components/solid";
 import { tabs } from "@spinjs/components/tabs";
@@ -22,13 +22,15 @@ export function SplitExample(props: {
   const [view, setView] = createSignal<"preview" | "code">("preview");
 
   createEffect(() => {
-    tabsCtl.bind(
-      { value: view() },
-      {
-        "value-change": (event: CustomEvent<{ value: string }>) => {
-          setView(event.detail.value === "code" ? "code" : "preview");
+    onCleanup(
+      tabsCtl.bind(
+        { value: view() },
+        {
+          "value-change": (event: CustomEvent<{ value: string }>) => {
+            setView(event.detail.value === "code" ? "code" : "preview");
+          },
         },
-      },
+      ),
     );
   });
 

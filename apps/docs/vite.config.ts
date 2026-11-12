@@ -23,6 +23,7 @@ export default defineConfig({
     solid(),
     markdownForAgents(),
     spin.vite({
+      studio: false,
       extends: {
         themes: designLanguages,
         palettes: demoPalettes,

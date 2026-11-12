@@ -376,7 +376,7 @@ export function buildStylingMarkdown(routePath: string): string | undefined {
       "",
       "```html",
       "<button type=\"button\" class=\"primary\">",
-      "  Hover to feel the button transition",
+      "  Deploy release",
       "</button>",
       "",
       "<card class=\"animate-slide-up\">",

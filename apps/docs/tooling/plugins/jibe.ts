@@ -50,14 +50,15 @@ export function jibeStudio(options: {
           res.end(readFileSync(bridge));
           return;
         }
-        if (
-          url.pathname !== "/__spin/jibe-studio" &&
-          url.pathname !== "/__spin/jibe-studio/" &&
-          !url.pathname.startsWith("/__spin/jibe-studio/")
-        ) {
+        const prefix = url.pathname.startsWith("/__spin/studio")
+          ? "/__spin/studio"
+          : url.pathname.startsWith("/__spin/jibe-studio")
+          ? "/__spin/jibe-studio"
+          : null;
+        if (prefix === null) {
           return next();
         }
-        const path = url.pathname.slice("/__spin/jibe-studio".length);
+        const path = url.pathname.slice(prefix.length);
         if (
           path === "" ||
           path === "/" ||

@@ -3,34 +3,39 @@
  * walkthrough beneath it. This page edits the docs' own theme — the
  * preview repaints this site before anything is saved.
  */
-import type { JSX } from "solid-js";
+import { onCleanup, type JSX } from "solid-js";
 import { A } from "@solidjs/router";
+import { theme } from "@spinjs/kit";
+import { attachStudioSandbox } from "../shell/studio-sandbox.ts";
 import { Code, Section } from "../ui/index.ts";
 import { GETTING_STARTED_SNIPPETS } from "./docs/getting-started/getting-started.snippets.ts";
 
 export default function Studio(): JSX.Element {
-  const app = typeof location === "undefined"
-    ? ""
-    : `?app=${encodeURIComponent(location.origin)}&mode=drawer`;
+  let frame: HTMLIFrameElement | undefined;
+  const sandbox = attachStudioSandbox(() => frame, theme);
+  onCleanup(() => sandbox.dispose());
+
   return (
     <main class="flex h-full min-h-0 flex-col overflow-y-auto">
       <div class="mx-auto w-full max-w-screen-lg px-6 pt-10">
-        <h1>Using the Studio</h1>
+        <h1>Theme Studio</h1>
         <p class="max-w-prose text-muted">
-          The Studio is Spin's visual brand and theme workbench: create your
-          brand in four steps, tune colors, type styles, faces, spacing, shape,
-          motion, and icons against live specimens, and inspect every primitive
-          and statechart machine. Edits repaint your running app in memory
-          immediately; pressing <strong>Save</strong> writes clean DTCG JSON to{" "}
-          <code>spin/&lt;brand&gt;/</code>. Below is the live Studio, editing
-          this site.
+          Studio is Spin's visual workbench for shaping your brand: create a
+          brand from a starting design language, adjust colors with live
+          contrast checks, choose font pairings, tune spacing and motion, and
+          browse every HTML element and interactive component. Run it alongside
+          your dev server or explore the interactive sandbox below.
         </p>
       </div>
       <div class="mx-auto mt-6 w-full max-w-screen-lg shrink-0 px-6 pb-6">
         <iframe
-          title="Spin theme studio, editing this site"
-          src={`${import.meta.env.BASE_URL}__spin/studio/${app}`}
-          class="h-[70dvh] w-full rounded-md border bg-surface-raised shadow-md"
+          ref={(node) => {
+            frame = node;
+          }}
+          onLoad={() => sandbox.onLoad()}
+          title="Spin Theme Studio interactive sandbox"
+          src={`${import.meta.env.BASE_URL}__spin/studio/`}
+          class="h-[72dvh] w-full rounded-md border bg-surface-raised shadow-md"
         />
       </div>
       <div class="mx-auto w-full max-w-screen-lg px-6 pb-10 md:pb-16">

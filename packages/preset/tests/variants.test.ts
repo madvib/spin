@@ -129,15 +129,18 @@ test("a responsive prefix emits the theme's width as a media query", async () =>
   }
 });
 
-test("TypeScript negation and non-null tokens do not emit !important onto bare primitives", async () => {
+test("variants and JS syntax tokens never mutate bare-tag primitive rules", async () => {
   const gen = await createGenerator({
     presets: [spinPreset({ themes: { default: designLanguages.minimal } })],
   });
   const { css } = await gen.generate(
-    'if (!label) return label!; <label class="flex flex-row">Search</label>',
+    'if (!label) return label!; const x = a -label; *:label hover:label <label>Search</label>',
   );
-  const directions = [...css.matchAll(/\blabel\{[^}]*flex-direction:([^;}]+)/g)].map(
-    (m) => m[1]?.trim(),
-  );
-  assert.deepStrictEqual(directions, ["column"]);
+  const selectors = [...css.matchAll(/([^{}]+)\{[^}]*\}/g)]
+    .map((m) => m[1]?.trim())
+    .filter((s): s is string => s !== undefined && s.includes("label"));
+  assert.deepStrictEqual(selectors, [
+    "label",
+    'label:has(> input:is([type="checkbox"], [type="radio"]))',
+  ]);
 });

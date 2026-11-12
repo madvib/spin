@@ -33,6 +33,6 @@
     "types": "bun -e \"import { writeFile } from 'node:fs/promises'; import { parseTokens, generateTypes, minimalLanguage } from './src/index.ts'; const parsed = parseTokens(minimalLanguage); if (!parsed.ok) throw new Error(parsed.error); await writeFile('src/theme-types.d.ts', generateTypes(parsed.tree));\""
   },
   "type": "module",
-  "version": "0.2.0-preview.1",
+  "version": "0.2.0-alpha.1",
   "description": "The value layer: DTCG parsing, validation, gates, design languages, and facets."
 }

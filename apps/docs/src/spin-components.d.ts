@@ -34,7 +34,6 @@ declare global {
     "card-header": HTMLElement & SpinProjectComponentAttributes;
     "card-title": HTMLElement & SpinProjectComponentAttributes;
     "checkbox": HTMLElement & SpinProjectComponentAttributes;
-    "docs-bundler-tabs": HTMLElement & SpinProjectComponentAttributes;
     "docs-select": HTMLElement & SpinProjectComponentAttributes;
     "docs-toc": HTMLElement & SpinProjectComponentAttributes;
     "docs-view-tabs": HTMLElement & SpinProjectComponentAttributes;
@@ -68,7 +67,6 @@ declare module "solid-js" {
       "card-header": SpinProjectComponentAttributes;
       "card-title": SpinProjectComponentAttributes;
       "checkbox": SpinProjectComponentAttributes;
-      "docs-bundler-tabs": SpinProjectComponentAttributes;
       "docs-select": SpinProjectComponentAttributes;
       "docs-toc": SpinProjectComponentAttributes;
       "docs-view-tabs": SpinProjectComponentAttributes;

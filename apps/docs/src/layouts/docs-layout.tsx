@@ -67,10 +67,12 @@ export function DocsLayout(props: RouteSectionProps): JSX.Element {
   const [activeIds, setActiveIds] = createSignal<readonly string[]>([]);
 
   createEffect(() => {
-    tocCtl.bind({
-      items: headings(),
-      activeIds: activeIds(),
-    });
+    onCleanup(
+      tocCtl.bind({
+        items: headings(),
+        activeIds: activeIds(),
+      }),
+    );
   });
 
   createEffect(() => {

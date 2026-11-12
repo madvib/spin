@@ -1,15 +1,28 @@
-# spin
+# Spin
 
-One brand, every stack. Shape your brand's colors, type, spacing, and modes
-once in the Studio, and Spin turns it into the CSS, the styled HTML elements,
-the utilities, and the interactive components your interfaces are built from —
-across Solid, React, Vue, Svelte, or plain HTML, and Vite, Rspack, webpack,
-Rollup, Rolldown, esbuild, Bun, and UnoCSS.
+Design tokens, styled HTML elements, layout utilities, and portable UI statecharts for modern web apps.
+
+> **Status: Public Alpha (`0.2.0-alpha.1`)** — Core architecture, Theme Studio, HTML primitives, layout utilities, and 40 interactive components work today under the MIT license. Expect minor API and token refinements before 1.0.
+
+## Why Spin
+
+Frontend stacks usually split UI across three disconnected layers: a utility CSS library, a headless widget kit, and a custom theme file held together by code review. Spin unifies them without locking you into a framework-specific component black box:
+
+- **Theme Studio** — Pick a starting design language, shape your palette, typography, spacing, and dark mode visually against live components, and save git-friendly JSON files to `spin/`.
+- **Styled HTML elements** — Standard tags (`<button>`, `<input>`, `<dialog>`, `<table>`) and lightweight custom surfaces (`<card>`, `<badge>`, `<alert>`) arrive styled from your theme with zero client JS.
+- **Layout utilities** — Arrange screens with familiar flexbox, grid, spacing, surface, and radius classes backed by your theme scale. Unknown classes fail loudly instead of silently doing nothing.
+- **Portable statechart components** — Copy accessible templates for selects, comboboxes, menus, tabs, date pickers, and floating panels into your repository and bind them in React, Solid, Vue, Svelte, or plain HTML.
+- **Static checks & MCP server** — Built-in lints verify contrast ratios and catch conflicting overrides in your editor and CI, while the MCP server exposes your live tokens and components to coding agents.
+
+## Quickstart
 
 ```sh
 npm install -D @spinjs/dev
 npm install @spinjs/components
+npx spin init
 ```
+
+Wire the plugin in `vite.config.ts` (Rspack, webpack, Rollup, Rolldown, esbuild, Bun, and UnoCSS are also supported):
 
 ```ts
 import { spin } from "@spinjs/dev/vite";
@@ -19,84 +32,36 @@ export default {
 };
 ```
 
-Run `npx spin init`, pick one of six design languages as your starting point,
-and tune until the preview reads like your product. What you save becomes the
-`spin/<brand>/` directory your build serves — never locked to a canned theme.
+Import the virtual stylesheet once in your app entry (`import "spin/styles.css";`), start your dev server (or run `npx spin studio`), and write clean HTML.
 
-## The two packages
+## Packages
 
-| Package              | Install as    | What it is                                                                                        |
-| -------------------- | ------------- | ------------------------------------------------------------------------------------------------- |
-| `@spinjs/dev`        | devDependency | The toolchain: bundler plugins, theme engine, Studio, CLI, LSP, lints, and MCP server.            |
-| `@spinjs/components` | `dependency` | Accessible interactive components and client runtime, with React and Solid hooks plus controller bindings for Vue, Svelte, and HTML. |
+| Package | Install as | Description |
+| --- | --- | --- |
+| [`@spinjs/dev`](packages/dev) | `devDependency` | Bundler plugins, UnoCSS preset, theme compiler, Studio, CLI (`spin`), LSP, lints, and MCP server. |
+| [`@spinjs/components`](packages/components) | `dependency` | Headless statechart machines, client runtime, and React, Solid, Vue, Svelte, and DOM adapters. |
 
-Public subpaths: `@spinjs/dev/vite` (the plugin in all seven bundler shapes),
-`@spinjs/dev/preset` (the stylesheet-only preset), `@spinjs/dev/theme` (the
-token parser, design languages, and facets), `@spinjs/dev/diagnostics` and
-`@spinjs/dev/eslint` (the lint rules), `@spinjs/dev/cli` (the `spin` bin),
-`@spinjs/dev/mcp`, `@spinjs/dev/lsp`, `@spinjs/dev/api` (including
-`mountSpinApp`), plus `/skill`, `/compositions`, and `/examples`.
-`@spinjs/components` publishes one subpath per component plus `/react`,
-`/solid`, `/controller`, and `/runtime`.
+## Repository layout
 
-## The repository
+- `packages/dev` & `packages/components` — The two published npm packages (`packages/{theme,preset,diagnostics,server,build}` are internal workspace layers bundled into `@spinjs/dev`).
+- `apps/studio` — Visual brand and theme editor.
+- `apps/docs` — Documentation site, component catalog, and 5-framework interactive Playground.
+- `apps/reference` — Visual regression and contract reference app.
+- `examples/coffee` — Example storefront app built with Spin.
 
-### Apps
+## Local development
 
-| App              | What it is                                                                   |
-| ---------------- | ---------------------------------------------------------------------------- |
-| `apps/studio`    | The brand editor: it shapes a project's brand and repaints the app beside it. |
-| `apps/reference` | The reference app: every element and every utility, exercised.               |
-| `apps/docs`      | The documentation site, including the 5-runtime Playground.                  |
+Requires [Bun](https://bun.sh) (`>= 1.3`).
 
-### Examples
-
-| Example                | What it is                                                      |
-| ---------------------- | --------------------------------------------------------------- |
-| `examples/coffee`      | A small coffee-shop app, built on the preset and its own brand. |
-| `examples/fixture-app` | A bare project carrying `spin/<brand>/`, used by the daemon.    |
-
-`internal/kit` holds the shared docs/reference UI kit (theme state, pickers,
-specimens). `internal/check` holds the visual-check harness: the browser
-probes and the runner every app's configuration feeds. Both are internal
-tooling; nothing in them is published.
-
-## Commands
-
-```
-bun run dev        # the studio's dev server, alongside the API daemon
-bun run dev:docs   # the documentation site
-bun test           # the packages' suites (bun:test)
-bun run check      # typecheck every package and app, plus the docs lint gate
+```sh
+bun install
+bun run dev:docs     # Start docs site + Playground locally
+bun run dev          # Start standalone Studio + API daemon
+bun run check        # Typecheck all packages/apps + run Spin lints
+bun run test         # Run unit and integration test suites
+bun run build:dist   # Build publishable dist/ bundles and verify export maps
 ```
 
-`bun run dev` starts the studio and the daemon it talks to. The studio is the
-editor: it reads a project's theme, repaints the app beside it as you type, and
-writes the document back to disk when you save.
+## License
 
-## The npm packages
-
-Every package that ships carries a single `packages/<name>/package.json`. Its
-top-level `exports` points at `./src/...` so workspace development (`bun test`,
-`tsc`, Vite) resolves TypeScript source directly; its `publishConfig.exports`
-points at `./dist/...` so packing and publishing swap in the built files. The
-build writes the distribution — compiled JavaScript and declarations, one
-`packages/<name>/dist/` per package — and the check compares it against the
-source manifest:
-
-```
-bun run build:dist   # the dist for every publishable package
-bun run check:dist   # the export maps agree, every subpath resolves
-bun run pack         # pack every tarball the release ships
-```
-
-## Where to read more
-
-- [`packages/dev/README.md`](packages/dev/README.md) — the toolchain.
-- [`packages/components/README.md`](packages/components/README.md) — the component library.
-- [`apps/docs`](apps/docs) — the documentation site; `bun run dev:docs` runs
-  it, and Bundler Setup carries the per-bundler recipes.
-
-## Status
-
-0.2.0-preview.1. MIT licensed; see [LICENSE](LICENSE).
+[MIT](LICENSE)

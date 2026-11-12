@@ -60,7 +60,7 @@ interface Rule {
  */
 function rulesOf(css: string): Rule[] {
   const out: Rule[] = [];
-  for (const match of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+  for (const match of css.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     const declarations: Record<string, string> = {};
     for (const entry of match[2]!.split(";")) {
       const text = entry.trim();
@@ -461,4 +461,18 @@ test("a row of stats is the stat's own class, not a layout utility", async () =>
     "the stat's row is a class the preset ships",
   );
   deepStrictEqual(row["display"], "flex", "and it is a row");
+});
+
+test("a bare label stacks vertically while <label class=\"flex\"> lays out as a row without .flex-row", async () => {
+  const css = await sheetFor(
+    '<label class="flex items-center gap-2"><input type="search"><kbd>K</kbd></label>',
+  );
+  deepStrictEqual(
+    declarationsFor(css, "label")["flex-direction"],
+    "column",
+  );
+  deepStrictEqual(
+    declarationsFor(css, ":where(label).flex:where(:not(.flex-col):not(.flex-col-reverse))")["flex-direction"],
+    "row",
+  );
 });

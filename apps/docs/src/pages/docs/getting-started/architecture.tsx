@@ -1,5 +1,5 @@
 /**
- * Architecture & Layers: which layer owns each decision and which gate verifies it.
+ * How Spin Works: clear mental model for themes, HTML elements, utilities, and interactive components.
  */
 import { A } from "@solidjs/router";
 import type { JSX } from "solid-js";
@@ -7,172 +7,127 @@ import { Code, PageHeader, PropList, Section, type PropEntry } from "../../../ui
 
 const layerItems = (): readonly PropEntry[] => [
   {
-    name: "1. Your Brand (spin/<brand>/)",
-    badge: "colors & type",
+    name: "1. Brand & Theme",
+    badge: "Studio",
     description: (
       <>
-        Owns every visual value: your palette with readable inks, your type
-        voices, spacing steps, corner radii, shadows, and motion. Shape it in
-        the Studio; theme checks keep it complete and legible in both modes.
-        See <A href="/docs/themes/overview">Your Brand &amp; Studio</A>.
+        Defines your colors, typography, spacing, corner radii, shadows, and
+        motion in both light and dark modes. You shape it visually in{" "}
+        <A href="/docs/themes/overview">Studio</A> and check it into git.
       </>
     ),
   },
   {
-    name: "2. Finished HTML Elements",
-    badge: "buttons & cards",
+    name: "2. HTML Elements",
+    badge: "CSS only",
     description: (
       <>
-        Native tags (<code>&lt;button&gt;</code>, <code>&lt;input&gt;</code>,{" "}
-        <code>&lt;table&gt;</code>, headings) and Spin surfaces (
-        <code>&lt;card&gt;</code>, <code>&lt;badge&gt;</code>,{" "}
-        <code>&lt;alert&gt;</code>) arrive styled by your brand. Write{" "}
-        <code>&lt;button class="primary"&gt;</code> and get a finished control.
-        Explore <A href="/docs/styling/elements">HTML Elements &amp; Surfaces</A>.
+        Buttons, inputs, dialogs, tables, cards, badges, and alerts arrive
+        styled from your theme with zero client JavaScript. Browse{" "}
+        <A href="/docs/styling/elements">HTML Elements</A>.
       </>
     ),
   },
   {
-    name: "3. Layout Utilities & Project Shortcuts",
-    badge: "arrangement",
+    name: "3. Layout Utilities",
+    badge: "CSS only",
     description: (
       <>
-        Arrange elements with <code>flex</code>, <code>grid</code>,{" "}
-        <code>gap-4</code>, and <code>p-6</code>, reading only steps your brand
-        declares. Name the arrangements your app repeats once, and spell them
-        the same way everywhere. See{" "}
-        <A href="/docs/styling/tailwind">Utility Syntax</A> and{" "}
-        <A href="/docs/styling/utilities">Project Shortcuts</A>.
+        Flexbox, grid, spacing, and surface classes position elements on the
+        page using steps from your theme. Repeated layouts can be named once as{" "}
+        <A href="/docs/styling/utilities">Shortcuts</A>.
       </>
     ),
   },
   {
     name: "4. Interactive Components",
-    badge: "widgets",
+    badge: "Statecharts",
     description: (
       <>
-        Copy tested templates for selects, dialogs, menus, and date pickers
-        into your repo — keyboard navigation, focus management, and state
-        included. Browse{" "}
-        <A href="/docs/authoring/machines">Statechart Machines</A> and the{" "}
-        <A href="/components">Components catalog</A>.
+        Accessible state machines for selects, comboboxes, menus, tabs, and date
+        pickers that copy into your repository and work across React, Solid,
+        Vue, Svelte, and HTML. See{" "}
+        <A href="/docs/authoring/components">Interactive Components</A>.
       </>
     ),
   },
   {
-    name: "5. Verification",
-    badge: "editor & CI",
+    name: "5. Lints & Checks",
+    badge: "Editor & CI",
     description: (
       <>
-        Lints check templates against your live brand while you edit, the
-        build refuses what cannot render, and the same guards run in CI. See{" "}
+        Contrast gates verify every color pair in your theme, and static lints
+        flag unknown classes or conflicting overrides before they ship. See{" "}
         <A href="/docs/tooling/lints">Lints &amp; Guardrails</A>.
       </>
     ),
   },
 ];
 
-const ownershipStaircase = (): readonly PropEntry[] => [
-  {
-    name: "Step 1 — Pick a variant (.primary, .secondary, .ghost, .danger)",
-    badge: "One control",
-    description: (
-      <>
-        Change emphasis on a <code>&lt;button&gt;</code>,{" "}
-        <code>&lt;badge&gt;</code>, or <code>&lt;alert&gt;</code> with the
-        element's built-in variants instead of re-styling it by hand.
-      </>
-    ),
-  },
-  {
-    name: "Step 2 — Clear the skin with .bare",
-    badge: "Custom chrome",
-    description: (
-      <>
-        Need <code>&lt;button&gt;</code> semantics and keyboard behavior for a
-        custom swatch tile or navigation row, without default control chrome?
-        Add <code>class="bare"</code> and compose utilities freely on the
-        cleared surface.
-      </>
-    ),
-  },
-  {
-    name: "Step 3 — Change it once, in the Studio or your brand files",
-    badge: "Every screen",
-    description: (
-      <>
-        Want every <code>&lt;button&gt;</code> to wear pill corners, or every{" "}
-        <code>&lt;h1&gt;</code> to speak a different type voice? Make the change
-        once in the Studio and every screen updates together. See{" "}
-        <A href="/docs/themes/customization">Brand Files</A>.
-      </>
-    ),
-  },
-  {
-    name: "Step 4 — Adopt one element at a time",
-    badge: "Migration",
-    description: (
-      <>
-        Migrating an app that already styles bare HTML tags? Tell the plugin
-        which elements Spin owns so far, and claim the rest as you go.
-      </>
-    ),
-  },
-];
 export default function Architecture(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
         title="How Spin Works"
-        lede="How themes, native HTML elements, layout utilities, and interactive components fit together."
+        lede="How your theme, HTML elements, layout utilities, and interactive components divide the work."
       />
 
-      <Section id="layers" title="The five layers">
+      <Section id="layers" title="The five pieces">
         <PropList items={layerItems()} />
       </Section>
 
-      <Section
-        id="ownership"
-        title="Why elements arrive styled (and how to change them)"
-      >
+      <Section id="ownership" title="Elements handle appearance; utilities handle layout">
         <p class="max-w-prose">
-          When a framework leaves <code>&lt;button&gt;</code> or{" "}
-          <code>&lt;h2&gt;</code> unstyled, every template has to carry the
-          control's padding, border, radius, focus ring, and typography inline.
-          In Spin, the element owns its appearance and utilities own placement
-          around it (<code>mt-4</code>, <code>w-full</code>). Restyling one
-          button at its callsite forks your design system silently — so the
-          lints refuse, and the staircase below shows the honest path whenever
-          an element needs a different look:
+          In Spin, standard HTML tags and custom surfaces carry their own visual
+          design — padding, borders, focus rings, hover states, and typography
+          all come straight from your theme. Utility classes arrange those
+          elements on the screen with grids, flex rows, gaps, and widths.
         </p>
-        <div class="mt-3">
-          <PropList items={ownershipStaircase()} />
-        </div>
+        <p class="max-w-prose">
+          When a control needs different emphasis, pick one of its built-in
+          variants like <code>primary</code>, <code>secondary</code>,{" "}
+          <code>ghost</code>, or <code>danger</code>. When you want every button
+          or card across your product to look rounder, tighter, or bolder,
+          adjust it once in Studio and every screen updates together.
+        </p>
         <div class="my-3">
           <Code
             lang="html"
-            title="Variants, .bare semantics, and layout utilities working together"
-            code={`<!-- 1. Variant + layout placement on a styled <button> -->
-<button type="button" class="primary w-full">Save changes</button>
-
-<!-- 2. .bare releases the button skin for a custom swatch trigger -->
-<button type="button" class="bare flex w-full items-center justify-between rounded-md border bg-surface-raised p-3">
-  <span>Primary ink</span>
-  <span class="type-code text-muted">#2563eb</span>
-</button>`}
+            title="Elements carry appearance; utilities arrange the layout"
+            code={`<card class="max-w-md">
+  <card-header>
+    <card-title>Production environment</card-title>
+    <card-description>Automatic deploys from main are enabled.</card-description>
+  </card-header>
+  <card-footer class="justify-end gap-2">
+    <button type="button" class="ghost">Pause</button>
+    <button type="button" class="primary">Deploy now</button>
+  </card-footer>
+</card>`}
           />
         </div>
       </Section>
 
-      <Section id="flow" title="How a change flows through Spin">
-        <p class="max-w-prose">
-          Your brand directory is the single source of truth. Elements and
-          utilities read it as CSS variables; a class your brand cannot produce
-          emits nothing. Components read the same brand while adding keyboard,
-          focus, and interaction behavior. Checks verify the brand stays
-          complete and legible, and lints verify your templates against the
-          brand you shaped.
-        </p>
+      <Section id="flow" title="From Studio to the browser">
+        <ol class="flex max-w-prose flex-col gap-3">
+          <li>
+            <strong>Shape your brand in Studio.</strong> Pick one of six
+            starting design languages, tune colors, typefaces, and spacing
+            against live previews, and save to your project's <code>spin/</code>{" "}
+            folder.
+          </li>
+          <li>
+            <strong>Compile only what you use.</strong> During development and
+            production builds, the bundler plugin compiles your theme and scans
+            your templates to emit CSS only for the elements and utilities your
+            app actually renders.
+          </li>
+          <li>
+            <strong>Verify in editor and CI.</strong> If a color tweak breaks
+            readability or a template uses a class outside your theme scale,
+            Studio and <code>spin lint</code> point straight to the fix.
+          </li>
+        </ol>
       </Section>
     </main>
   );

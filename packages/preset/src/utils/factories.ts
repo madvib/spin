@@ -41,6 +41,13 @@ export function staticRules(
           [ctx.symbols.selector]: () => `.${name} > li + li`,
           "margin-block-start": "0",
         };
+        if (name === "flex" || name === "inline-flex") {
+          yield {
+            [ctx.symbols.selector]: () =>
+              `:where(label).${name}:where(:not(.flex-col):not(.flex-col-reverse))`,
+            "flex-direction": "row",
+          };
+        }
       },
       { autocomplete: name },
     ];

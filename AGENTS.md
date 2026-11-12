@@ -106,16 +106,16 @@ Supporting trees:
 
 ### Package rules
 
-- A module that is not the theme area MUST NOT hardcode a token value. Read it
+- A module outside `@spinjs/theme` MUST NOT hardcode a token value. Read it
   from the theme.
-- Only the preset area references UnoCSS internals.
-- Only the project area reads or writes a project's files. The project owns
-  where its themes and its configuration live; ask it.
-- The diagnostics area MUST NOT re-implement theme resolution; it asks the theme.
-  Dependencies point downward: spin areas → components → runtime; runtime
-  depends on nothing.
-- Every package owns its `package.json`, exports only from `src/` subpaths, and
-  has its own `test` / `lint` / `fmt` tasks.
+- Only `@spinjs/preset` references UnoCSS internals.
+- Only `@spinjs/server` reads or writes a project's files on disk.
+- `@spinjs/diagnostics` MUST NOT re-implement theme resolution; it asks `@spinjs/theme`.
+  Dependencies point downward: `dev` → `{build,server,diagnostics,preset,theme}`
+  and `components`; `@spinjs/components/runtime` depends on no workspace package.
+- Every package owns its `package.json`, exports from `src/` subpaths during
+  development (`publishConfig.exports` swaps in `dist/` for published packages),
+  and defines `test` / `lint` / `fmt` scripts.
 
 ## Testing culture
 
@@ -138,7 +138,7 @@ missing test, because it silently rewrites the contract.
   error a caller sees. Never assert on internal call order, private structure,
   chosen algorithm, or source text.
 - **NO testing other people's code.** Don't write tests asserting on a
-  dependency's behavior, on Deno internals, or on a browser feature that we
+  dependency's behavior, on Bun internals, or on a browser feature that we
   merely consume. Test our contract.
 - **NO mocking our own code.** Mocking our own implementation in a test proves
   the test's mock, not our code. If a test needs a mock of something we own, the

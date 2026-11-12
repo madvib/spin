@@ -1,12 +1,9 @@
 /**
- * Install & Bundlers: package split, `spin init` flags, bundler configs,
- * and project layout.
+ * Bundler Setup: package roles, reactive bundler config tabs, and project files with clear lifecycle.
  */
-import { createEffect, createSignal } from "solid-js";
+import { createSignal, For } from "solid-js";
 import type { JSX } from "solid-js";
 import { A } from "@solidjs/router";
-import { createSpinComponent } from "@spinjs/components/solid";
-import { tabs } from "@spinjs/components/tabs";
 import {
   Code,
   CodeFrame,
@@ -17,96 +14,160 @@ import {
 } from "../../../ui/index.ts";
 import { GETTING_STARTED_SNIPPETS } from "./getting-started.snippets.ts";
 
-const BUNDLER_TABS: Readonly<
-  Record<
-    string,
-    {
-      readonly name: string;
-      readonly file: string;
-      readonly code: string;
-      readonly note: string;
-    }
-  >
-> = {
-  vite: {
+interface BundlerTab {
+  readonly id: string;
+  readonly name: string;
+  readonly file: string;
+  readonly code: string;
+  readonly note: JSX.Element;
+}
+
+const bundlerList = (): readonly BundlerTab[] => [
+  {
+    id: "vite",
     name: "Vite",
     file: "vite.config.ts",
     code: GETTING_STARTED_SNIPPETS.vite,
-    note: "Compiles styles, builds HTML components, and injects the floating Studio launcher during development.",
+    note: (
+      <>
+        Compiles your theme and utility CSS, builds any{" "}
+        <A href="/docs/authoring/components">interactive HTML components</A> in
+        your project, and mounts Studio during local development.
+      </>
+    ),
   },
-  rspack: {
+  {
+    id: "rspack",
     name: "Rspack",
     file: "rspack.config.ts",
     code: GETTING_STARTED_SNIPPETS.rspack,
-    note: "Compiles spin/styles.css and transforms src/lib/components/**/*.html.",
+    note: (
+      <>
+        Compiles your theme stylesheet and any{" "}
+        <A href="/docs/authoring/components">interactive HTML components</A>{" "}
+        during Rspack dev and production builds.
+      </>
+    ),
   },
-  webpack: {
+  {
+    id: "webpack",
     name: "webpack",
     file: "webpack.config.mjs",
     code: GETTING_STARTED_SNIPPETS.webpack,
-    note: "Compiles spin/styles.css and transforms src/lib/components/**/*.html.",
+    note: (
+      <>
+        Compiles your theme stylesheet and any{" "}
+        <A href="/docs/authoring/components">interactive HTML components</A>{" "}
+        during webpack builds.
+      </>
+    ),
   },
-  rollup: {
+  {
+    id: "rollup",
     name: "Rollup",
     file: "rollup.config.mjs",
     code: GETTING_STARTED_SNIPPETS.rollup,
-    note: "Compiles spin/styles.css and transforms src/lib/components/**/*.html.",
+    note: (
+      <>
+        Compiles your theme stylesheet and any{" "}
+        <A href="/docs/authoring/components">interactive HTML components</A>{" "}
+        in Rollup bundles.
+      </>
+    ),
   },
-  rolldown: {
+  {
+    id: "rolldown",
     name: "Rolldown",
     file: "rolldown.config.ts",
     code: GETTING_STARTED_SNIPPETS.rolldown,
-    note: "Compiles spin/styles.css and transforms src/lib/components/**/*.html.",
+    note: (
+      <>
+        Compiles your theme stylesheet and any{" "}
+        <A href="/docs/authoring/components">interactive HTML components</A>{" "}
+        in Rolldown bundles.
+      </>
+    ),
   },
-  esbuild: {
+  {
+    id: "esbuild",
     name: "esbuild",
     file: "spin.config.ts",
     code: GETTING_STARTED_SNIPPETS.esbuild,
-    note: "Compiles spin/styles.css and transforms src/lib/components/**/*.html.",
+    note: (
+      <>
+        Compiles your theme stylesheet and any{" "}
+        <A href="/docs/authoring/components">interactive HTML components</A>{" "}
+        for esbuild pipelines.
+      </>
+    ),
   },
-  bun: {
+  {
+    id: "bun",
     name: "Bun",
     file: "spin.config.ts",
     code: GETTING_STARTED_SNIPPETS.bun,
-    note: "Compiles spin/styles.css and transforms src/lib/components/**/*.html.",
+    note: (
+      <>
+        Compiles your theme stylesheet and any{" "}
+        <A href="/docs/authoring/components">interactive HTML components</A>{" "}
+        for Bun bundler builds.
+      </>
+    ),
   },
-  unocss: {
+  {
+    id: "unocss",
     name: "UnoCSS",
     file: "uno.config.ts",
     code: GETTING_STARTED_SNIPPETS.unocss,
-    note: "Stylesheet only: `spinPreset` in an existing UnoCSS app, with explicit theme documents.",
+    note: (
+      <>
+        Stylesheet-only preset for existing UnoCSS setups — pass your brand
+        theme document directly to <code>spinPreset</code>.
+      </>
+    ),
   },
-};
+];
 
 function BundlerPicker(): JSX.Element {
-  const [tabsEl, setTabsEl] = createSignal<HTMLElement>();
-  const tabsCtl = createSpinComponent(tabsEl, tabs);
-  const [selected, setSelected] = createSignal("vite");
-
-  createEffect(() => {
-    tabsCtl.bind(
-      { value: selected() },
-      {
-        "value-change": (event: CustomEvent<{ value: string }>) => {
-          if (event.detail.value in BUNDLER_TABS) {
-            setSelected(event.detail.value);
-          }
-        },
-      },
-    );
-  });
-
-  const current = () => BUNDLER_TABS[selected()] ?? BUNDLER_TABS.vite!;
+  const list = bundlerList();
+  const [selectedId, setSelectedId] = createSignal("vite");
+  const current = (): BundlerTab =>
+    list.find((item) => item.id === selectedId()) ?? list[0]!;
 
   return (
     <div class="flex flex-col gap-3">
-      <docs-bundler-tabs ref={setTabsEl} />
+      <div
+        role="tablist"
+        aria-label="Bundler"
+        class="flex flex-wrap gap-1 rounded-lg border bg-surface-sunken p-1"
+      >
+        <For each={list}>
+          {(tab) => {
+            const active = () => selectedId() === tab.id;
+            return (
+              <button
+                type="button"
+                role="tab"
+                aria-selected={active()}
+                onClick={() => setSelectedId(tab.id)}
+                class={`bare rounded-md px-3 py-1 type-caption-emphasized transition-colors duration-fast ${
+                  active()
+                    ? "bg-surface text-primary shadow-sm"
+                    : "text-muted hover:text-primary"
+                }`}
+              >
+                {tab.name}
+              </button>
+            );
+          }}
+        </For>
+      </div>
       <CodeFrame
         code={current().code}
         lang="ts"
         title={current().file}
       />
-      <p class="text-muted">{current().note}</p>
+      <p class="max-w-prose text-muted">{current().note}</p>
     </div>
   );
 }
@@ -116,19 +177,13 @@ const PACKAGE_ITEMS: readonly PropEntry[] = [
     name: "@spinjs/dev",
     badge: "devDependency",
     description:
-      "The build toolchain: bundler plugins, UnoCSS preset, theme engine, .html component compiler, CLI, LSP, lints, MCP server, and Studio.",
+      "Build-time toolchain: bundler plugins, theme compiler, visual Studio, CLI, editor LSP, lints, and MCP server.",
   },
   {
     name: "@spinjs/components",
     badge: "dependency",
     description:
-      "Headless state-machine components (combobox, date picker, select, toc, carousel, and more) with React, Solid, Vue, and Svelte adapters.",
-  },
-  {
-    name: "@spinjs/components/runtime",
-    badge: "subpath",
-    description:
-      "Signals, custom-element bridges, and finite-state machines — a subpath of @spinjs/components, no separate install.",
+      "Headless statechart machines and lightweight client runtime with React, Solid, Vue, Svelte, and vanilla DOM bindings.",
   },
 ];
 
@@ -137,10 +192,10 @@ export default function Install(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Bundler Setup"
-        lede="Configure Spin in Vite, Rspack, webpack, Rollup, Rolldown, esbuild, Bun, or UnoCSS."
+        lede="Configure Spin in Vite, Rspack, webpack, Rollup, Rolldown, esbuild, Bun, or an existing UnoCSS setup."
       />
 
-      <Section id="packages" title="1. Install the two packages">
+      <Section id="packages" title="1. Install the packages">
         <div class="mb-4">
           <Code
             code={GETTING_STARTED_SNIPPETS.install}
@@ -153,8 +208,8 @@ export default function Install(): JSX.Element {
 
       <Section id="wire" title="2. Add the bundler plugin">
         <p class="max-w-prose">
-          Run <code>npx spin init</code> to wire your bundler automatically, or
-          add the plugin to your config manually and import{" "}
+          Running <code>npx spin init</code> configures your bundler
+          automatically. To set it up by hand, add the plugin below and import{" "}
           <code>spin/styles.css</code> once in your app entry:
         </p>
         <div class="my-4">
@@ -169,40 +224,51 @@ export default function Install(): JSX.Element {
         </div>
       </Section>
 
-      <Section id="layout" title="3. Files added to your project">
+      <Section id="layout" title="3. What gets added to your project (and when)">
+        <p class="max-w-prose">
+          Spin keeps its footprint explicit — nothing is added until a specific
+          step needs it, and every directory path can be customized in plugin
+          options:
+        </p>
         <PropList
           items={[
             {
-              name: "spin/<brand>/tokens.json",
-              badge: "theme",
+              name: "spin/",
+              badge: "created on spin init",
               description:
-                "Your brand's colors, typography, spacing, radii, and dark mode overrides.",
-            },
-            {
-              name: "src/lib/components/",
-              badge: "components",
-              description:
-                "Interactive components copied into your repo with npx spin component copy.",
-            },
-            {
-              name: "src/spin-components.d.ts",
-              badge: "types",
-              description:
-                "Generated TypeScript declarations for spin/styles.css and your project's custom elements.",
+                "Holds your brand's theme files. Shaped visually in Studio or edited directly in git (customizable via themesDir).",
             },
             {
               name: ".mcp.json",
-              badge: "AI",
+              badge: "created on spin init",
               description:
-                "Connects Claude Code, Cursor, and other MCP-compatible coding agents to your project.",
+                "Optional MCP server config so Claude Code, Cursor, and other coding agents can query your live theme and components.",
+            },
+            {
+              name: "src/spin-components.d.ts",
+              badge: "auto-generated on dev/build",
+              description:
+                "TypeScript module declarations for Spin's virtual stylesheet and any interactive components in your project.",
+            },
+            {
+              name: "Interactive component folder",
+              badge: "created when you copy a component",
+              description: (
+                <>
+                  Created only when you copy an interactive component into your
+                  project (defaults to <code>src/lib/components/</code>,
+                  customizable via <code>componentsDir</code>). See{" "}
+                  <A href="/docs/authoring/components">Interactive Components</A>.
+                </>
+              ),
             },
           ]}
         />
         <p class="max-w-prose text-muted">
-          Need CLI flags or advanced plugin options? See the{" "}
-          <A href="/docs/tooling/cli">CLI Reference</A>. Adopting Spin inside an
-          existing app? Read{" "}
-          <A href="/docs/getting-started/paths">Incremental Adoption</A>.
+          See <A href="/docs/tooling/cli">CLI &amp; Build Options</A> for all
+          custom directory and shortcut settings, or{" "}
+          <A href="/docs/getting-started/paths">Incremental Adoption</A> to roll
+          Spin into an existing codebase step by step.
         </p>
       </Section>
     </main>

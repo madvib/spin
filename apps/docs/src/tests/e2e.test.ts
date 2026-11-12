@@ -212,6 +212,9 @@ describe("bundler picker", () => {
         await tablist.getByRole("tab", { name }).click();
         const code = await page.locator("main pre").nth(1).innerText();
         expect(code.length).toBeGreaterThan(0);
+        if (name === "UnoCSS") {
+          expect(code).toContain("spinPreset");
+        }
         seen.add(name);
       }
       expect([...seen].sort()).toEqual([...TABS].sort());
@@ -300,15 +303,12 @@ describe("search and studio", () => {
     await page.close();
   }, 60000);
 
-  test("the Studio FAB opens the overlay with the single bar", async () => {
+  test("/studio embeds the interactive Studio sandbox with the single bar", async () => {
     const page = await newPage();
-    await page.goto(`${URL}/docs/getting-started/overview`, {
+    await page.goto(`${URL}/studio`, {
       waitUntil: "networkidle",
     });
-    const fab = page.getByRole("button", { name: "Open the theme studio" });
-    await fab.waitFor({ state: "visible", timeout: 30000 });
-    await fab.click();
-    const frame = page.frameLocator("[data-spin-studio]");
+    const frame = page.frameLocator("main iframe");
     const bar = frame.locator("#app header").first();
     await bar.waitFor({ state: "visible", timeout: 30000 });
     const nav = frame.locator('[data-testid="studio-nav"]').first();

@@ -44,8 +44,25 @@ import { textareaRules } from "./textarea.ts";
  * Shortcuts still have a place, for utility bundles a caller opts into by
  * name. They are not for components.
  */
+function withoutVariants(rules: readonly SpinRule[]): SpinRule[] {
+  return rules.map((rule) => {
+    if (!(rule[0] instanceof RegExp) || typeof rule[1] !== "function") {
+      return rule;
+    }
+    const handler = rule[1];
+    return [
+      rule[0],
+      (match, ctx) =>
+        (ctx.variantHandlers?.length ?? 0) > 0
+          ? undefined
+          : handler(match, ctx),
+      ...(rule[2] === undefined ? [] : [rule[2]]),
+    ] as SpinRule;
+  });
+}
+
 export function primitiveRules(roots: readonly string[]): SpinRule[] {
-  return [
+  return withoutVariants([
     // The shared box is one component: `field` covers input and textarea,
     // because they are one box with two contents.
     ...(roots.includes("field") ? [fieldBox()] : []),
@@ -75,5 +92,5 @@ export function primitiveRules(roots: readonly string[]): SpinRule[] {
     ...radioRules(roots),
     ...rangeRules(roots),
     ...tooltipRules(roots),
-  ];
+  ]);
 }

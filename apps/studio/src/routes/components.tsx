@@ -137,7 +137,7 @@ function NavBody(props: {
   return (
     <>
       <div class="flex flex-col gap-2">
-        <label class="flex flex-row min-w-0 items-center gap-2">
+        <label class="flex min-w-0 items-center gap-2">
           <span class="i-lucide-search icon-sm shrink-0 text-muted" aria-hidden="true" />
           <input
             type="search"

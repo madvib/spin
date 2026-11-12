@@ -180,21 +180,23 @@ export default function Home(): JSX.Element {
   const selectCtl = createSpinComponent(selectEl, select);
   // Items are the app's, not the component's: the vendored select is generic.
   createEffect(() =>
-    selectCtl.bind(
-      {
-        items: PACKAGE_MANAGERS.map((manager) => ({
-          value: manager.id,
-          label: manager.id,
-        })),
-      },
-      {
-        "value-change": (event: CustomEvent<{ value: readonly string[] }>) => {
-          const [value] = event.detail.value;
-          if (value !== undefined && isPackageManager(value)) {
-            setPackageManager(value);
-          }
+    onCleanup(
+      selectCtl.bind(
+        {
+          items: PACKAGE_MANAGERS.map((manager) => ({
+            value: manager.id,
+            label: manager.id,
+          })),
         },
-      },
+        {
+          "value-change": (event: CustomEvent<{ value: readonly string[] }>) => {
+            const [value] = event.detail.value;
+            if (value !== undefined && isPackageManager(value)) {
+              setPackageManager(value);
+            }
+          },
+        },
+      ),
     ),
   );
   const installCommand = (): string =>

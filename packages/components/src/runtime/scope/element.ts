@@ -248,7 +248,8 @@ export function define(tag: string, spec: ElementSpec): void {
         ) continue;
         const value = own.value;
         delete (this as unknown as Record<string, unknown>)[name];
-        propFor(this, name)(value);
+        authoredFor(this).add(name);
+        propFor(this, name)(coerceWrite(name, value));
       }
       writers.set(this, (name, next) => {
         authoredFor(this).add(name);

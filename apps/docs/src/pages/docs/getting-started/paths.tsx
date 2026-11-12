@@ -11,19 +11,18 @@ import { spin } from "@spinjs/dev/vite";
 export default defineConfig({
   plugins: [
     spin.vite({
-      // Emit CSS variables and utilities only; leave existing <button> and <input> CSS untouched
+      // Compile your theme and utility classes without restyling existing HTML tags
       primitives: false,
     }),
   ],
 });`;
 
 const SCOPED_PRIMITIVES_CONFIG = `spin.vite({
-  // Style only the native elements you've migrated so far
+  // Enable Spin's element styles only for tags you've migrated so far
   primitives: ["button", "badge", "card", "dialog"],
 })`;
 
-const COPY_SINGLE_COMPONENT = `# Add one accessible component without touching the rest of your widget library
-npx spin component copy combobox basic`;
+const COPY_SINGLE_COMPONENT = `npx spin component copy combobox basic`;
 
 const SHARED_BRAND_CONFIG = `import { brand } from "@acme/design-system";
 
@@ -33,28 +32,28 @@ spin.vite({
 
 const ROLLOUT_STAGES: readonly PropEntry[] = [
   {
-    name: "Stage 1 · Tokens & utilities only",
+    name: "Stage 1 · Theme & layout utilities only",
     badge: "primitives: false",
     description:
-      "Generate your brand's CSS variables (--color-*, --spacing-*, --radius-*) and layout utilities without restyling existing <button>, <input>, or <table> tags.",
+      "Bring in your brand's colors, typography, light/dark modes, and utility classes while leaving existing global button, input, and table CSS untouched.",
   },
   {
-    name: "Stage 2 · Opt in to HTML elements one by one",
+    name: "Stage 2 · Enable HTML elements one tag at a time",
     badge: "primitives: [...]",
     description:
-      "Enable Spin's native element styles incrementally — start with badges and cards, then migrate buttons, inputs, and dialogs as old CSS modules retire.",
+      "Opt into Spin's styled elements gradually — start with cards and badges, then turn on buttons, inputs, and dialogs as legacy CSS retires.",
   },
   {
-    name: "Stage 3 · Drop in interactive components where needed",
-    badge: "spin component copy",
+    name: "Stage 3 · Add individual interactive components",
+    badge: "on demand",
     description:
-      "Copy individual accessible widgets (a combobox, date picker, or menu) into src/lib/components/ and mount them inside existing React, Solid, Vue, or Svelte views.",
+      "Copy a single accessible combobox, select, or date picker into your app without replacing the rest of your existing widget library.",
   },
   {
-    name: "Stage 4 · Turn on lint rules per folder",
+    name: "Stage 4 · Scope lint rules to migrated folders",
     badge: "oxlint / ESLint",
     description:
-      "Scope Spin's lint rules to migrated directories first so new code stays consistent while legacy routes finish converting.",
+      "Enable Spin's lint rules on migrated directories first so new screens stay consistent while older routes finish converting.",
   },
 ];
 
@@ -63,27 +62,24 @@ export default function Paths(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Incremental Adoption"
-        lede="Adopt Spin gradually in an existing app: start with tokens and utilities, opt in to HTML elements, or add single components."
+        lede="Roll Spin into an existing product step by step without a big-bang rewrite."
       />
 
-      <Section id="stages" title="A practical migration path">
+      <Section id="stages" title="Four independent stages">
         <p class="max-w-prose">
-          You don't need a big-bang rewrite to bring Spin into an existing
-          product. Every layer — design tokens, layout utilities, native HTML
-          element styles, interactive components, and lint rules — can be turned
-          on independently:
+          Every layer of Spin can be enabled on its own, so you can adopt a
+          shared theme and utilities today and migrate HTML elements or
+          interactive widgets route by route:
         </p>
         <PropList items={ROLLOUT_STAGES} />
       </Section>
 
-      <Section id="tokens-only" title="1. Start with tokens and utilities only">
+      <Section id="utilities-only" title="1. Start with your theme and utilities">
         <p class="max-w-prose">
-          If your app already has global CSS or a component library styling bare{" "}
-          <code>&lt;button&gt;</code> and <code>&lt;input&gt;</code> tags, set{" "}
-          <code>primitives: false</code>. Spin still generates your{" "}
-          <code>spin/&lt;brand&gt;/</code> CSS variables, light and dark modes,
-          and utility classes (<code>bg-surface</code>, <code>p-4</code>,{" "}
-          <code>text-muted</code>), while leaving every HTML tag untouched:
+          If your app already has global styles or an existing component library
+          controlling bare HTML tags, pass <code>primitives: false</code>. Spin
+          compiles your brand theme, light and dark modes, and utility classes
+          without touching any native HTML elements:
         </p>
         <div class="my-3">
           <Code
@@ -92,17 +88,12 @@ export default function Paths(): JSX.Element {
             title="vite.config.ts"
           />
         </div>
-        <p class="max-w-prose text-muted">
-          Existing stylesheets can also read Spin's CSS custom properties
-          directly (such as <code>var(--color-primary)</code> and{" "}
-          <code>var(--radius-md)</code>) while you migrate.
-        </p>
       </Section>
 
-      <Section id="elements" title="2. Enable HTML elements one tag at a time">
+      <Section id="elements" title="2. Turn on HTML elements selectively">
         <p class="max-w-prose">
-          Pass an array to <code>primitives</code> to turn on Spin's element
-          styles selectively as you retire legacy stylesheets:
+          Pass a list of element names to <code>primitives</code> to hand
+          specific tags over to Spin as you retire old stylesheets:
         </p>
         <div class="my-3">
           <Code
@@ -113,11 +104,11 @@ export default function Paths(): JSX.Element {
         </div>
       </Section>
 
-      <Section id="components" title="3. Add single interactive components">
+      <Section id="components" title="3. Drop in single interactive components">
         <p class="max-w-prose">
-          Interactive components are copied one at a time into your repo — you
-          never bundle 38 widgets just to use one combobox or dialog. Copy the
-          component you need and bind it with{" "}
+          Interactive components copy into your repository one at a time — you
+          never ship a monolithic widget bundle just to get one combobox or
+          dialog. Copy what you need and bind it in{" "}
           <A href="/docs/authoring/components">React, Solid, Vue, Svelte, or HTML</A>:
         </p>
         <div class="my-3">
@@ -129,12 +120,11 @@ export default function Paths(): JSX.Element {
         </div>
       </Section>
 
-      <Section id="monorepo" title="4. Share one brand across multiple apps">
+      <Section id="monorepo" title="4. Share one brand across a monorepo">
         <p class="max-w-prose">
-          In a monorepo with multiple web apps (for example, a marketing site, a
-          product dashboard, and docs), export your shared brand package and pass
-          it to <code>extends</code> so every app inherits the same tokens and
-          components:
+          When a marketing site, product app, and docs site live in one
+          workspace, export your brand from a shared package and pass it to{" "}
+          <code>extends</code> so every app stays visually aligned:
         </p>
         <div class="my-3">
           <Code

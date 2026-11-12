@@ -1,7 +1,7 @@
 /**
  * Components & Controllers: the `.html` component compiler and framework adapters.
  */
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, createSignal, onCleanup } from "solid-js";
 import type { JSX } from "solid-js";
 import { createSpinComponent } from "@spinjs/components/solid";
 import { select } from "@spinjs/components";
@@ -24,19 +24,21 @@ function ControllerDemo(): JSX.Element {
   const [value, setValue] = createSignal<readonly string[]>(["bun"]);
   const [events, setEvents] = createSignal<readonly string[]>([]);
   createEffect(() =>
-    ctl.bind(
-      { items: [...ITEMS] },
-      {
-        "value-change": (event: CustomEvent<{ value: readonly string[] }>) => {
-          setValue(event.detail.value);
-          setEvents((prev) =>
-            [
-              `value-change → ${event.detail.value.join(", ")}`,
-              ...prev,
-            ].slice(0, 4),
-          );
+    onCleanup(
+      ctl.bind(
+        { items: [...ITEMS] },
+        {
+          "value-change": (event: CustomEvent<{ value: readonly string[] }>) => {
+            setValue(event.detail.value);
+            setEvents((prev) =>
+              [
+                `value-change → ${event.detail.value.join(", ")}`,
+                ...prev,
+              ].slice(0, 4),
+            );
+          },
         },
-      },
+      ),
     ),
   );
   return (

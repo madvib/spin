@@ -1,6 +1,7 @@
 /**
- * Quickstart: from an empty folder to a themed app with the Studio open.
+ * Quickstart: install Spin, import your stylesheet, write HTML, and shape your brand in Studio.
  */
+import { A } from "@solidjs/router";
 import type { JSX } from "solid-js";
 import { Code, PageHeader, Section } from "../../../ui/index.ts";
 import { GETTING_STARTED_SNIPPETS } from "./getting-started.snippets.ts";
@@ -10,41 +11,32 @@ export default function Quickstart(): JSX.Element {
     <main class="flex flex-col">
       <PageHeader
         title="Quickstart"
-        lede="Install the two packages, initialize your project, and launch the live Studio in two minutes."
+        lede="Go from a fresh project to styled HTML and the visual Theme Studio in two minutes."
       />
 
-      <Section id="init" title="1. Install and initialize">
+      <Section id="install" title="1. Install and scaffold">
         <p class="max-w-prose">
-          Install <code>@spinjs/dev</code> and <code>@spinjs/components</code>,
-          then run <code>npx spin init</code>. Spin detects your bundler, creates
-          your starter brand in <code>spin/&lt;brand&gt;/tokens.json</code>, adds
-          the bundler plugin, and sets up TypeScript and MCP editor integration.
+          Install Spin's build toolchain and component runtime, then run the
+          interactive initializer. Spin detects your bundler, wires the plugin,
+          and seeds a starter brand you can customize in Studio.
         </p>
         <div class="my-3 grid gap-3 sm:grid-cols-2">
           <Code
             code={GETTING_STARTED_SNIPPETS.install}
             lang="bash"
-            title="1. Install"
+            title="Install packages"
           />
           <Code
             code={GETTING_STARTED_SNIPPETS.init}
             lang="bash"
-            title="2. Initialize your brand"
-          />
-        </div>
-        <div class="my-3">
-          <Code
-            code={GETTING_STARTED_SNIPPETS.brandTree}
-            lang="bash"
-            title="Your brand directory on disk"
+            title="Scaffold project"
           />
         </div>
       </Section>
 
-      <Section id="sheet" title="2. Import styles and components">
+      <Section id="styles" title="2. Import your stylesheet">
         <p class="max-w-prose">
-          Import <code>spin/styles.css</code> and <code>spin/components</code>{" "}
-          in your entry file:
+          Add Spin's virtual stylesheet once in your application entry file:
         </p>
         <div class="my-3">
           <Code
@@ -55,44 +47,41 @@ export default function Quickstart(): JSX.Element {
         </div>
       </Section>
 
-      <Section id="markup" title="3. Write markup and copy a component">
+      <Section id="studio" title="3. Shape your brand in Studio">
         <p class="max-w-prose">
-          Native tags and Spin elements (<code>&lt;card&gt;</code>,{" "}
-          <code>&lt;button class="primary"&gt;</code>,{" "}
-          <code>&lt;input&gt;</code>) arrive styled by the theme. Copy stateful
-          components into <code>src/lib/components/</code> when you need interactive
-          behavior:
+          Start your dev server (on Vite, Studio mounts automatically alongside
+          your app) or launch Studio standalone from the terminal. Pick a
+          starting design language, adjust your colors, font pairings, and
+          spacing against live UI previews, and click <strong>Save</strong>.
         </p>
-        <div class="my-3 grid gap-3 sm:grid-cols-2">
+        <div class="my-3">
+          <Code
+            code={GETTING_STARTED_SNIPPETS.studioServe}
+            lang="bash"
+            title="Launch standalone Studio"
+          />
+        </div>
+      </Section>
+
+      <Section id="markup" title="4. Write your first UI">
+        <p class="max-w-prose">
+          Standard HTML controls and Spin surfaces render styled from your brand
+          immediately, arranged with familiar flex, grid, and spacing utilities:
+        </p>
+        <div class="my-3">
           <Code
             code={GETTING_STARTED_SNIPPETS.firstMarkup}
             lang="html"
             title="App.tsx"
           />
-          <Code
-            code="npx spin component copy select basic"
-            lang="bash"
-            title="Writes src/lib/components/select/basic.html -> <app-select-basic>"
-          />
         </div>
-      </Section>
-
-      <Section id="studio" title="4. Customize visually in Studio">
-        <p class="max-w-prose">
-          Start your dev server and click the floating <strong>Studio</strong>{" "}
-          button in the bottom-right corner of your app (or run{" "}
-          <code>npx spin studio</code> if your bundler doesn't run a dev
-          server). Adjust colors, fonts, spacing, and radii against your live UI
-          and click <strong>Save</strong> to write changes to{" "}
-          <code>spin/&lt;brand&gt;/</code>.
+        <p class="max-w-prose text-muted">
+          Ready to add interactive widgets like selects, comboboxes, menus, or
+          date pickers? See{" "}
+          <A href="/docs/authoring/components">Interactive Components</A>. Using
+          Claude Code, Cursor, or another AI editor? See{" "}
+          <A href="/docs/tooling/mcp">MCP Server</A>.
         </p>
-        <div class="my-3">
-          <Code
-            code={GETTING_STARTED_SNIPPETS.agentPrompt}
-            lang="md"
-            title="Prompt for your coding agent"
-          />
-        </div>
       </Section>
     </main>
   );

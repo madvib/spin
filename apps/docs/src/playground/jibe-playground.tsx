@@ -327,23 +327,6 @@ export function resolveSpinJibeTheme(
   };
 }
 
-interface LiveConfigurePatch {
-  readonly view?: "split" | "preview" | "code";
-  readonly chrome?: "studio" | "preview" | "minimal" | "none";
-  readonly activeFile?: string;
-  readonly readOnly?: boolean;
-  readonly theme?: {
-    readonly preset?: "dark" | "light";
-    readonly bg?: string;
-    readonly fg?: string;
-    readonly accent?: string;
-    readonly surface?: string;
-    readonly muted?: string;
-    readonly border?: string;
-    readonly previewBg?: string;
-  };
-}
-
 type LiveJibeEmbedHandle = JibeEmbedHandle;
 
 export interface SpinEmbedProps {
@@ -587,12 +570,11 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
     const mounted = await createJibeEmbed(node, {
       embedOrigin,
       files: { ...files, ...seed },
-      ...(props.chrome === "ide" ? { chrome: "studio" as const } : {}),
       theme: resolveSpinJibeTheme(theme(), mode(), palette(), spacing()),
       activeFile: props.activeFile ?? defaultActive,
       visibleFiles: props.visibleFiles ?? [defaultActive, "spin/spin.json"],
       ...(props.view === undefined ? {} : { view: props.view }),
-      chrome: props.chrome === "ide" ? "studio" : (props.chrome ?? "studio"),
+      chrome: props.chrome ?? "studio",
     });
     if (disposed) {
       mounted.destroy();
@@ -668,7 +650,7 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
   createEffect(() => {
     const h = liveHandle();
     const view = props.view ?? "split";
-    const chrome = props.chrome === "ide" ? "studio" : (props.chrome ?? "studio");
+    const chrome = props.chrome ?? "studio";
     const activeFile = props.activeFile;
     const nextTheme = resolveSpinJibeTheme(theme(), mode(), palette(), spacing());
     const configure = h === undefined ? undefined : h.configure;
@@ -708,7 +690,7 @@ export function SpinEmbed(props: SpinEmbedProps): JSX.Element {
         <iframe
           ref={studioFrame}
           title="Spin studio"
-          src={`${STUDIO_ORIGIN}/__spin/jibe-studio/index.html`}
+          src={`${STUDIO_ORIGIN}/__spin/studio/`}
           class="absolute inset-0 z-base h-full w-full border-0 bg-surface"
           onLoad={onStudioLoad}
         />

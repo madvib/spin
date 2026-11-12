@@ -1,182 +1,144 @@
 /**
- * Palettes & Paired Inks: semantic color roles, paired foreground inks,
- * neutral ramps, and enforced WCAG contrast floors across light and dark modes.
+ * Colors (Brand & Studio): how a Spin brand organizes surfaces, brand fills,
+ * status tones, and contrast-checked foreground text across light and dark modes.
  */
 import { A } from "@solidjs/router";
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
 import {
-  Code,
   PageHeader,
   PropList,
   Section,
   type PropEntry,
 } from "../../../ui/index.ts";
 
-import { THEMES_SNIPPETS } from "./themes.snippets.ts";
-
-const PALETTE_LAYERS: readonly PropEntry[] = [
+const COLOR_FAMILIES: readonly PropEntry[] = [
   {
-    name: "Surfaces (inherit body ink)",
-    badge: "surface · surface-raised · surface-sunken · field · scrim",
+    name: "Page & Card Surfaces",
+    badge: "backgrounds",
     description:
-      "The page background (surface), elevated cards and popovers (surface-raised), recessed wells and code blocks (surface-sunken), form inputs (field), and modal backdrops (scrim). Surfaces wear default body copy (color.text, ≥ 4.5:1) and secondary metadata (color.text-muted, ≥ 3:1).",
+      "Quiet neutral layers for the page canvas, elevated cards and popovers, recessed wells, and form fields. Body copy and muted captions sit directly on these surfaces.",
   },
   {
-    name: "Body & Link Inks",
-    badge: "text · text-muted · link · link-hover · link-visited",
+    name: "Brand Actions",
+    badge: "primary · secondary · accent",
     description:
-      "Primary body copy (text), secondary captions and metadata (text-muted), and anchor states verified against surface and surface-raised in every declared mode.",
+      "Your main call-to-action color, quiet secondary control fill, and accent highlight — each paired with a dedicated foreground text color so buttons and active pills stay sharp.",
   },
   {
-    name: "Brand & Action Fills (require paired on-* ink)",
-    badge: "primary · secondary · accent + on-*",
+    name: "Semantic Status",
+    badge: "success · warning · error · info",
     description:
-      "Interactive fills for primary CTAs, secondary controls, and accent highlights. Each fill owns a dedicated foreground ink (on-primary, on-secondary, on-accent, ≥ 4.5:1) plus hover and active states.",
+      "Dedicated fills and matching foreground text for alerts, validation feedback, and status badges so status meaning never collides with your primary brand color.",
   },
   {
-    name: "Semantic Status & Selection Fills (require paired on-* ink)",
-    badge: "semantic.{success,warning,error,info} · selected · disabled + on-*",
+    name: "Borders & Focus Ring",
+    badge: "dividers & keyboard",
     description:
-      "Status banners, badges, selected rows, and disabled controls, each paired with its own foreground ink (on-semantic-*, on-selected, on-disabled) plus hairline dividers (border, border-strong) and keyboard focus outlines (focus-ring, ≥ 3:1).",
+      "Subtle hairlines for layout dividers, stronger edges for interactive controls, and a high-visibility keyboard focus ring.",
   },
 ];
 
-const PAIRED_ROLES: readonly {
-  readonly label: string;
-  readonly fill: string;
-  readonly ink: string;
+const LIVE_PAIRS: readonly {
+  readonly title: string;
+  readonly subtitle: string;
   readonly classes: string;
 }[] = [
   {
-    label: "primary",
-    fill: "bg-primary",
-    ink: "text-on-primary",
+    title: "Primary action",
+    subtitle: "Main CTAs & active states",
     classes: "bg-primary text-on-primary",
   },
   {
-    label: "secondary",
-    fill: "bg-secondary",
-    ink: "text-on-secondary",
-    classes: "bg-secondary text-on-secondary",
+    title: "Secondary control",
+    subtitle: "Quiet actions & toolbars",
+    classes: "border bg-secondary text-on-secondary",
   },
   {
-    label: "accent",
-    fill: "bg-accent",
-    ink: "text-on-accent",
+    title: "Accent highlight",
+    subtitle: "Badges & callouts",
     classes: "bg-accent text-on-accent",
   },
   {
-    label: "semantic-success",
-    fill: "bg-semantic-success",
-    ink: "text-on-semantic-success",
+    title: "Raised surface",
+    subtitle: "Cards, dialogs & popovers",
+    classes: "border bg-surface-raised text-muted",
+  },
+  {
+    title: "Success",
+    subtitle: "Healthy & completed",
     classes: "bg-semantic-success text-on-semantic-success",
   },
   {
-    label: "semantic-warning",
-    fill: "bg-semantic-warning",
-    ink: "text-on-semantic-warning",
+    title: "Warning",
+    subtitle: "Needs attention",
     classes: "bg-semantic-warning text-on-semantic-warning",
   },
   {
-    label: "semantic-error",
-    fill: "bg-semantic-error",
-    ink: "text-on-semantic-error",
+    title: "Error",
+    subtitle: "Failed or destructive",
     classes: "bg-semantic-error text-on-semantic-error",
   },
   {
-    label: "semantic-info",
-    fill: "bg-semantic-info",
-    ink: "text-on-semantic-info",
+    title: "Info",
+    subtitle: "Neutral guidance",
     classes: "bg-semantic-info text-on-semantic-info",
   },
-  {
-    label: "surface-raised",
-    fill: "bg-surface-raised",
-    ink: "text-muted",
-    classes: "border bg-surface-raised text-muted",
-  },
 ];
+
 export default function ThemesPalettes(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
         title="Colors"
-        lede="Semantic surface, action, and status colors with paired foreground text that stays readable in every mode."
+        lede="How your brand organizes surfaces, actions, and status colors so every screen stays legible in light and dark mode."
       />
-      <Section id="paired-inks" title="Why fills and inks travel in pairs">
+
+      <Section id="groups" title="Four groups, clear jobs">
         <p class="max-w-prose">
-          In a raw utility sheet, a callsite paints{" "}
-          <code>bg-blue-600 text-white</code> and hopes the contrast holds when
-          the brand palette changes or dark mode activates. In Spin, paired
-          inks are part of the theme contract in{" "}
-          <code>spin/&lt;brand&gt;/tokens.json</code>: every painted role (
-          <code>color.primary</code>, <code>color.secondary</code>,{" "}
-          <code>color.accent</code>, <code>color.semantic.*</code>,{" "}
-          <code>color.selected</code>, <code>color.disabled</code>) declares its
-          own foreground partner (<code>color.on-primary</code>,{" "}
-          <code>color.on-secondary</code>, and so on).
+          Instead of asking developers to pick between dozens of raw numbered
+          swatches on every screen, a Spin brand organizes color by what each
+          surface or control actually does:
         </p>
+        <PropList items={COLOR_FAMILIES} />
+      </Section>
+
+      <Section id="paired" title="Backgrounds and text stay readable together">
         <p class="max-w-prose">
-          Toggle light and dark mode in the top bar — each pill below spends its
-          fill and paired ink utility with zero <code>dark:</code> classes, and{" "}
-          <code>spin/no-unpaired-ink</code> flags any template that pairs a
-          fill with the wrong ink:
+          Hardcoding white text onto a brand button breaks the moment a lighter
+          accent or dark mode flips the fill. In Spin, every colored fill has a
+          matching foreground text role that travels with it. Switch design
+          languages, palettes, or light/dark mode in the top bar to watch the
+          live swatches below adapt together:
         </p>
-        <div class="my-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          <For each={PAIRED_ROLES}>
+        <div class="my-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <For each={LIVE_PAIRS}>
             {(item) => (
               <div
-                class={`flex flex-col gap-1 rounded-md p-3 ${item.classes}`}
+                class={`flex flex-col justify-between gap-2 rounded-md p-4 ${item.classes}`}
               >
-                <span class="type-caption-emphasized">{item.label}</span>
-                <span class="type-code opacity-90">
-                  {item.fill} + {item.ink}
-                </span>
+                <span class="type-body-emphasized">{item.title}</span>
+                <span class="type-caption opacity-90">{item.subtitle}</span>
               </div>
             )}
           </For>
         </div>
       </Section>
 
-      <Section id="roles" title="Surfaces vs. painted fills">
+      <Section id="studio-colors" title="Shaping your palette in Studio">
         <p class="max-w-prose">
-          Spin divides color roles into two families so body copy stays quiet
-          while interactive controls stay legible:
+          In <A href="/studio">Theme Studio</A>, you can seed a complete light
+          and dark palette from a single primary color or tune individual roles
+          side by side. Every background-and-text pair displays its live WCAG
+          contrast ratio as you drag — if an edit drops below minimum
+          readability, Studio offers a one-click <strong>Fix</strong> button
+          that nudges the tone back into range.
         </p>
-        <PropList items={PALETTE_LAYERS} />
-      </Section>
-
-      <Section id="ramps" title="Neutral ramps and role aliases">
-        <p class="max-w-prose">
-          Instead of scattering raw scale steps (<code>neutral-100</code>,{" "}
-          <code>neutral-800</code>) across templates, define your neutral ramp
-          under <code>color.neutral.50</code>–<code>900</code> in{" "}
-          <code>tokens.json</code> (or <code>reference.json</code>) and point
-          your semantic surface, text, and border roles at the ramp with{" "}
-          <code>{"{color.neutral.*}"}</code> aliases. When{" "}
-          <code>color.neutral.50</code> declares a <code>$modes.dark</code>{" "}
-          value, <code>color.surface</code> automatically resolves to the dark
-          step in dark mode:
-        </p>
-        <div class="my-3">
-          <Code
-            code={THEMES_SNIPPETS.modeToken}
-            lang="json"
-            title="spin/acme/tokens.json"
-          />
-        </div>
-      </Section>
-
-      <Section id="contrast-floors" title="Automatic contrast verification">
-        <p class="max-w-prose">
-          Studio's Color workbench and <code>npx spin lint</code> verify every
-          background and text pair across light and dark modes against WCAG
-          contrast thresholds. When a color tweak drops below minimum contrast,
-          Studio highlights the pair immediately with a one-click{" "}
-          <strong>Fix</strong> action. Full threshold rules are listed on{" "}
-          <A href="/docs/themes/validation">Contrast Checks</A> and{" "}
-          <A href="/docs/themes/reference#roles">Token Reference</A>.
+        <p class="max-w-prose text-muted">
+          To apply surface, text, border, and opacity classes in your markup,
+          see <A href="/docs/styling/color">Surfaces &amp; Opacity</A>. For
+          contrast thresholds, see{" "}
+          <A href="/docs/themes/validation">Contrast Checks</A>.
         </p>
       </Section>
     </main>

@@ -16,12 +16,11 @@ import { resolve } from "node:path";
 
 const docs = resolve(import.meta.dirname, "..");
 const source = resolve(docs, "../studio/dist");
-const target = resolve(docs, "public/__spin/jibe-studio");
+const target = resolve(docs, "public/__spin/studio");
 const bridge = resolve(docs, "public/studio-bridge.js");
 
 await mkdir(resolve(target), { recursive: true });
 await cp(source, target, { recursive: true });
-
 const index = await readFile(resolve(target, "index.html"), "utf8");
 const bridgeSource = await readFile(resolve(docs, "src/shell/studio-bridge.js"));
 const bridgeVersion = createHash("sha256")

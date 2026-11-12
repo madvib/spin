@@ -92,7 +92,7 @@
     },
     "packages/build": {
       "name": "@spinjs/build",
-      "version": "0.2.0-preview.1",
+      "version": "0.2.0-alpha.1",
       "dependencies": {
         "@spinjs/components": "workspace:*",
         "@spinjs/diagnostics": "workspace:*",
@@ -105,7 +105,7 @@
     },
     "packages/components": {
       "name": "@spinjs/components",
-      "version": "0.2.0-preview.1",
+      "version": "0.2.0-alpha.1",
       "dependencies": {
         "alien-signals": "^3.2.1",
         "linkedom": "^0.18.0",
@@ -123,7 +123,7 @@
     },
     "packages/dev": {
       "name": "@spinjs/dev",
-      "version": "0.2.0-preview.1",
+      "version": "0.2.0-alpha.1",
       "bin": {
         "spin": "./dist/cli/main.js",
       },
@@ -172,7 +172,7 @@
     },
     "packages/diagnostics": {
       "name": "@spinjs/diagnostics",
-      "version": "0.2.0-preview.1",
+      "version": "0.2.0-alpha.1",
       "dependencies": {
         "@spinjs/components": "workspace:*",
         "@spinjs/preset": "workspace:*",
@@ -188,7 +188,7 @@
     },
     "packages/preset": {
       "name": "@spinjs/preset",
-      "version": "0.2.0-preview.1",
+      "version": "0.2.0-alpha.1",
       "dependencies": {
         "@orpc/contract": "catalog:",
         "@orpc/server": "catalog:",
@@ -208,7 +208,7 @@
     },
     "packages/server": {
       "name": "@spinjs/server",
-      "version": "0.2.0-preview.1",
+      "version": "0.2.0-alpha.1",
       "dependencies": {
         "@iconify-json/carbon": "^1.2.28",
         "@iconify-json/lucide": "^1.2.0",
@@ -224,7 +224,7 @@
     },
     "packages/theme": {
       "name": "@spinjs/theme",
-      "version": "0.2.0-preview.1",
+      "version": "0.2.0-alpha.1",
       "dependencies": {
         "@orpc/contract": "catalog:",
         "@orpc/server": "catalog:",
