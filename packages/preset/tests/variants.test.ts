@@ -128,3 +128,16 @@ test("a responsive prefix emits the theme's width as a media query", async () =>
     );
   }
 });
+
+test("TypeScript negation and non-null tokens do not emit !important onto bare primitives", async () => {
+  const gen = await createGenerator({
+    presets: [spinPreset({ themes: { default: designLanguages.minimal } })],
+  });
+  const { css } = await gen.generate(
+    'if (!label) return label!; <label class="flex flex-row">Search</label>',
+  );
+  const directions = [...css.matchAll(/\blabel\{[^}]*flex-direction:([^;}]+)/g)].map(
+    (m) => m[1]?.trim(),
+  );
+  assert.deepStrictEqual(directions, ["column"]);
+});

@@ -713,18 +713,24 @@ function buildVariants(dark: Wind4Options["dark"]): Variant[] {
   const built = wind4Variants({
     dark: mode === false ? "class" : mode,
   }) as VariantObject[];
-  if (mode !== false) return built;
-  // A colour variant only reads the separator list and the theme, so the probe
-  // carries those two and nothing else. A variant needing more than that
-  // throws, and a variant we cannot classify is not one we have grounds to
-  // drop — so the catch keeps rather than discards.
   const context = {
     theme: {},
     generator: { config: { separators: [":", "-"] } },
   } as unknown as Readonly<VariantContext>;
-  const probes = COLOUR_SCHEME_SPELLINGS.flatMap((
-    axis,
-  ) => [`${axis}:x`, `.${axis}:x`, `@${axis}:x`, `not-${axis}:x`]);
+  // `!x` / `x!` collide with TypeScript `!label` and `button!`, injecting
+  // `!important` onto bare-tag primitive selectors.
+  const probes = [
+    "!x",
+    "x!",
+    ...(mode === false
+      ? COLOUR_SCHEME_SPELLINGS.flatMap((axis) => [
+        `${axis}:x`,
+        `.${axis}:x`,
+        `@${axis}:x`,
+        `not-${axis}:x`,
+      ])
+      : []),
+  ];
   return built.filter((variant) => {
     if (typeof variant.match !== "function") return true;
     return !probes.some((probe) => {

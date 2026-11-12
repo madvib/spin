@@ -49,8 +49,8 @@ export const KBD_EXAMPLES: readonly KbdExample[] = [
   },
   {
     name: "Kbd · beside a control",
-    html: `<label class="flex items-center gap-2">
-  <input type="search" placeholder="Search services" aria-label="Search services">
+    html: `<label class="flex flex-row items-center gap-2">
+  <input class="w-48" type="search" placeholder="Search services" aria-label="Search services">
   <kbd>⌘</kbd>
   <kbd>K</kbd>
 </label>`,

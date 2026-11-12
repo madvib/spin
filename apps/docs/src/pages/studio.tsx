@@ -13,7 +13,7 @@ export default function Studio(): JSX.Element {
     ? ""
     : `?app=${encodeURIComponent(location.origin)}&mode=drawer`;
   return (
-    <main class="flex h-full min-h-0 flex-col">
+    <main class="flex h-full min-h-0 flex-col overflow-y-auto">
       <div class="mx-auto w-full max-w-screen-lg px-6 pt-10">
         <h1>Using the Studio</h1>
         <p class="max-w-prose text-muted">
@@ -26,7 +26,7 @@ export default function Studio(): JSX.Element {
           this site.
         </p>
       </div>
-      <div class="mx-auto mt-6 w-full max-w-screen-lg flex-1 px-6 pb-6">
+      <div class="mx-auto mt-6 w-full max-w-screen-lg shrink-0 px-6 pb-6">
         <iframe
           title="Spin theme studio, editing this site"
           src={`${import.meta.env.BASE_URL}__spin/studio/${app}`}
