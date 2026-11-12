@@ -62,7 +62,11 @@ beforeAll(async () => {
     for (;;) {
       await warm.goto(URL, { waitUntil: "networkidle" });
       const h1 = await warm.locator("main h1, h1").first().textContent().catch(() => null);
-      if (h1 !== null && h1.trim().length > 0) break;
+      if (h1 !== null && h1.trim().length > 0) {
+        await warm.goto(`${URL}/docs/getting-started/overview`, { waitUntil: "networkidle" });
+        await warm.waitForTimeout(800);
+        break;
+      }
       if (Date.now() - warmStart > 90000) {
         throw new Error("docs landing never rendered its heading");
       }

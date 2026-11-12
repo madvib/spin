@@ -60,7 +60,7 @@ const SKILL_RENDERERS: Record<string, (template: string) => string> = {
  * skill's style list is emitted from the languages' style set, so it ships
  * rendered the same way, file by file.
  */
-const AUTHORING_SKILL_FILES = ["skill/spin-type.md"];
+const AUTHORING_SKILL_FILES = ["skill/references/primitives.md"];
 
 /** A package's `package.json`, as far as the build cares. */
 interface Manifest {

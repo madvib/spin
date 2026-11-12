@@ -1,44 +1,52 @@
-<!-- USER COPY SLOT: mcp-intro — your own agent-workflow framing, or the default below. -->
+<!-- Spin MCP server: what `spin mcp` gives a coding agent. -->
 
-An agent that writes markup blind invents names. The MCP server connects the
-agent to your project before it writes a word: sixteen tools over the daemon RPC
-and two resources for read-only documents.
+**`spin mcp` connects Claude Code, Cursor, VS Code Copilot, Windsurf, or any
+MCP client directly to your project's brand tokens, HTML elements,
+interactive components, and lint checks** — so agents write valid Spin markup
+on the first pass instead of inventing classes.
 
-`spin mcp` starts the stdio server and reads the project's themes and
-components. Add `--url http://127.0.0.1:7463/rpc` to dial a running daemon
-instead. `spin studio` serves that RPC at `http://127.0.0.1:7463/rpc` and the
-Studio at `http://127.0.0.1:7463/studio/`. 0.2 is a preview; the server ships
-in `@spinjs/dev` as `spin mcp`.
+## Quick setup
 
-## The sixteen tools
+`npx spin init` writes `.mcp.json` for you. Or add Spin to an existing
+config:
 
-Nine tools read and edit the project's working surface: `theme` (whole DTCG
-documents — list, read, create, write, analyze, delete), `token` (atomic token
-edits — set, remove, rename), `component` (every primitive's tags, variants,
-token reads, and example HTML — list, contract, examples, copy), `utility`
-(the project theme's utilities grouped by intent), `icon` (the five installed
-Iconify collections — search names, fetch SVG bodies), `savedIcon` (your
-project's `spin/icons/*.json` with attribution), `font` (the Fontsource
-catalog by family name), `preview` (scoped `.spin-preview` CSS for a
-theme plus a markup snippet), and `findings` (project lints and corpus
-analysis — list, fix, corpus, order, shortcut).
+```json
+{
+  "mcpServers": {
+    "spin": {
+      "command": "npx",
+      "args": ["spin", "mcp"]
+    }
+  }
+}
+```
 
-Seven tools run the brand lifecycle in `spin/<brand>/`: `brand_create` (the
-directory, `brand.json`, and config seating — zero tokens), then
-`brand_setDesignLanguage` (the parent `$extends`), `brand_setPalette` (the
-primary seed, floors validated before write), and `brand_setType` (the curated
-pairing or explicit faces, with icons) — the same four steps as the Studio's
-`/init` wizard, one call each. `brand_get` reads a brand back with the
-composition's judgment, `brand_rename` moves the directory and every name
-pointing at it, and `facet_create` writes one `*.palette.json` or
-`*.spacing.json` runtime overlay beside the theme it composes over. The table
-below the page keeps the same list beside the connection config.
+Then scaffold the project's agent skill so agents know your workflow before
+calling a tool:
 
-## The two resources
+```bash
+npx spin init --skill
+```
 
-`spin://project` answers what the project holds — themes, primitives, shortcuts
-— for any client that renders before acting. `spin://themes/{name}` answers one
-theme as DTCG JSON text, the same bytes the Studio edits and the sheet spends.
+That writes `.agents/skills/spin/SKILL.md` with your project's brand,
+component, and verification conventions.
 
+## Common agent workflows
 
-<!-- USER COPY SLOT: mcp-close — your own agent policy (which tools are read-only, who may write). -->
+Ask your agent to do any of these once Spin is connected:
+
+**Build screens from your brand.** The agent queries `component` for the
+exact tags and variants and `utility` for the exact class names, writes the
+markup, then runs `findings` to verify zero errors — no invented classes,
+no guessed variants.
+
+**Add an interactive widget.** The agent inspects a machine's contract with
+`component`, copies the template into `src/lib/components/`, and wires the
+framework controller (`createSpinComponent`, `useSpinComponent`, or
+`spinComponentCtl`) following the copied example.
+
+**Create or tune a brand.** The agent uses `brand_*` and `token` tools to
+create brands, change design languages, seed palettes, set type pairings,
+and edit tokens — with automatic WCAG contrast validation before anything
+is written to `spin/<brand>/`.
+

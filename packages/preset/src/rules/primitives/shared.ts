@@ -58,6 +58,52 @@ export function varFallback(
   return primary;
 }
 
+/**
+ * The control-height floor every default-size control shares: the tallest of
+ * the body and label voices' line boxes, plus the shared padding step on both
+ * edges and the theme's edge weight on both sides.
+ *
+ * One floor for `<button>`, single-line `<input>`, and `<select>` alike, so a
+ * row of controls is one row rather than three almost-heights: a search field
+ * beside its submit, an input beside a button in a toolbar. `min-height`
+ * rather than `height`, so flex parents (`.join`'s `stretch`) can still fill
+ * the line.
+ *
+ * Both halves read the NAMED styles (`font.style.body`, `font.style.label`),
+ * never a component tuple — so the button and the field spend the same two
+ * leaves, the derivation records only what each rule's vocabulary owns, and
+ * no component reaches into another's group. `button.type` defaults to the
+ * label style and `field.type` to the body style, so re-pointing either
+ * tuple re-points the floor with it: the `max(...)` content box is whichever
+ * line is taller — the body's `size * leading` or the label's
+ * `size * leading` — and the floor is identical in every rule that spends it
+ * even when the two voices differ.
+ *
+ * When only one style is present (a synthetic test theme that declares just
+ * a label or just a body size), the floor degrades to that tuple alone —
+ * never to a value the theme did not state, and never to a hardcoded pixel.
+ */
+export function controlHeight(
+  body: { fontSize: string | undefined; fontLeading: string | undefined },
+  label: { fontSize: string | undefined; fontLeading: string | undefined },
+  geometry: { spacing: string | undefined; borderWidth: string | undefined },
+): string | undefined {
+  const { spacing, borderWidth } = geometry;
+  if (spacing === undefined || borderWidth === undefined) return undefined;
+  const bookends = `(2 * ${spacing}) + (2 * ${borderWidth})`;
+  const bodyLine = body.fontSize !== undefined && body.fontLeading !== undefined
+    ? `${body.fontSize} * ${body.fontLeading}`
+    : body.fontSize;
+  const labelLine = label.fontSize !== undefined && label.fontLeading !== undefined
+    ? `${label.fontSize} * ${label.fontLeading}`
+    : label.fontSize;
+  const content = bodyLine !== undefined && labelLine !== undefined
+    ? `max(${bodyLine}, ${labelLine})`
+    : (bodyLine ?? labelLine);
+  if (content === undefined) return undefined;
+  return `calc(${content} + ${bookends})`;
+}
+
 /** Optional optical blur declared on `surface.blur` by translucent languages. */
 export function surfaceBlur(ctx: ThemeContext | undefined): string | undefined {
   const theme = ctx?.theme as

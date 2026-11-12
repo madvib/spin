@@ -1,20 +1,27 @@
 /**
- * The house skill: the theme module's manual, and how it is put together.
+ * The UI skill's location and its checklist renderer.
  *
- * The skill is a product. An agent installs the file and follows it, so it
- * has to say what the contract says today — which is why it lives here, beside
- * the code that defines the contract, and why its checklist is not written by
- * hand. `skill/SKILL.md` carries the method and the guidance for each group;
- * the list of groups it walks is emitted by the module, so a group added to
- * the contract appears in the file without anyone editing prose.
+ * The skill is a product: an agent installs `skill/` and follows it. `SKILL.md`
+ * carries the method for authoring Spin UI — primitives first, utilities for
+ * layout, statechart machines for interaction, `spin lint` to close the loop —
+ * and `references/primitives.md` carries the exact closed vocabulary, emitted
+ * from the manifest so a primitive added to the rules appears in the file
+ * without anyone editing prose.
  *
- * The file on disk is therefore a template, and `renderSkill` assembles it:
- * the groups in the order a theme document reads them, each carrying the
- * guidance the template has for it. The served file and the contract cannot
- * disagree, because the list in the file is the contract's list.
+ * `renderSkill` rebuilds the checklist section of a template from the theme's
+ * group list; a file without that section passes through unchanged, so the
+ * hand-written method and the emitted catalog never disagree.
  */
 
+import { fileURLToPath } from "node:url";
 import { designLanguageGroups } from "@spinjs/theme";
+
+/**
+ * Where the shipped skill lives on disk: `SKILL.md` beside `references/`.
+ */
+export function skillDir(): string {
+  return fileURLToPath(new URL("../../skill/", import.meta.url));
+}
 
 /** The heading the checklist lives under. */
 const CHECKLIST = "## The checklist";

@@ -187,6 +187,11 @@ export const BrandTypeChoiceSchema = v.object({
 
 export type BrandTypeChoice = v.InferOutput<typeof BrandTypeChoiceSchema>;
 
+/** The linter a fresh project lints with. */
+export const LinterKindSchema = v.picklist(["oxlint", "eslint", "none"]);
+
+export type LinterKind = v.InferOutput<typeof LinterKindSchema>;
+
 /** The bundler a fresh project builds with. */
 export const BundlerKindSchema = v.picklist([
   "vite",
@@ -200,7 +205,6 @@ export const BundlerKindSchema = v.picklist([
 ]);
 
 export type BundlerKind = v.InferOutput<typeof BundlerKindSchema>;
-
 /** What `init` writes. */
 export const InitProjectOptionsSchema = v.object({
   /** The project root to create in. */
@@ -222,6 +226,10 @@ export const InitProjectOptionsSchema = v.object({
   prefix: v.optional(v.string()),
   /** Vendor the theme into the project rather than extending it. */
   vendor: v.optional(v.boolean()),
+  /** The linter to scaffold a config for. Defaults to detected, else `"none"`. */
+  linter: v.optional(LinterKindSchema),
+  /** Write the project agent skill under `.agents/skills/spin/`. */
+  skill: v.optional(v.boolean()),
   /** Seed from an existing brand directory instead of a design language. */
   from: v.optional(
     v.pipe(

@@ -5,12 +5,8 @@
  * exist to judge type and colour, so the copy is chosen for what it shows
  * of a face — ascenders and descenders, a numeral, punctuation, mixed case —
  * and it is the same in every project, so two themes can be compared on the
- * same reading rather than on whoever wrote the sample.
- *
- * The roastery in `examples/coffee` has its own voice and that is where it
- * belongs. Carrying it here meant opening a different app in the studio
- * still showed a coffee shop's sentences, which is a tool reporting on the
- * wrong project.
+ * same reading rather than on whoever wrote the sample. Project copy stays
+ * in the project; the tool never borrows a project's voice for its own pages.
  */
 
 /** One sentence, sized for a paragraph. */

@@ -84,7 +84,7 @@ describe("the theme surface over RPC, against the fixture app", () => {
   before(() => {
     dir = mkdtempSync(join(tmpdir(), "spin-theme-integration-"));
     const fixture = new URL(
-      "../../../../examples/fixture-app/spin",
+      "../fixtures/birch-app/spin",
       import.meta.url,
     );
     cpSync(fixture.pathname, join(dir, "spin"), { recursive: true });

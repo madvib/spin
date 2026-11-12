@@ -37,11 +37,6 @@ const PACKAGES: Readonly<Record<string, string>> = {
   "@spinjs/dev": "packages/dev",
   "@spinjs/components/runtime": "packages/components",
   "@spinjs/components": "packages/components",
-  "@spinjs/theme": "packages/theme",
-  "@spinjs/preset": "packages/preset",
-  "@spinjs/server": "packages/server",
-  "@spinjs/diagnostics": "packages/diagnostics",
-  "@spinjs/build": "packages/build",
 };
 
 function specifiers(): readonly string[] {

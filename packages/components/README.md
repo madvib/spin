@@ -1,6 +1,6 @@
 # @spinjs/components
 
-Thirty-six headless statechart machines and the platform controllers —
+Thirty-eight headless statechart machines and the platform controllers —
 comboboxes, date pickers, carousels, menus, dialogs, and the rest — each with
 copyable `.html` templates you own and restyle through your brand. The client
 runtime (signals, elements, directives, machines) ships in this package too,
@@ -56,7 +56,7 @@ import { spinComponentCtl } from "@spinjs/components/controller";
 
 One subpath per component (`@spinjs/components/select`,
 `@spinjs/components/combobox`, `@spinjs/components/date-picker`, and the other
-thirty-three), plus:
+thirty-five), plus:
 
 - `@spinjs/components/react` — `useSpinComponent`.
 - `@spinjs/components/solid` — `createSpinComponent`.

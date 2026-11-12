@@ -1,10 +1,9 @@
 /**
- * MCP Server: the sixteen tools and two resources for coding agents.
+ * MCP Server: quick setup, agent workflows, and the tool reference for coding agents.
  */
 import type { JSX } from "solid-js";
 import { Markdown } from "../../../markdown/markdown.tsx";
-import { Code, PageHeader, PropList, Section, type PropEntry } from "../../../ui/index.ts";
-import { TOOLING_SNIPPETS } from "./tooling.snippets.ts";
+import { PageHeader, PropList, Section, type PropEntry } from "../../../ui/index.ts";
 import mcpMd from "../../../content/mcp.md?raw";
 
 const TOOL_ITEMS: readonly PropEntry[] = [
@@ -18,25 +17,25 @@ const TOOL_ITEMS: readonly PropEntry[] = [
     name: "token",
     badge: "set · remove · rename",
     description:
-      "Atomic token edits — read, mutate, write, and validate in a single call.",
+      "Edit individual tokens — set, remove, or rename in a single validated call.",
   },
   {
     name: "component",
     badge: "list · contract · examples · copy",
     description:
-      "Inspect primitive and machine tags, variants, token reads, list a machine's examples, and copy example .html templates.",
+      "List primitives and machines, read the tags and variants each one supports, and copy example templates.",
   },
   {
     name: "utility",
     badge: "catalog",
     description:
-      "Query the active project theme's generated utility classes grouped by intent.",
+      "List the project's generated utility classes grouped by intent.",
   },
   {
     name: "icon",
     badge: "search · body",
     description:
-      "Search across five Iconify collections and fetch raw SVG glyph bodies.",
+      "Search the five installed Iconify collections and read raw SVG bodies.",
   },
   {
     name: "savedIcon",
@@ -48,7 +47,7 @@ const TOOL_ITEMS: readonly PropEntry[] = [
     name: "font",
     badge: "search",
     description:
-      "Query the Fontsource catalog by family name for $extensions.spin.fonts.",
+      "Search the Fontsource catalog by family name.",
   },
   {
     name: "preview",
@@ -60,49 +59,49 @@ const TOOL_ITEMS: readonly PropEntry[] = [
     name: "findings",
     badge: "list · fix · corpus · order · shortcut",
     description:
-      "Run the project lints and corpus analysis: list findings grouped by rule, apply a fix, or rewrite class order.",
+      "List the project's lint findings grouped by rule, apply a fix, or rewrite class order.",
   },
   {
     name: "brand_create",
     badge: "brand",
     description:
-      "Create a brand: its spin/<brand>/ directory, brand.json definition, and config seating. Zero tokens.",
+      "Create a brand: its spin/<brand>/ directory and definition.",
   },
   {
     name: "brand_setDesignLanguage",
     badge: "brand",
     description:
-      "Name the brand's design language: writes $extends in tokens.json, nothing else.",
+      "Set the brand's parent design language in tokens.json.",
   },
   {
     name: "brand_setPalette",
     badge: "brand",
     description:
-      "Seed the brand's palette from one primary color plus an optional neutral seed. Floors validated before write.",
+      "Seed the brand's palette from one primary color. Contrast floors are validated before writing.",
   },
   {
     name: "brand_setType",
     badge: "brand",
     description:
-      "Set the brand's type: a curated suggestion by design language, explicit faces, and the icon collection plus stroke.",
+      "Set the brand's type pairing: a curated suggestion or explicit faces.",
   },
   {
     name: "brand_get",
     badge: "brand",
     description:
-      "Read a brand: its definition, its sparse layers, and the composition's judgment.",
+      "Read a brand back: its definition and composed values.",
   },
   {
     name: "brand_rename",
     badge: "brand",
     description:
-      "Rename a brand: its directory, the config seating and order naming it, and the name inside its definition.",
+      "Rename a brand: its directory and every name pointing at it.",
   },
   {
     name: "facet_create",
     badge: "palette · spacing",
     description:
-      "Write one facet file beside the theme it composes over. Shape-checked before write; a refusal names the file and the wrong keys.",
+      "Write one palette or spacing overlay beside the theme it composes over. Shape-checked before writing.",
   },
 ];
 
@@ -115,24 +114,13 @@ export default function Mcp(): JSX.Element {
       />
       <Markdown text={mcpMd} />
 
-      <Section id="tools" title="The sixteen MCP tools">
+      <Section id="tools" title="Tool and resource reference">
         <PropList items={TOOL_ITEMS} />
-      </Section>
-
-      <Section id="connect" title="Client configuration">
-        <div class="my-3">
-          <Code
-            code={TOOLING_SNIPPETS.mcpConfig}
-            lang="json"
-            title=".mcp.json / claude_desktop_config.json"
-          />
-        </div>
         <p class="max-w-prose">
           Read-only clients can also query the two MCP resources:{" "}
-          <code>spin://project</code> (project summary) and{" "}
-          <code>spin://themes/{"{name}"}</code> (raw DTCG JSON). Pass{" "}
-          <code>--url http://127.0.0.1:7463/rpc</code> to connect to a running{" "}
-          <code>spin studio</code> daemon.
+          <code>spin://project</code> (project summary of brands, primitives, and
+          shortcuts) and <code>spin://themes/{"{name}"}</code> (one theme as DTCG
+          JSON).
         </p>
       </Section>
     </main>

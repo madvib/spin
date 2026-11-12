@@ -2,6 +2,7 @@ import type { SpinRule, ThemeContext } from "../../utils/lookup.ts";
 import type { Theme } from "@spinjs/theme/theme-types";
 import {
   ALIVE,
+  controlHeight,
   disabledPosture,
   type Entry,
   focusPaint,
@@ -490,11 +491,36 @@ export function buttonRules(roots: readonly string[]): SpinRule[] {
           ["font-weight", fontWeight],
           ["letter-spacing", fontTracking],
           ["line-height", fontLeading],
-          ...(fontSize !== undefined && spacing2 !== undefined &&
-              borderWidth !== undefined
+          // The shared control-height floor: the tallest of the body and
+          // label voices' line boxes, plus the shared padding step and edge
+          // weight — the same floor the field and select spend, so the three
+          // land at one height in every row they share. Named styles, never
+          // component tuples, so every control spends the same two leaves and
+          // no component reaches into another's group.
+          ...(controlHeight(
+            {
+              fontSize: ctx?.theme?.font?.style?.body?.["font-size"],
+              fontLeading: ctx?.theme?.font?.style?.body?.["line-height"],
+            },
+            {
+              fontSize: ctx?.theme?.font?.style?.label?.["font-size"],
+              fontLeading: ctx?.theme?.font?.style?.label?.["line-height"],
+            },
+            { spacing: spacing2, borderWidth },
+          ) !== undefined
             ? ([[
               "min-height",
-              `calc(${fontSize} + (2 * ${spacing2}) + (2 * ${borderWidth}))`,
+              controlHeight(
+                {
+                  fontSize: ctx?.theme?.font?.style?.body?.["font-size"],
+                  fontLeading: ctx?.theme?.font?.style?.body?.["line-height"],
+                },
+                {
+                  fontSize: ctx?.theme?.font?.style?.label?.["font-size"],
+                  fontLeading: ctx?.theme?.font?.style?.label?.["line-height"],
+                },
+                { spacing: spacing2, borderWidth },
+              )!,
             ]] as Entry[])
             : []),
           // The component tokens the base spends, read outright: the resting

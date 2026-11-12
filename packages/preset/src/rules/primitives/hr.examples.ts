@@ -66,8 +66,10 @@ export const HR_EXAMPLES: readonly HrExample[] = [
   <hr class="divider-vertical">
   <span>production</span>
   <hr class="divider-vertical">
-  <badge variant="warning">canary</badge>
-  <span>staging</span>
+  <span class="inline-flex items-center gap-2">
+    <badge variant="warning">canary</badge>
+    <span>staging</span>
+  </span>
 </div>`,
   },
 ];

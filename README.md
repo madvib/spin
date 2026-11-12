@@ -2,7 +2,7 @@
 
 Design tokens, styled HTML elements, layout utilities, and portable UI statecharts for modern web apps.
 
-> **Status: Public Alpha (`0.2.0-alpha.1`)** — Core architecture, Theme Studio, HTML primitives, layout utilities, and 40 interactive components work today under the MIT license. Expect minor API and token refinements before 1.0.
+> **Status: Public Alpha (`0.2.0-alpha.1`)** — Core architecture, Theme Studio, HTML primitives, layout utilities, and 38 interactive components work today under the MIT license. Expect minor API and token refinements before 1.0.
 
 ## Why Spin
 
@@ -47,7 +47,6 @@ Import the virtual stylesheet once in your app entry (`import "spin/styles.css";
 - `apps/studio` — Visual brand and theme editor.
 - `apps/docs` — Documentation site, component catalog, and 5-framework interactive Playground.
 - `apps/reference` — Visual regression and contract reference app.
-- `examples/coffee` — Example storefront app built with Spin.
 
 ## Local development
 

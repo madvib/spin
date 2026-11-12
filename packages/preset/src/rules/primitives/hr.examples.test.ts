@@ -15,6 +15,7 @@ import { HR_EXAMPLES } from "./hr.examples.ts";
  */
 const STRUCTURAL: Record<string, true> = {
   flex: true,
+  "inline-flex": true,
   "flex-wrap": true,
   "items-center": true,
   "items-start": true,

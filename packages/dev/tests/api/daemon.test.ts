@@ -29,7 +29,7 @@ import { createSpinApp, createSpinClient, type SpinClient } from "../../src/api/
 describe("daemon project.themes over HTTP", () => {
   let dir: string;
   const fixture = new URL(
-    "../../../../examples/fixture-app/spin",
+    "../fixtures/birch-app/spin",
     import.meta.url,
   );
   let daemon: Daemon;

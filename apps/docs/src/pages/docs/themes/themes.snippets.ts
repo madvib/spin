@@ -200,7 +200,7 @@ npx spin brand list
 npx spin brand analyze
 npx spin brand analyze acme`,
   validateTheme: `import { readFileSync } from "node:fs";
-import { validateTheme } from "@spinjs/theme";
+import { validateTheme } from "@spinjs/dev/theme";
 
 const text = readFileSync("spin/default/tokens.json", "utf8");
 const report = validateTheme(text, { modes: ["light", "dark"] });
@@ -217,7 +217,7 @@ if (!report.valid) {
   resolveTheme,
   editorialLanguage,
   designLanguages,
-} from "@spinjs/theme";
+} from "@spinjs/dev/theme";
 
 // 1. Resolve every token to its final string value in a mode:
 const dark = resolveTheme(editorialLanguage, "dark");

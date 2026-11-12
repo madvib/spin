@@ -255,40 +255,78 @@ test("a card's header stacks its text beside a trailing action", async () => {
 test("a field and a button share one control height", async () => {
   // The two controls sit in the same rows — a search field beside its submit,
   // a form's input above its button — and they used to be two different
-  // heights: the button's line box is the type size, the field's was the
-  // browser's normal leading. A row of controls that do not line up reads as
-  // assembled rather than designed. The button derives its floor from the
-  // label style now; the field still reads the ladder's md step, so the two
-  // floors differ by the voice each wears — a later slice moves the field
-  // onto the same style and reunites them.
-  const css = await sheetFor("<input><button>Deploy</button>");
-  const field = declarationsFor(css, ":is(input, textarea, select)");
-  const button = declarationsFor(
-    css,
-    ':is(button:where(:not([role])), :where([type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"]))',
-  );
-  assert(
-    field["min-height"] !== undefined,
-    "the field states a control-height floor",
+  // heights: the button's line box was its type size, while the field's was
+  // the browser's normal leading, then its hard `height` stopped flex parents
+  // from stretching the shorter control to its sibling. One shared floor now:
+  // the tallest of the body and label voices' line boxes, plus the shared
+  // padding step and edge weight — the same `min-height` in the button, the
+  // field box, and the single-line fields, so all three land together in
+  // every flex, grid and join row.
+  for (const name of ["minimal", "editorial"] as const) {
+    const css = await sheetFor(
+      "<input><select><option>a</option></select><button>Deploy</button>",
+      designLanguages[name],
+    );
+    const field = declarationsFor(css, ":is(input, textarea, select)");
+    const button = declarationsFor(
+      css,
+      ':is(button:where(:not([role])), :where([type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"]))',
+    );
+    const single = declarationsFor(css, CONTROL_FIELDS);
+    const floor =
+      "calc(max(var(--font-style-body-size) * var(--font-style-body-leading), var(--font-style-label-size) * var(--font-style-label-leading)) + (2 * var(--spacing-2)) + (2 * var(--border-width)))";
+    deepStrictEqual(
+      button["min-height"],
+      floor,
+      `${name}: the button spends the shared control-height floor`,
+    );
+    deepStrictEqual(
+      field["min-height"],
+      floor,
+      `${name}: the field box spends the same floor`,
+    );
+    deepStrictEqual(
+      single["min-height"],
+      floor,
+      `${name}: the single-line field stretches to the same floor`,
+    );
+  }
+});
+
+test("a joined field stretches with its submit instead of stepping", async () => {
+  // The production seam: `<div class="join">` with a search input beside its
+  // submit used to step 2–3px, because the input's hard `height` refused the
+  // container's `stretch` while the button filled it. The single-line fields
+  // spend a `min-height` floor now, and the join resets a joined field to the
+  // inline-flex default — so the pair fills the line together.
+  const css = await sheetFor(
+    '<div class="join"><input class="join-item" type="search" placeholder="Search services"><button class="join-item" type="submit">Search</button></div><select><option>a</option></select>',
   );
   deepStrictEqual(
-    button["min-height"],
-    "calc(var(--button-type-size) + (2 * var(--spacing-2)) + (2 * var(--border-width)))",
-    "the button derives its floor from the label style",
+    declarationsFor(css, CONTROL_FIELDS)["min-height"],
+    declarationsFor(
+      css,
+      ':is(button:where(:not([role])), :where([type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"]))',
+    )["min-height"],
+    "input and button share one floor inside the join",
   );
   deepStrictEqual(
-    declarationsFor(css, CONTROL_FIELDS)["height"],
-    field["min-height"],
-    "the single-line field lands on the field's own floor",
+    declarationsFor(css, ".join > *")["width"],
+    "auto",
+    "the join frees a joined field from the field box's full-line width",
+  );
+  deepStrictEqual(
+    declarationsFor(css, ".join > *")["flex"],
+    "1 1 auto",
+    "joined items split the line evenly from their contents",
   );
 });
 
 test("a small field lands on the small button height", async () => {
-  // The size voices are shared no longer: s-sm on a button reads the label
-  // style, while s-sm on a field still reads the ladder's sm step. Both
-  // resolve to the same step in the languages, so the heights agree in
-  // value — through different variables, until a later slice moves the
-  // field onto the same style.
+  // The size steps move together: s-sm reads the label size through the
+  // label style on both controls, s-lg the subtitle size through the
+  // subtitle style. Both land on their step's floor, and the default floor
+  // is still the taller md one.
   const css = await sheetFor(
     '<input class="s-sm"><button class="s-sm">Go</button>',
   );
@@ -297,14 +335,19 @@ test("a small field lands on the small button height", async () => {
     css,
     ':is(button:where(:not([role])), :where([type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"])).s-sm',
   );
-  assert(field["height"] !== undefined, "the small field states its height");
-  assert(
-    button["min-height"] !== undefined,
-    "the small button states its height",
+  deepStrictEqual(
+    field["min-height"],
+    "calc(var(--font-style-label-size) + (2 * var(--spacing-1)) + (2 * var(--border-width)))",
+    "the small field lands on the small floor",
   );
-  const md = declarationsFor(css, CONTROL_FIELDS)["height"];
+  deepStrictEqual(
+    button["min-height"],
+    "calc(var(--button-s-sm-type-size) + (2 * var(--spacing-1)) + (2 * var(--border-width)))",
+    "the small button lands on its own small tuple, which defaults to the label style",
+  );
+  const md = declarationsFor(css, CONTROL_FIELDS)["min-height"];
   assert(
-    md !== undefined && md !== field["height"],
+    md !== undefined && md !== field["min-height"],
     "the default field step is still md",
   );
 });

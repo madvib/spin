@@ -72,6 +72,10 @@ export interface InitCommand {
   readonly prefix?: string;
   /** Vendor the full design language text instead of a sparse `$extends` document. */
   readonly vendor?: boolean;
+  /** The linter the generated config wires. Defaults to detected, else `"oxlint"` when prompting. */
+  readonly linter?: "oxlint" | "eslint" | "none";
+  /** Write the project agent skill under `.agents/skills/spin/`. */
+  readonly skill?: boolean;
   /** The daemon to dial, when the procedures live elsewhere. */
   readonly url?: string;
   /** Seed from an existing brand directory instead of a design language. */
@@ -198,6 +202,9 @@ Options for init:
   --themes-dir <dir>     themes directory (default: spin)
   --components-dir <dir> components directory (default: src/lib/components)
   --vendor               vendor the full design language text instead of a sparse document
+  --linter <linter>      oxlint | eslint | none (default: detected, else oxlint)
+  --skill                write the project agent skill (.agents/skills/spin)
+  --no-skill             skip the project agent skill
   --root <dir>           the project root (default: the current directory)
   --from <dir>           seed from an existing brand directory instead of a design language
   --url <url>            the daemon to dial (default: in-process)
@@ -289,6 +296,8 @@ function parseInit(argv: readonly string[]): Command {
   let componentsDir: string | undefined;
   let prefix: string | undefined;
   let vendor: boolean | undefined;
+  let linter: "oxlint" | "eslint" | "none" | undefined;
+  let skill: boolean | undefined;
   let url: string | undefined;
   let from: string | undefined;
   let yes = false;
@@ -321,6 +330,22 @@ function parseInit(argv: readonly string[]): Command {
       case "vendor":
         vendor = true;
         break;
+      case "linter": {
+        const value = argument.value as string;
+        if (value !== "oxlint" && value !== "eslint" && value !== "none") {
+          throw new CliUsageError(
+            `--linter takes oxlint, eslint, or none — not "${value}".`,
+          );
+        }
+        linter = value;
+        break;
+      }
+      case "skill":
+        skill = true;
+        break;
+      case "no-skill":
+        skill = false;
+        break;
       case "url":
         url = argument.value as string;
         break;
@@ -348,6 +373,8 @@ function parseInit(argv: readonly string[]): Command {
     ...(componentsDir === undefined ? {} : { componentsDir }),
     ...(prefix === undefined ? {} : { prefix }),
     ...(vendor === undefined ? {} : { vendor }),
+    ...(linter === undefined ? {} : { linter }),
+    ...(skill === undefined ? {} : { skill }),
     ...(url === undefined ? {} : { url }),
     ...(from === undefined ? {} : { from }),
     yes,
@@ -737,6 +764,7 @@ function read(argv: readonly string[]): Argument[] {
     "themes-dir",
     "components-dir",
     "prefix",
+    "linter",
     "from",
     "port",
     "host",
@@ -1004,7 +1032,7 @@ async function runInit(
 ): Promise<number> {
   const { resolveSpinClient } = await import("../api/index.ts");
   const { detectBundler } = await import("@spinjs/server/project");
-  let { name, language, bundler } = command;
+  let { name, language, bundler, linter, skill } = command;
   // Interactive when a TTY asks: prompt for what the flags did not say.
   const interactive = process.stdin.isTTY && !command.yes;
   if (interactive) {
@@ -1023,6 +1051,23 @@ async function runInit(
       if (command.bundler === undefined) {
         const answer = (await io.question(`bundler (${detected}): `)).trim();
         bundler = answer === "" ? detected : answer;
+      }
+      const { detectLinter } = await import("@spinjs/server/project");
+      if (command.linter === undefined) {
+        const detectedLinter = await detectLinter(command.root);
+        const fallback = detectedLinter ?? "oxlint";
+        const answer = (await io.question(`linter (oxlint, eslint, none) (${fallback}): `)).trim();
+        const picked = answer === "" ? fallback : answer;
+        if (picked !== "oxlint" && picked !== "eslint" && picked !== "none") {
+          io.close();
+          warn(`--linter takes oxlint, eslint, or none — not "${picked}".`);
+          return 2;
+        }
+        linter = picked;
+      }
+      if (command.skill === undefined) {
+        const answer = (await io.question(`agent skill (.agents/skills/spin) (Y/n): `)).trim().toLowerCase();
+        skill = answer === "" || answer === "y" || answer === "yes";
       }
     } finally {
       io.close();
@@ -1046,6 +1091,8 @@ async function runInit(
       ...(command.componentsDir === undefined ? {} : { componentsDir: command.componentsDir }),
       ...(command.prefix === undefined ? {} : { prefix: command.prefix }),
       ...(command.vendor === undefined ? {} : { vendor: command.vendor }),
+      ...(linter === undefined ? {} : { linter }),
+      ...(skill === undefined ? {} : { skill }),
       ...(command.from === undefined ? {} : { from: command.from }),
     });
     if (inited.error !== null) return fail(inited.error);

@@ -31,11 +31,14 @@ export default function Lints(): JSX.Element {
   return (
     <main class="flex flex-col">
       <PageHeader
-        title="Lint Rules"
-        lede="Catch hardcoded colors, unknown classes, and unreadable contrast pairs in oxlint or ESLint."
+        title="Lints & Guardrails"
+        lede="One rule engine behind your bundler, linter, and editor — unknown classes and conflicting overrides fail before they ship."
       />
-      <Markdown text={principlesMd} />
       <Markdown text={lintsMd} />
+
+      <Section id="principles" title="Lint principles">
+        <Markdown text={principlesMd} />
+      </Section>
 
       <Section id="specimens" title="Flagged and fixed, side by side">
         <p class="max-w-prose">

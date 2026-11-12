@@ -254,7 +254,7 @@
     "lint": "bunx oxlint@1.85.0 --config ../../.oxlintrc.json src/",
     "fmt": "bunx oxfmt@0.78.0 --write .",
     "codegen": "cd ../preset && bun run codegen",
-    "skill": "bun -e \"import { readFile, writeFile } from 'node:fs/promises'; import { renderAuthoringSkill } from './src/skill/authoring.ts'; await writeFile('./skill/spin-type.md', renderAuthoringSkill(await readFile('./skill/spin-type.md', 'utf8'))); console.log('wrote skill/spin-type.md');\"",
-    "skill:all": "bun -e \"import { readFile, writeFile } from 'node:fs/promises'; import { renderSkill } from './src/skill/index.ts'; import { renderAuthoringSkill } from './src/skill/authoring.ts'; await writeFile('./skill/SKILL.md', renderSkill(await readFile('./skill/SKILL.md', 'utf8'))); await writeFile('./skill/spin-type.md', renderAuthoringSkill(await readFile('./skill/spin-type.md', 'utf8'))); console.log('wrote skill/SKILL.md + skill/spin-type.md');\""
+    "skill": "bun -e \"import { writeFile } from 'node:fs/promises'; import { renderAuthoringSkill } from './src/skill/authoring.ts'; await writeFile('./skill/references/primitives.md', renderAuthoringSkill('')); console.log('wrote skill/references/primitives.md');\"",
+    "skill:all": "bun -e \"import { readFile, writeFile } from 'node:fs/promises'; import { renderSkill } from './src/skill/index.ts'; import { renderAuthoringSkill } from './src/skill/authoring.ts'; await writeFile('./skill/SKILL.md', renderSkill(await readFile('./skill/SKILL.md', 'utf8'))); await writeFile('./skill/references/primitives.md', renderAuthoringSkill('')); console.log('wrote skill/SKILL.md + skill/references/primitives.md');\""
   }
 }

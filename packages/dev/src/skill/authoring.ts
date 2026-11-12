@@ -1,20 +1,29 @@
 /**
-  * The authoring skill's style list, emitted from the languages' style set.
+ * The authoring skill's reference, emitted from the primitive manifest and
+ * the languages' named text styles.
+ *
+ * `references/primitives.md` is the exact closed vocabulary an agent spends:
+ * every primitive's selector, its child parts, its closed variants, and every
+ * `type-*` named text style the theme declares. The file is generated —
+ * `renderAuthoringSkill` rebuilds it from `primitiveComponents` and
+ * `authoringStyles` — so the reference and the rules cannot disagree; the
+ * hand-written `references/components.md` beside it shows the machine
+ * workflow those primitives plug into.
  */
 
-import { designLanguages, type ThemeDocument } from "@spinjs/theme";
-
-/** The heading the style list lives under. */
-const CHECKLIST = "## The styles";
+import {
+  designLanguages,
+  type ThemeDocument,
+} from "@spinjs/theme";
+import {
+  primitiveCategories,
+  primitiveComponents,
+  type PrimitiveComponent,
+} from "@spinjs/preset";
 
 /**
- * What a style the theme declares but the file does not describe gets.
- */
-const UNDESCRIBED =
-  "**For.** The theme declares this style; nothing here says what it is for yet.";
-
-/**
-  * The styles the languages declare, in the order the documents read them.
+ * The named text styles the languages declare, in the order the documents
+ * read them.
  */
 export function authoringStyles(): readonly string[] {
   const styles: string[] = [];
@@ -38,64 +47,111 @@ function documentStyles(document: ThemeDocument): readonly string[] {
   return Object.keys(style);
 }
 
+/** One style's declared tuple, as the theme document states it. */
+export function authoringStyleTuple(name: string): Record<string, string> | undefined {
+  for (const document of Object.values(designLanguages)) {
+    const font = (document as ThemeDocument)["font"];
+    if (typeof font !== "object" || font === null) continue;
+    const style = (font as Record<string, unknown>)["style"];
+    if (typeof style !== "object" || style === null) continue;
+    const entry = (style as Record<string, unknown>)[name];
+    if (typeof entry !== "object" || entry === null) continue;
+    const value = (entry as Record<string, unknown>)["$value"];
+    if (typeof value !== "object" || value === null) continue;
+    return value as Record<string, string>;
+  }
+  return undefined;
+}
+
 /**
-  * The skill, assembled from the template and the languages.
+ * The primitives reference, generated from the manifest and the languages.
+ *
+ * A deterministic rendering: categories and components in manifest order, each
+ * primitive naming its tags, its owned painted elements, its closed variants,
+ * and the component tokens a brand states for it — then every `type-*` style
+ * with its declared tuple. An agent reading the file gets the exact closed
+ * vocabulary, and a primitive added to the rules appears without prose edits.
  */
-export function renderAuthoringSkill(template: string): string {
-  const lines = template.split("\n");
-  const start = lines.findIndex((line) => line.trim() === CHECKLIST);
-  if (start === -1) return template;
-  const end = sectionEnd(lines, start);
-  const section = lines.slice(start, end);
-  const firstStyle = section.findIndex((line) => line.startsWith("### "));
-  const intro = trimBlanks(
-    firstStyle === -1 ? section : section.slice(0, firstStyle),
-  );
-  const guidance = guidanceOf(
-    firstStyle === -1 ? [] : section.slice(firstStyle),
-  );
-  const checklist: string[] = [...intro, ""];
-  for (const name of authoringStyles()) {
-    checklist.push(`### type-${name}`, "");
-    checklist.push(...trimBlanks(guidance.get(`type-${name}`) ?? [UNDESCRIBED]));
-    checklist.push("");
+export function renderAuthoringSkill(_template: string): string {
+  const lines: string[] = [
+    "# Spin primitives reference",
+    "",
+    "Generated from the primitive manifest (`@spinjs/preset`) and the design",
+    "languages' `font.style` entries (`@spinjs/theme`). Do not edit by hand —",
+    "run `bun run skill` in `packages/dev` to regenerate.",
+    "",
+  ];
+  for (const category of primitiveCategories) {
+    const members = Object.values(primitiveComponents).filter(
+      (component) => component.category === category.id,
+    );
+    if (members.length === 0) continue;
+    lines.push(`## ${category.label}`, "");
+    for (const component of members) lines.push(...renderComponent(component), "");
   }
-  return [...lines.slice(0, start), ...checklist, ...lines.slice(end)].join(
-    "\n",
+  const unfiled = Object.values(primitiveComponents).filter(
+    (component) => component.category === undefined,
   );
+  if (unfiled.length > 0) {
+    lines.push("## Utilities", "");
+    for (const component of unfiled) lines.push(...renderComponent(component), "");
+  }
+  lines.push(...renderStyles());
+  return lines.join("\n");
 }
 
-/** The line the section after the style list starts on. */
-function sectionEnd(lines: readonly string[], start: number): number {
-  for (let at = start + 1; at < lines.length; at++) {
-    if (lines[at]?.startsWith("## ")) return at;
+/** One primitive's catalog entry: selector, parts, variants, brand tokens. */
+function renderComponent(component: PrimitiveComponent): string[] {
+  const lines: string[] = [`### ${component.name}`, ""];
+  const tags = [...component.tags];
+  lines.push(
+    tags.length > 0
+      ? `Write ${tags.map((tag) => `\`<${tag}>\``).join(", ")}.`
+      : "Class-only primitive: no bare tag.",
+  );
+  lines.push("");
+  for (const paint of component.scope.paints) {
+    if (paint.where === "descendant") continue;
+    const owns = [...paint.owns];
+    lines.push(
+      owns.length > 0
+        ? `- \`<${paint.tag}>\` owns ${owns.join(", ")}.`
+        : `- \`<${paint.tag}>\` lays out only.`,
+    );
   }
-  return lines.length;
-}
-
-/** The guidance each style carries, read from the list's own sections. */
-function guidanceOf(lines: readonly string[]): Map<string, readonly string[]> {
-  const guidance = new Map<string, string[]>();
-  let name = "";
-  let body: string[] = [];
-  for (const line of lines) {
-    if (line.startsWith("### ")) {
-      if (name !== "") guidance.set(name, body);
-      name = line.slice(4).trim();
-      body = [];
-      continue;
+  const variants = [...component.variants];
+  lines.push(
+    "",
+    variants.length > 0
+      ? `Closed variants: ${variants.map((variant) => `\`${variant}\``).join(", ")}.`
+      : "No variants.",
+  );
+  const tokens = [...component.component];
+  if (tokens.length > 0) {
+    lines.push("", "Brand tokens a brand states for this primitive:");
+    for (const token of tokens) {
+      lines.push(`- \`${token.path}\` (${token.type}).`);
     }
-    body.push(line);
   }
-  if (name !== "") guidance.set(name, body);
-  return guidance;
+  return lines;
 }
 
-/** The lines without the blank ones at either end. */
-function trimBlanks(lines: readonly string[]): readonly string[] {
-  let first = 0;
-  let last = lines.length;
-  while (first < last && (lines[first] ?? "").trim() === "") first++;
-  while (last > first && (lines[last - 1] ?? "").trim() === "") last--;
-  return lines.slice(first, last);
+/** Every named text style with its declared tuple. */
+function renderStyles(): string[] {
+  const lines: string[] = ["## Named text styles", ""];
+  lines.push("Spend one `type-<name>` class to read in that voice.", "");
+  for (const name of authoringStyles()) {
+    const tuple = authoringStyleTuple(name);
+    lines.push(
+      `### type-${name}`,
+      "",
+      tuple === undefined
+        ? "The theme declares this style."
+        : `Tuple: ${Object.entries(tuple)
+            .map(([key, value]) => `${key} ${value}`)
+            .join(", ")}.`,
+      "",
+    );
+  }
+  return lines;
 }

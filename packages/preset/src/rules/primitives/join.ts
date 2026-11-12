@@ -68,6 +68,17 @@ function joinItem(): SpinRule {
         "border-radius": "0",
         "box-shadow": "none",
       };
+      // The field box's `width: 100%` makes a bare input fill its line; inside
+      // an `inline-flex` join that 100% is the container itself, so every
+      // joined input tries to be the whole join. Reset to the inline-flex
+      // default from the JOIN rule (not a utility class, which this rule's
+      // extractor would promote into a variant): items size from their
+      // contents and split free space evenly.
+      yield {
+        [ctx.symbols.selector]: () => ".join > *",
+        width: "auto",
+        flex: "1 1 auto",
+      };
       // The four logical longhands, written per side rather than as a
       // shorthand, because each end restates only its own two corners.
       yield {

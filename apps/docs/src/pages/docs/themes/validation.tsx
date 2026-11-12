@@ -77,7 +77,7 @@ export default function ThemesValidation(): JSX.Element {
           The Studio, <code>npx spin lint</code>, and{" "}
           <code>npx spin brand analyze</code> all run the same{" "}
           <code>validateTheme</code> pipeline from{" "}
-          <code>@spinjs/theme</code>:
+          <code>@spinjs/dev/theme</code>:
         </p>
         <PropList items={CHECK_ITEMS} />
 
@@ -105,7 +105,7 @@ export default function ThemesValidation(): JSX.Element {
       <Section id="programmatic" title="Validating in TypeScript">
         <p class="max-w-prose">
           Import <code>validateTheme</code> from{" "}
-          <code>@spinjs/theme</code> to validate user-supplied or
+          <code>@spinjs/dev/theme</code> to validate user-supplied or
           agent-authored theme documents in your own tests or build scripts:
         </p>
         <div class="my-3">
@@ -124,7 +124,7 @@ export default function ThemesValidation(): JSX.Element {
           pixel values in JavaScript — for <code>&lt;canvas&gt;</code>, WebGL,
           charting libraries, or <code>&lt;meta name="theme-color"&gt;</code>{" "}
           — use <code>resolveTheme(editorialLanguage, "dark")</code> from{" "}
-          <code>@spinjs/theme</code>:
+          <code>@spinjs/dev/theme</code>:
         </p>
         <div class="my-3">
           <Code

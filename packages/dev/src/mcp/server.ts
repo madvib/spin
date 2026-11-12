@@ -19,6 +19,7 @@
  * in the daemon, never a workaround here.
  */
 
+import { createRequire } from "node:module";
 import { z } from "zod";
 import type { SpinClient } from "../api/index.ts";
 import { MODES, TOKEN_TYPES } from "@spinjs/theme";
@@ -124,7 +125,15 @@ async function edit(
 
 /** Build the MCP server bound to one daemon. */
 export function buildSpinMcpServer(client: SpinClient): McpServer {
-  const server = new McpServer({ name: "spin", version: "0.1.0" });
+  // The published version rides the package manifest, never a literal: the
+  // server answers with the version of the `@spinjs/dev` that built it.
+  // `createRequire` resolves through the workspace member in this checkout
+  // and the installed package in a published one — either manifest names it.
+  const manifest = createRequire(import.meta.url)("@spinjs/dev/package.json") as {
+    version?: unknown;
+  };
+  const version = typeof manifest.version === "string" ? manifest.version : "0.0.0";
+  const server = new McpServer({ name: "spin", version });
 
   const theme = z.string().describe("Theme name, e.g. 'default'.");
   const mode = z

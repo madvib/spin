@@ -37,8 +37,169 @@ import type {
   WriteResult,
 } from "./schema.ts";
 
+/** The rules an oxlint scaffold carries, all on error. */
+const SPIN_OXLINT_RULES: Record<string, string> = {
+  "spin/closed-vocabulary": "error",
+  "spin/no-redundant-class": "error",
+  "spin/prefer-theme-value": "error",
+  "spin/no-unpaired-ink": "error",
+  "spin/no-handwritten-tokens": "error",
+};
 
-/** The project's configured themes directory, resolved to the filesystem. */
+/**
+ * The linter a root already uses, by its config files then its deps.
+ *
+ * A `.oxlintrc.json` on disk wins: it is the config the project runs.
+ * Otherwise the manifest's dependencies say what the project installs.
+ * Nothing found answers `undefined` — the caller, not the probe, decides
+ * the default — so a greenfield temp dir never invents a linter.
+ */
+export async function detectLinter(
+  root: string,
+): Promise<"oxlint" | "eslint" | undefined> {
+  const { readdir, readFile } = await import("node:fs/promises");
+  const { join } = await import("node:path");
+  try {
+    const names = await readdir(root);
+    if (names.includes(".oxlintrc.json")) return "oxlint";
+    if (
+      names.some(
+        (name) =>
+          name === "eslint.config.js" ||
+          name === "eslint.config.mjs" ||
+          name === "eslint.config.cjs" ||
+          name === "eslint.config.ts",
+      )
+    ) {
+      return "eslint";
+    }
+    let manifest: { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
+    try {
+      manifest = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
+    } catch {
+      return undefined;
+    }
+    const deps = { ...manifest.dependencies, ...manifest.devDependencies };
+    if ("oxlint" in deps) return "oxlint";
+    if ("eslint" in deps) return "eslint";
+  } catch {
+    // Unreadable root: the caller decides the default.
+  }
+  return undefined;
+}
+
+/**
+ * The `.oxlintrc.json` a fresh project keeps: what it had, plus the spin
+ * plugin and the spin rules. Existing keys survive — a configured rule
+ * override stays the author's, never the scaffold's.
+ */
+function withSpinOxlint(existing: unknown): Record<string, unknown> {
+  const config =
+    typeof existing === "object" && existing !== null && !Array.isArray(existing)
+      ? { ...(existing as Record<string, unknown>) }
+      : {};
+  const seen = new Set(
+    Array.isArray(config["jsPlugins"])
+      ? (config["jsPlugins"] as unknown[]).map(String)
+      : [],
+  );
+  seen.add("@spinjs/dev/diagnostics");
+  config["jsPlugins"] = [...seen];
+  const rules =
+    typeof config["rules"] === "object" && config["rules"] !== null && !Array.isArray(config["rules"])
+      ? { ...(config["rules"] as Record<string, unknown>) }
+      : {};
+  for (const [rule, severity] of Object.entries(SPIN_OXLINT_RULES)) {
+    if (!(rule in rules)) rules[rule] = severity;
+  }
+  config["rules"] = rules;
+  return config;
+}
+
+/** The `eslint.config.mjs` a fresh project keeps: the spin preset. */
+const SPIN_ESLINT_CONFIG = `import spin from "@spinjs/dev/eslint";
+
+export default [...spin.configs.recommended];
+`;
+
+/**
+ * The project agent skill, tailored to the project it lands in: its brand
+ * directory, its `.mcp.json` server entry, the primitives and utilities it
+ * spends, the components it copies, and the lint that checks them.
+ */
+function projectSkillText(brandDir: string): string {
+  return `---
+name: spin
+description: Author Spin UI in this project: semantic HTML primitives, layout utilities, portable components, and lint verification.
+---
+
+# Spin UI authoring
+
+Author UI in this project with Spin: checked primitives, small utilities, and portable components. The project's brand lives in \`${brandDir}/\`.
+
+## Brand
+
+- Read and edit the brand's token layers in \`${brandDir}/\`. Keep light and dark modes serving together, and keep the contract scales shared across themes.
+- Shape the brand in Studio when it is running; otherwise edit the JSON documents directly.
+
+## Markup
+
+- Spend semantic HTML primitives: \`card\`, \`panel\`, \`dialog\`, \`field\`, \`button\`.
+- Style with layout utilities only: spacing, sizing, and placement. Never hand-write token values; spend the theme's tokens.
+- Copy portable components with \`spin component copy <name> <example>\` and drive them through their app-controller surface (\`@spinjs/components\`).
+
+## Verify
+
+- Run \`spin mcp\` (via \`.mcp.json\`) when an agent session needs the project's RPC surface: themes, brands, components, and findings.
+- Run \`npx spin lint\` before finishing: findings are the report, and a finding the check cannot explain is a finding to fix, not to suppress.
+`;
+}
+
+/**
+ * Scaffolds the linter config and the project skill a fresh project keeps.
+ * Linter files land only for the effective linter; an existing eslint
+ * config is never rewritten. The skill lands only when asked.
+ */
+async function scaffoldLinterAndSkill(
+  root: string,
+  options: { linter: "oxlint" | "eslint" | "none"; skill: boolean; brandDir: string },
+): Promise<void> {
+  const { mkdir, readFile, readdir, writeFile } = await import("node:fs/promises");
+  const { join } = await import("node:path");
+  if (options.linter === "oxlint") {
+    const path = join(root, ".oxlintrc.json");
+    let existing: unknown;
+    try {
+      existing = JSON.parse(await readFile(path, "utf8"));
+    } catch {
+      existing = undefined;
+    }
+    await writeFile(path, JSON.stringify(withSpinOxlint(existing), null, 2) + "\n", "utf8");
+  } else if (options.linter === "eslint") {
+    const names = await readdir(root).catch(() => [] as string[]);
+    const hasConfig = names.some(
+      (name) =>
+        name === "eslint.config.js" ||
+        name === "eslint.config.mjs" ||
+        name === "eslint.config.cjs" ||
+        name === "eslint.config.ts",
+    );
+    if (!hasConfig) {
+      await writeFile(join(root, "eslint.config.mjs"), SPIN_ESLINT_CONFIG, "utf8");
+    }
+  }
+  if (options.skill) {
+    const path = join(root, ".agents/skills/spin/SKILL.md");
+    try {
+      await readFile(path, "utf8");
+    } catch {
+      await mkdir(join(root, ".agents/skills/spin"), { recursive: true });
+      await writeFile(path, projectSkillText(options.brandDir), "utf8");
+    }
+  }
+}
+
+ /** The project's configured themes directory, resolved to the filesystem. */
 async function themesDirOf(
   root: string,
 ): Promise<{ path: string; file: boolean; display: string }> {
@@ -406,6 +567,7 @@ export async function initProject(
   const { join } = await import("node:path");
   try {
     const bundler = options.bundler ?? "vite";
+    const linter = options.linter ?? (await detectLinter(options.root)) ?? "none";
     const themesDir = options.themesDir ?? PROJECT_DIR;
     const componentsDir = options.componentsDir ?? COMPONENTS_DIR;
     let prefix = options.prefix;
@@ -518,6 +680,11 @@ export async function initProject(
         "utf8",
       );
     }
+    await scaffoldLinterAndSkill(options.root, {
+      linter,
+      skill: options.skill === true,
+      brandDir: `${themesDir}/${options.name}`,
+    });
     await writeProjectComponentsDts(
       options.root,
       {

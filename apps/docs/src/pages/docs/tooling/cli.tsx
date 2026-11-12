@@ -2,6 +2,7 @@
  * CLI & Plugin Options: every `spin` subcommand, flag, `SpinPluginOptions`
  * field, and published package subpath rendered as structured PropList cards.
  */
+import { A } from "@solidjs/router";
 import type { JSX } from "solid-js";
 import { Code, PageHeader, PropList, Section, type PropEntry } from "../../../ui/index.ts";
 import { GETTING_STARTED_SNIPPETS } from "../getting-started/getting-started.snippets.ts";
@@ -12,23 +13,22 @@ const commandItems = (): readonly PropEntry[] => [
     badge: "scaffold",
     description: (
       <>
-        Detects your bundler, writes the initial theme to{" "}
-        <code>spin/default/tokens.json</code>, and wires the plugin into your bundler
-        config. Rejects <code>bundler: "unocss"</code> — init wires the plugin,
-        never a preset-only config.
+        Detects your bundler, writes the initial brand to{" "}
+        <code>spin/{"<brand>"}/tokens.json</code>, and wires the plugin into
+        your bundler config. Rejects <code>bundler: "unocss"</code> — init
+        wires the plugin, never a preset-only config.
       </>
     ),
     detail:
-      "Flags: --name, --language, --bundler, --themes-dir, --components-dir, --prefix, --vendor, --root, --from, --url, -y / --yes",
+      "Flags: --name, --language, --linter oxlint|eslint|none, --skill, --bundler, --themes-dir, --components-dir, --prefix, --vendor, --from, --url, --root, -y / --yes",
   },
   {
     name: "spin studio",
-    badge: "daemon",
-    defaultValue: "127.0.0.1:7463",
+    badge: "editor",
     description: (
       <>
-        Opens the standalone theme editor: RPC daemon at <code>/rpc</code> and
-        Studio UI at <code>/studio/</code>.
+        Opens the standalone theme editor, served from your project with the
+        Studio UI beside it.
       </>
     ),
     detail: "Flags: --root, --port (default 7463), --host (default 127.0.0.1)",
@@ -47,8 +47,8 @@ const commandItems = (): readonly PropEntry[] => [
     description: (
       <>
         Reads or renames a brand: <code>list</code>, <code>analyze</code>, and{" "}
-        <code>rename</code> — a document's composition decides completeness,
-        and the engine judges it.
+        <code>rename</code> — every brand composed against the same six-gate
+        contract.
       </>
     ),
     detail: "Flags: --root, --url, --format text|json, --contract[=a,b], --migrate",
@@ -71,7 +71,7 @@ const commandItems = (): readonly PropEntry[] => [
     description: (
       <>
         Starts the MCP server over stdio, reading the project in-process or
-        dialing a running daemon via <code>--url</code>.
+        dialing a running Studio via <code>--url</code>.
       </>
     ),
     detail: "Flags: --root, --url",
@@ -119,7 +119,13 @@ const pluginOptions = (): readonly PropEntry[] => [
     name: "shortcuts",
     badge: "Record<string, string>",
     description:
-      "Your project's own utility compositions — the preset ships none. The worked example lives on Install & Bundlers.",
+      (
+      <>
+        Your project&apos;s own utility compositions — the preset ships none.
+        See <A href="/docs/getting-started/install">Install &amp; Bundlers</A>{" "}
+        for the worked example.
+      </>
+    ),
   },
   {
     name: "content",
@@ -150,7 +156,7 @@ const pluginOptions = (): readonly PropEntry[] => [
     defaultValue: "true",
     description: (
       <>
-        Mounts the Studio UI and RPC API on the Vite dev server. Set{" "}
+        Mounts the Studio UI on the Vite dev server. Set{" "}
         <code>false</code> to disable both the mount and the launcher.
       </>
     ),
@@ -191,14 +197,14 @@ const SPIN_SUBPATHS: readonly PropEntry[] = [
   { name: "@spinjs/dev/cli", badge: "cli", description: "The spin CLI command runner and argument parser." },
   { name: "@spinjs/dev/mcp", badge: "mcp", description: "Stdio MCP server for coding agents (theme, token, component, utility, icon, savedIcon, font, preview, findings)." },
   { name: "@spinjs/dev/lsp", badge: "lsp", description: "Language server over stdio: live lint diagnostics, quick fixes, hover, and completions from your brand." },
-  { name: "@spinjs/dev/api", badge: "api", description: "Daemon RPC surface the Studio and MCP server compose." },
+  { name: "@spinjs/dev/api", badge: "api", description: "Project procedures the Studio and MCP server compose." },
   { name: "@spinjs/dev/skill", badge: "skill", description: "Agent skill text and authoring helpers for brand and component work." },
   { name: "@spinjs/dev/compositions", badge: "compositions", description: "Project-declared utility compositions." },
   { name: "@spinjs/dev/examples", badge: "examples", description: "Component example recipes for copy, list, and contract flows." },
 ];
 
 const COMPONENT_SUBPATHS: readonly PropEntry[] = [
-  { name: "@spinjs/components/<name>", badge: "machine", description: "Individual machine definitions (select, combobox, date-picker, toc, tabs, and 31 more)." },
+  { name: "@spinjs/components/<name>", badge: "machine", description: "Individual machine definitions (select, combobox, date-picker, toc, tabs, and 33 more)." },
   { name: "@spinjs/components/solid", badge: "adapter", description: "createSpinComponent — reactive controller hook for Solid." },
   { name: "@spinjs/components/react", badge: "adapter", description: "useSpinComponent — reactive controller hook for React." },
   { name: "@spinjs/components/controller", badge: "adapter", description: "spinComponentCtl — controller for vanilla DOM, Vue, and Svelte." },

@@ -199,17 +199,18 @@ async function checkPackage(name: string, findings: Findings): Promise<void> {
             `bun run skill in packages/dev`,
         );
       }
-      const authoringMd = join(dir, "skill", "spin-type.md");
-      if (await exists(authoringMd)) {
-        const renderedAuthoring = renderAuthoringSkill(
-          await readFile(authoringMd, "utf8"),
+      const authoringMd = join(dir, "skill", "references", "primitives.md");
+      if (!await exists(authoringMd)) {
+        findings.fail(
+          `${name}: skill/references/primitives.md is missing from the skill directory`,
         );
+      } else {
         const currentAuthoring = await readFile(authoringMd, "utf8");
+        const renderedAuthoring = renderAuthoringSkill(currentAuthoring);
         if (renderedAuthoring !== currentAuthoring) {
           findings.fail(
-            `${name}: skill/spin-type.md is not the rendered style list — run ` +
-              `bun run skill in packages/dev`,
-        );
+            `${name}: skill/references/primitives.md is stale — run bun run skill in packages/dev`,
+          );
         }
       }
     }

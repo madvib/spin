@@ -454,7 +454,7 @@ export function buildStylingMarkdown(routePath: string): string | undefined {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([name, classes]) => `- \`${name}\` → \`${classes.join(" ")}\``),
     "",
-    "## Animation Utilities (`@spinjs/preset`)",
+    "## Animation Utilities (`@spinjs/dev/preset`)",
     "",
     animations,
   ].join("\n");

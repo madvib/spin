@@ -1,5 +1,6 @@
 import type { SpinRule, ThemeContext } from "../../utils/lookup.ts";
 import {
+  controlHeight,
   disabledPosture,
   fallback,
   focusPaint,
@@ -129,6 +130,22 @@ export function fieldBox(): SpinRule {
       } = fieldTokens(context);
       const ring = focusRing(context);
 
+      // The shared control-height floor: the tallest of the body and label
+      // voices' line boxes, plus the shared padding step and edge weight —
+      // the same floor the button spends, so the two land at one height in
+      // every row they share. Named styles, never component tuples, so the
+      // field spends only what its vocabulary owns.
+      const floor = controlHeight(
+        {
+          fontSize: context?.theme?.font?.style?.body?.["font-size"],
+          fontLeading: context?.theme?.font?.style?.body?.["line-height"],
+        },
+        {
+          fontSize: context?.theme?.font?.style?.label?.["font-size"],
+          fontLeading: context?.theme?.font?.style?.label?.["line-height"],
+        },
+        { spacing: spacing2, borderWidth },
+      );
       const box: Record<string, string | undefined> = {
         "font-family": fontFamily,
         "font-size": fontSize,
@@ -136,14 +153,12 @@ export function fieldBox(): SpinRule {
         "background-color": field,
         "border-radius": radius,
         width: "100%",
-        // The control-height floor, from the same three theme values the
-        // button derives it from: a field beside a button is the same object
-        // at the same height, in every language, whatever the theme's leading.
-        ...(fontSize !== undefined && spacing2 !== undefined &&
-            borderWidth !== undefined
+        // The shared floor, spent on the box too so a bare field in a grid
+        // or form row matches the button beside it — not only the
+        // single-line yield below.
+        ...(floor !== undefined
           ? {
-            "min-height":
-              `calc(${fontSize} + (2 * ${spacing2}) + (2 * ${borderWidth}))`,
+            "min-height": floor,
           }
           : {}),
       };
@@ -186,20 +201,19 @@ export function fieldBox(): SpinRule {
         ...box,
       };
 
-      // The single-line fields set their own leading and their own height. A
+      // The single-line fields set their own leading and the shared floor. A
       // control's line box is the control's, not the document's: inherited
-      // leading made an input taller than every button beside it. `height`
-      // rather than `min-height`, because a text input's inner editor keeps a
-      // floor of its own font metrics even when the line box is smaller — the
-      // one declaration that makes the box the height the theme asked for.
+      // leading made an input taller than every button beside it. `min-height`
+      // rather than the `height` this yield used to state, because a fixed
+      // height stops flex parents from stretching the shorter control to its
+      // sibling — a `.join` input beside a button kept a 2–3px step on the
+      // seam. A floor both controls share stretches to the tallest of them.
       yield {
         [context.symbols.selector]: () => CONTROL_FIELDS,
         "line-height": "1",
-        ...(fontSize !== undefined && spacing2 !== undefined &&
-            borderWidth !== undefined
+        ...(floor !== undefined
           ? {
-            height:
-              `calc(${fontSize} + (2 * ${spacing2}) + (2 * ${borderWidth}))`,
+            "min-height": floor,
           }
           : {}),
       };
@@ -240,7 +254,6 @@ export function fieldBox(): SpinRule {
           const height = `calc(${size} + (2 * ${space}) + (2 * ${borderWidth}))`;
           yield {
             [context.symbols.selector]: () => `:is(input, select).${name}`,
-            height,
             "min-height": height,
           };
         }
@@ -257,17 +270,16 @@ export function fieldBox(): SpinRule {
         width: "auto",
       };
       // `type=search` keeps the field box. Firefox floors a search field's
-      // line box above `line-height: 1`, so the shared fixed height clips
-      // its text while every sibling fits. Restating the same fixed height
-      // here wins the cascade over the UA's taller search line box.
+      // line box above `line-height: 1`, so the shared floor restated here
+      // wins the cascade over the UA's taller search line box — in the same
+      // `min-height` shape, so a joined search field still stretches with its
+      // submit rather than pinning to a fixed height.
       yield {
         [context.symbols.selector]: () => 'input[type="search"]',
         "line-height": "1",
-        ...(fontSize !== undefined && spacing2 !== undefined &&
-            borderWidth !== undefined
+        ...(floor !== undefined
           ? {
-            height:
-              `calc(${fontSize} + (2 * ${spacing2}) + (2 * ${borderWidth}))`,
+            "min-height": floor,
           }
           : {}),
       };
