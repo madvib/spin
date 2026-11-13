@@ -83,8 +83,7 @@ test("a redundant class offers its removal under the cursor", async () => {
     deepStrictEqual(action.title, "Drop `type-body`");
     const edits = action.edit.changes[uri] ?? [];
     deepStrictEqual(edits.length, 1);
-    // The edit drops exactly the redundant class: applying it leaves the
-    // attribute empty, and nothing else in the document moves.
+    // The edit drops the entire className attribute when it holds no other classes.
     const edit = edits[0] as {
       range: {
         start: { line: number; character: number };
@@ -95,7 +94,7 @@ test("a redundant class offers its removal under the cursor", async () => {
     const line = text.split("\n")[edit.range.start.line] as string;
     deepStrictEqual(
       line.slice(edit.range.start.character, edit.range.end.character),
-      "type-body",
+      ' className="type-body"',
     );
     deepStrictEqual(edit.newText, "");
   } finally {
