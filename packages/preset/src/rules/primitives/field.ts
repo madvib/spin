@@ -217,16 +217,23 @@ export function fieldBox(): SpinRule {
           }
           : {}),
       };
-
+      // `type=search` keeps the field box. Firefox floors a search field's
+      // line box above `line-height: 1`, so the shared floor restated here
+      // wins the cascade over the UA's taller search line box — emitted BEFORE
+      // the size steps so `.s-sm` / `.s-lg` override it.
+      yield {
+        [context.symbols.selector]: () => ':where(input[type="search"])',
+        "line-height": "1",
+        ...(floor !== undefined
+          ? {
+            "min-height": floor,
+          }
+          : {}),
+      };
 
       // The size styles, the same steps a button takes. A field's type and
       // padding move with the step; a single-line control also lands on the
-      // step's height, while a textarea keeps its own lines. Without this a
-      // chrome control had to restate the small metrics at every call site.
-      // The type at each step is the field's reading style at that step: sm
-      // reads the label size through the label style, lg the subtitle size
-      // through the subtitle style (the button's s-lg style), so moving the
-      // styles moves the sizes with them.
+      // step's height, while a textarea keeps its own lines.
       const label = context?.theme?.font?.style?.label;
       const subtitle = context?.theme?.font?.style?.subtitle;
       const space1 = context?.theme?.spacing?.[1];
@@ -261,29 +268,12 @@ export function fieldBox(): SpinRule {
 
       // The box types lay out their own contents and must not be padded or
       // stretched like a text field, including the native range control the
-      // inline `bare` style does not cover. The selector IS the list of those
-      // types — inverting it with `:not(...)` would zero every text field's
-      // padding, which is the opposite of the intent.
+      // inline `bare` style does not cover.
       yield {
         [context.symbols.selector]: () => `${FIELDS}:is(${BOX_TYPES})`,
         padding: "0",
         width: "auto",
       };
-      // `type=search` keeps the field box. Firefox floors a search field's
-      // line box above `line-height: 1`, so the shared floor restated here
-      // wins the cascade over the UA's taller search line box — in the same
-      // `min-height` shape, so a joined search field still stretches with its
-      // submit rather than pinning to a fixed height.
-      yield {
-        [context.symbols.selector]: () => 'input[type="search"]',
-        "line-height": "1",
-        ...(floor !== undefined
-          ? {
-            "min-height": floor,
-          }
-          : {}),
-      };
-
       // The opt-out for chrome-adjacent inline editing: a borderless input or
       // textarea the surrounding surface owns. It keeps the text and the
       // placeholder and drops the box — surface, edge, rounding, padding,

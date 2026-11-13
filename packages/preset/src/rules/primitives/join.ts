@@ -111,6 +111,12 @@ function joinItem(): SpinRule {
           ? { "margin-inline-start": `calc(-1 * ${t.borderWidth})` }
           : {}),
       };
+      yield {
+        [ctx.symbols.selector]: () =>
+          ".join-item:focus, .join-item:focus-visible, .join-item:focus-within",
+        position: "relative",
+        "z-index": "1",
+      };
     },
     { layer: "primitives", autocomplete: "join-item" },
   ];

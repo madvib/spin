@@ -104,12 +104,25 @@ const INDEX: readonly SearchEntry[] = buildIndex();
 /** The entries matching the query, in index order. */
 function search(query: string): readonly SearchEntry[] {
   const needle = query.trim().toLowerCase();
-  if (needle === "") return INDEX.slice(0, 12);
-  return INDEX.filter(
-    (entry) =>
-      entry.title.toLowerCase().includes(needle) ||
-      (entry.subtitle?.toLowerCase().includes(needle) ?? false),
-  ).slice(0, 12);
+  if (needle === "") {
+    const guides = INDEX.filter((e) => e.category === "Guide").slice(0, 4);
+    const components = INDEX.filter((e) => e.category === "Component").slice(0, 8);
+    const utilities = INDEX.filter((e) => e.category === "Utility").slice(0, 2);
+    return [...guides, ...components, ...utilities];
+  }
+  const scored: { entry: SearchEntry; score: number }[] = [];
+  for (const entry of INDEX) {
+    const title = entry.title.toLowerCase();
+    const sub = entry.subtitle?.toLowerCase() ?? "";
+    let score = 0;
+    if (title === needle) score = 4;
+    else if (title.startsWith(needle)) score = 3;
+    else if (title.includes(needle)) score = 2;
+    else if (sub.includes(needle)) score = 1;
+    if (score > 0) scored.push({ entry, score });
+  }
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, 20).map((item) => item.entry);
 }
 
 export interface SearchDialogProps {

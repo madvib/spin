@@ -716,3 +716,24 @@ test("an extra-small button floors below the small step but above a badge", asyn
     "calc(var(--button-s-sm-type-size) + (2 * var(--spacing-1)) + (2 * var(--border-width)))",
   );
 });
+
+test("a focused join-item lifts above its sibling so the focus ring is not clipped", async () => {
+  const css = await sheetFor('<div class="join"><input class="join-item" /><button class="join-item">Search</button></div>');
+  const focused = declarationsFor(
+    css,
+    ".join-item:focus, .join-item:focus-visible, .join-item:focus-within",
+  );
+  deepStrictEqual(focused["position"], "relative");
+  deepStrictEqual(focused["z-index"], "1");
+});
+
+test("an s-sm search input keeps its size min-height over the search floor", async () => {
+  const css = await sheetFor('<input type="search" class="s-sm" />');
+  const searchFloor = declarationsFor(css, ':where(input[type="search"])');
+  const sm = declarationsFor(css, ":is(input, select).s-sm");
+  deepStrictEqual(searchFloor["line-height"], "1");
+  assert(
+    (sm["min-height"] ?? "").includes("--spacing-1"),
+    "s-sm search input uses spacing-1 min-height",
+  );
+});

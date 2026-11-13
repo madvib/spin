@@ -1,11 +1,22 @@
 <script lang="ts">
 import { asyncList } from "../async-list.presentation.ts";
 
+const CREW = [
+  { "value": "ada", "label": "Ada Lovelace" },
+  { "value": "grace", "label": "Grace Hopper" },
+  { "value": "margaret", "label": "Margaret Hamilton" },
+];
+
 const machine = asyncList({
-  initialItems: [{ "value": "ada", "label": "Ada Lovelace" }, {
-    "value": "grace",
-    "label": "Grace Hopper",
-  }, { "value": "margaret", "label": "Margaret Hamilton" }],
+  initialItems: CREW,
+  load: async ({ filterText }) => {
+    await new Promise((r) => setTimeout(r, 150));
+    const q = filterText.trim().toLowerCase();
+    const items = q === ""
+      ? CREW
+      : CREW.filter((item) => item.label.toLowerCase().includes(q));
+    return { items, cursor: null };
+  },
   sortFn: ({ items, descriptor }) => {
     const label = (item) => String(item.label);
     const sorted = [...items].sort((a, b) =>
@@ -34,7 +45,7 @@ const machine = asyncList({
     </div>
     <div class="flex items-center gap-2">
       <input
-        class="w-36 transition-colors duration-fast ease-decelerate"
+        class="s-sm w-36 transition-colors duration-fast ease-decelerate"
         aria-label="Filter"
         {...machine.getFilterInputProps()}
       />

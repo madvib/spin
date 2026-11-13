@@ -64,7 +64,7 @@ test("spin examples e2e", () =>
       // The class is an OBJECT: its keys are the utilities and its values
       // are the conditions, so the class follows the machine — no
       // `data-[…]:` hook in sight.
-      const readout = page.locator("slider-basic .text-sm").first();
+      const readout = page.locator("slider-basic .type-code").first();
       await readout.waitFor({ state: "attached", timeout: 5000 });
       assert.ok(
         !(await readout.getAttribute("class"))?.includes("text-primary"),

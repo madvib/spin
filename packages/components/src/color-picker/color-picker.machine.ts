@@ -40,6 +40,7 @@ const config: MachineSpec<
   initial: "idle",
   context: {
     value: "#000000",
+    hue: 0,
     format: "hex" as ColorFormat,
     activeChannel: null as ColorChannel | null,
     areaX: "saturation" as ColorChannel,

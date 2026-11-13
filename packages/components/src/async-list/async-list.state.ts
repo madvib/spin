@@ -17,6 +17,7 @@ export interface AsyncListArgs {
 
 export interface AsyncListContext {
   items: readonly unknown[];
+  initialItems: readonly unknown[];
   cursor: unknown;
   filterText: string;
   sortDescriptor: SortDescriptor | null;
@@ -50,8 +51,10 @@ export function initial(
     authored(defaultTwin(field)) ||
     (args as Record<string, unknown>)[defaultTwin(field)] !== undefined;
   const sortFn = written("sortFn") ? args.sortFn : undefined;
+  const seeded = itemsOf(args.initialItems);
   return {
-    items: itemsOf(args.initialItems),
+    items: seeded,
+    initialItems: seeded,
     cursor: null,
     filterText: typeof args.initialFilterText === "string"
       ? args.initialFilterText

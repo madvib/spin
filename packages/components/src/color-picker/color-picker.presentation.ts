@@ -331,6 +331,16 @@ const channelValueOf = (
       ? "hsla"
       : "hsba";
     const source = channel === "alpha" ? color : color.toFormat(area);
+    if (
+      channel === "hue" &&
+      (source.getChannelValue("saturation") === 0 ||
+        (area === "hsba"
+          ? source.getChannelValue("brightness") === 0
+          : source.getChannelValue("lightness") === 0 ||
+            source.getChannelValue("lightness") === 100))
+    ) {
+      return String(ctx.hue);
+    }
     return String(source.getChannelValue(channel));
   } catch {
     return "";
@@ -488,11 +498,17 @@ export const def = {
         const area: "hsla" | "hsba" = scope.context.format.startsWith("hsl")
           ? "hsla"
           : "hsba";
-        let hue = 0;
+        let hue = scope.context.hue;
         try {
-          hue = colorOf(scope).toFormat(area).getChannelValue("hue");
+          const converted = colorOf(scope).toFormat(area);
+          const achromatic = converted.getChannelValue("saturation") === 0 ||
+            (area === "hsba"
+              ? converted.getChannelValue("brightness") === 0
+              : converted.getChannelValue("lightness") === 0 ||
+                converted.getChannelValue("lightness") === 100);
+          if (!achromatic) hue = converted.getChannelValue("hue");
         } catch {
-          hue = 0;
+          hue = scope.context.hue;
         }
         return {
           "data-disabled": dataAttr(scope.context.disabled === true),
@@ -681,7 +697,13 @@ export const def = {
         let max = 100;
         try {
           const range = source.getChannelRange(slots.channel);
-          now = source.getChannelValue(slots.channel);
+          const achromatic = slots.channel === "hue" &&
+            (source.getChannelValue("saturation") === 0 ||
+              (area === "hsba"
+                ? source.getChannelValue("brightness") === 0
+                : source.getChannelValue("lightness") === 0 ||
+                  source.getChannelValue("lightness") === 100));
+          now = achromatic ? ctx.hue : source.getChannelValue(slots.channel);
           min = range.minValue;
           max = range.maxValue;
           offset = max === min ? 0 : (now - min) / (max - min);

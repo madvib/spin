@@ -865,3 +865,15 @@ test("Given initial items and a sort function but no loader / When a sort runs /
   deepStrictEqual(h.loadCalls.length, 0, "no fetch ran");
   h.dispose();
 });
+
+test("Given initial items and no loader / When reload runs / Then the list returns to idle with initial items", () => {
+  const h = mount({
+    initialItems: MANIFEST,
+    load: undefined,
+  });
+  h.api.reload();
+  deepStrictEqual(state(h.api), "idle", "reload without a loader settles immediately");
+  deepStrictEqual(labels(h.api), ["Deno", "Bun", "Node"], "initial items remain intact");
+  deepStrictEqual(h.loadCalls.length, 0, "no fetch ran");
+  h.dispose();
+});

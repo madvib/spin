@@ -366,3 +366,34 @@ test("channel arrows step alpha to nothing in hex", () => {
     "hex cannot hold alpha, so the value holds",
   );
 });
+
+test("dragging area to far-left saturation=0 preserves hue in hex format", () => {
+  const h = mount({ defaultValue: "#3b82f6", inline: true });
+  const initialHue = Number(h.api.getChannelValue("hue"));
+  deepStrictEqual(initialHue > 200 && initialHue < 230, true, "starts at blue hue");
+  const area = h.api.getAreaProps();
+  const drag = area["use:drag"] as {
+    onStart: (p: { x: number; y: number; rect: DOMRect }) => void;
+    onMove: (p: { x: number; y: number; rect: DOMRect }) => void;
+    onEnd: () => void;
+  };
+  const rect = { left: 0, top: 0, width: 100, height: 100 } as DOMRect;
+  drag.onStart({ x: 50, y: 20, rect });
+  // Drag to far left (x = 0 -> saturation = 0, achromatic)
+  drag.onMove({ x: 0, y: 20, rect });
+  drag.onEnd();
+  deepStrictEqual(
+    Number(h.api.getChannelValue("hue")),
+    initialHue,
+    "hue stays preserved when saturation hits 0",
+  );
+  // Drag back right -> hue must still be the original blue hue, not red (0)
+  drag.onStart({ x: 0, y: 20, rect });
+  drag.onMove({ x: 80, y: 20, rect });
+  drag.onEnd();
+  deepStrictEqual(
+    Number(h.api.getChannelValue("hue")),
+    initialHue,
+    "dragging back into saturation keeps the preserved hue",
+  );
+});

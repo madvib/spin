@@ -13,6 +13,7 @@ export type ColorFormat =
 
 export interface ColorPickerContext {
   value: string;
+  hue: number;
   format: ColorFormat;
   activeChannel: ColorChannel | null;
   areaX: ColorChannel;
@@ -103,10 +104,19 @@ export function initial(
   const format = written("format")
     ? (isFormat(args.format) ? args.format : "hex")
     : "hex";
+  const initialValue = written("value")
+    ? valueOf(args.value, format)
+    : valueOf("#000000", format);
+  let initialHue = 0;
+  try {
+    initialHue = parse(initialValue, "#000000").color.toFormat("hsba")
+      .getChannelValue("hue");
+  } catch {
+    initialHue = 0;
+  }
   return {
-    value: written("value")
-      ? valueOf(args.value, format)
-      : valueOf("#000000", format),
+    value: initialValue,
+    hue: initialHue,
     format,
     activeChannel: null,
     areaX: "saturation",

@@ -285,7 +285,16 @@ const def = {
       startSort(view, send, sort, event, afterCtx);
       return;
     }
-    if (!isLoadFn(load)) return;
+    if (!isLoadFn(load)) {
+      if (afterState === "loading") {
+        send({
+          type: "SUCCESS",
+          items: afterCtx.initialItems,
+          cursor: null,
+        });
+      }
+      return;
+    }
     if (afterState === "loading") {
       startFetch(view, send, load, event, afterCtx);
     }
