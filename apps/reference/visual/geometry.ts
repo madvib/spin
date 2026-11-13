@@ -37,6 +37,8 @@ const CLAIMS_BY_ROUTE: Record<string, readonly string[]> = {
   "/components/details": ["details-stable", "no-horizontal-overflow"],
   "/components/checkbox": ["checkbox-square", "no-horizontal-overflow"],
   "/components/switch": ["switch-track", "no-horizontal-overflow"],
+  "/components/field": ["form-controls-align", "no-horizontal-overflow"],
+  "/components/label": ["flex-label-row", "no-horizontal-overflow"],
 };
 
 /** The claims a route is held to; every component route paints and fits. */
@@ -757,6 +759,98 @@ export function geometryAudit(options: {
     });
   }
 
+  /**
+   * Controls in one row share one rendered line: the input, the select and
+   * the submit of the side-by-side specimen start on the same top, share one
+   * height, and part with a non-zero gap. The rows are found by their
+   * controls — an input, a select and a button that are siblings — so the
+   * claim reads the example, not a marker only the audit knows.
+   */
+  if (options.claims.includes("form-controls-align")) {
+    const rows = [...document.querySelectorAll("main section div.flex")].filter(
+      (row) =>
+        row.querySelector(":scope > input") !== null &&
+        row.querySelector(":scope > select") !== null &&
+        row.querySelector(":scope > button") !== null,
+    );
+    if (rows.length === 0) {
+      claims.push({
+        id: "form-controls-align",
+        ok: false,
+        detail: "no side-by-side control row on the page",
+      });
+    } else {
+      const bad: string[] = [];
+      for (const row of rows) {
+        const controls = [...row.children].filter(painted);
+        const first = box(controls[0]!);
+        for (let index = 1; index < controls.length; index++) {
+          const previous = box(controls[index - 1]!);
+          const r = box(controls[index]!);
+          if (Math.abs(r.top - first.top) > EPSILON) {
+            bad.push(
+              `${controls[index]!.tagName.toLowerCase()} wraps to its own line`,
+            );
+          }
+          if (Math.abs(r.height - first.height) > EPSILON) {
+            bad.push(
+              `${controls[index]!.tagName.toLowerCase()} ${round(r.height)}px beside ${
+                round(first.height)
+              }px`,
+            );
+          }
+          if (r.left - previous.right <= 0) {
+            bad.push(
+              `${controls[index]!.tagName.toLowerCase()} touches its neighbour`,
+            );
+          }
+        }
+      }
+      claims.push({
+        id: "form-controls-align",
+        ok: bad.length === 0,
+        detail: bad.length === 0
+          ? `${rows.length} control rows share one line`
+          : bad.join(", "),
+      });
+    }
+  }
+
+  /**
+   * A label laid out as a flex row lays its children out horizontally: the
+   * second child starts where the first ends, with a non-zero gap between
+   * them. A `flex-direction: column` leak would stack them instead.
+   */
+  if (options.claims.includes("flex-label-row")) {
+    const labels = [...document.querySelectorAll("label.flex")].filter(painted);
+    if (labels.length === 0) {
+      claims.push({
+        id: "flex-label-row",
+        ok: false,
+        detail: "no flex labels on the page",
+      });
+    } else {
+      const bad: string[] = [];
+      for (const label of labels) {
+        const kids = [...label.children].filter(painted);
+        if (kids.length < 2) continue;
+        const first = box(kids[0]!);
+        const second = box(kids[1]!);
+        if (second.left < first.right - EPSILON) {
+          bad.push("children stack instead of rowing");
+        } else if (second.left - first.right <= 0) {
+          bad.push("children touch with no gap");
+        }
+      }
+      claims.push({
+        id: "flex-label-row",
+        ok: bad.length === 0,
+        detail: bad.length === 0
+          ? `${labels.length} flex labels row their children`
+          : bad.join(", "),
+      });
+    }
+  }
 
   return claims;
 }

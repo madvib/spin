@@ -146,6 +146,14 @@ export const INPUT_EXAMPLES: readonly FieldExample[] = [
     ),
   },
   {
+    name: "Input · beside a select and a submit",
+    html: row(
+      `          <input type="text" placeholder="Service name" aria-label="Service name">
+          <select aria-label="Target"><option>production</option><option>staging</option></select>
+          <button type="submit">Deploy</button>`,
+    ),
+  },
+  {
     name: "Input · types",
     html: row(
       `          <label><input type="email" placeholder="priya@lodestar.dev"><span>Email</span></label>
@@ -156,7 +164,6 @@ export const INPUT_EXAMPLES: readonly FieldExample[] = [
     ),
   },
 ];
-
 
 export const textareaFixtureNote =
   "A multi-line box that wraps and resizes vertically, with a min height that keeps a one-row textarea a textarea.";

@@ -48,13 +48,21 @@ export type Family = "typography" | "skin" | "spacing";
 export function checkTypeStyleClashes(
   facts: Facts,
   node: ClassFacts,
+  resting?: readonly string[],
 ): Finding[] {
   const tag = node.tag;
   const out: Finding[] = [];
+  const rest = resting === undefined ? undefined : new Set(resting);
   const typeByPrefix = new Map<string, string>();
   for (const cls of node.classes) {
     const core = coreName(cls, facts.prefixes);
     if (!core.startsWith("type-") || !facts.utilities.has(core)) continue;
+    // A conditional branch that ADDS a type style swaps it: resting wears
+    // one, the branch wears the other, and both render together only when
+    // the branch is on — where the branch's later class wins by source
+    // order. Two styles both in resting is a stack; a second style the
+    // branch adds is the swap it was written as.
+    if (rest !== undefined && !rest.has(cls)) continue;
     const prefix = cls.slice(0, cls.length - core.length);
     const first = typeByPrefix.get(prefix);
     if (first === undefined) {

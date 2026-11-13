@@ -545,7 +545,7 @@ function lintComponentIr(
         );
         pushFindings(out, filename, "prefer-theme-value", position, restingFindings);
         for (const branch of branches) {
-          for (const clash of checkTypeStyleClashes(facts, { ...restingNode, classes: branch })) {
+          for (const clash of checkTypeStyleClashes(facts, { ...restingNode, classes: branch }, parsedBranches.resting)) {
             const cls = clash.data["cls"];
             if (cls !== undefined && !seenAll.has(cls)) continue;
             const key = `${clash.messageId}:${JSON.stringify(clash.data)}`;

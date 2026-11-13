@@ -26,7 +26,13 @@ export function checkNoUnpairedInk(
     const state = cut === -1 ? "" : cls.slice(0, cut);
     const core = cut === -1 ? cls : cls.slice(cut + 1);
     if (core.startsWith("bg-")) {
-      const fill = core.slice(3).split("/")[0] as string;
+      const slash = core.indexOf("/");
+      // A thinned fill is a tint of the tone over the page, not the solid
+      // fill the pairing table was measured against: `bg-success/15` pairs
+      // with the tone itself, and the rule's `on-` answer would be wrong.
+      // The pairing table covers solid fills; a tint asks nothing.
+      if (slash !== -1) continue;
+      const fill = core.slice(3);
       // An explicitly unpainted box opts out state by state: `bg-transparent`
       // in the same state as a fill says the fill is not there, so the
       // resting opt-out does not excuse a missing hover ink and a hover

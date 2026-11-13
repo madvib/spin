@@ -47,6 +47,16 @@ export function staticRules(
               `:where(label).${name}:where(:not(.flex-col):not(.flex-col-reverse))`,
             "flex-direction": "row",
           };
+          // A field's own `width: 100%` fills its line; as a row-flex item
+          // that is a full-row basis, so a bare input beside a button wrapped
+          // to its own line. Column flex keeps the full-line width — one
+          // control per line is what a column is for. The class (not `:where`)
+          // carries the specificity, so the reset beats the field box.
+          yield {
+            [ctx.symbols.selector]: () =>
+              `.${name}:not(.flex-col):not(.flex-col-reverse) > :is(input, textarea, select)`,
+            width: "auto",
+          };
         }
       },
       { autocomplete: name },

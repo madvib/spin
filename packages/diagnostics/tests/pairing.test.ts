@@ -68,6 +68,21 @@ test("a paired ink in the same state settles the fill", () => {
   deepStrictEqual(reportsFor("hover:bg-accent hover:text-on-accent"), []);
 });
 
+test("a thinned fill pairs tone-on-tint, not ink-on-fill", () => {
+  // `bg-semantic-success/15` is 15% of the tone over the page: the readable
+  // ink is the tone itself, not the `on-` ink measured against the solid
+  // fill. A thinned fill asks nothing of the ink beside it — the rule's
+  // pairing table covers solid fills only.
+  deepStrictEqual(
+    reportsFor("bg-semantic-success/15 text-semantic-success"),
+    [],
+  );
+  deepStrictEqual(reportsFor("bg-primary/10 text-primary"), []);
+  // The solid fill still pairs: thinning is the exception, not the shape.
+  const [report] = reportsFor("bg-primary text-primary");
+  deepStrictEqual(report?.messageId, "mismatch");
+});
+
 test("surfaces are the page, not a fill", () => {
   // Surface tokens wear any role ink without pairing; pairing fires only on
   // the non-surface fill beside them.

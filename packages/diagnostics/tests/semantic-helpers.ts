@@ -7,7 +7,7 @@ import type {
 } from "../src/core.ts";
 import { checkNoRedundantClass } from "../src/no-redundant-class.ts";
 import { checkPreferElement } from "../src/prefer-element.ts";
-import { checkPreferThemeValue } from "../src/prefer-theme-value.ts";
+import { checkPreferThemeValue, checkTypeStyleClashes } from "../src/prefer-theme-value.ts";
 import { engineAnswers } from "@spinjs/preset";
 import { factsFor } from "../src/project-vocabulary.ts";
 
@@ -65,6 +65,20 @@ export function override(
     facts,
     element(tag, classes, ancestors),
     options,
+  );
+}
+
+/** What the type-style clash check reports for one branch. */
+export function clashes(
+  tag: string,
+  classes: string,
+  resting?: string,
+  ancestors: readonly AncestorFacts[] = [],
+) {
+  return checkTypeStyleClashes(
+    facts,
+    element(tag, classes, ancestors),
+    resting === undefined ? undefined : resting.split(/\s+/).filter(Boolean),
   );
 }
 

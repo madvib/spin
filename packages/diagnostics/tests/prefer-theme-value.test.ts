@@ -1,7 +1,7 @@
 import { test } from "bun:test";
 import { deepStrictEqual } from "node:assert/strict";
 import type { AncestorFacts, SemanticOptions } from "../src/core.ts";
-import { other, override, redundant } from "./semantic-helpers.ts";
+import { clashes, other, override, redundant } from "./semantic-helpers.ts";
 import plugin from "../src/index.ts";
 import { renderMessage, RULES } from "../src/rules.ts";
 
@@ -322,6 +322,19 @@ test("an element a primitive only lays out is not painted", () => {
   // is laid out, not painted: nothing decides how it looks, so a utility on
   // it is the author's.
   deepStrictEqual(override("span", "rounded-sm border text-muted"), []);
+});
+
+test("a type-* style swapped by a conditional branch is a swap, not a stack", () => {
+  // A selected tree row wears `type-caption` at rest and adds
+  // `type-caption-emphasized` when selected: the branch's style swaps the
+  // resting one, so the merged branch reports nothing. Two styles both in
+  // resting is a stack, and still clashes.
+  deepStrictEqual(
+    clashes("button", "type-caption type-caption-emphasized", "type-caption"),
+    [],
+  );
+  const [clash] = clashes("div", "type-body type-code", "type-body type-code");
+  deepStrictEqual(clash?.messageId, "override");
 });
 
 test("stacking two type-* styles on the same element in the same state clashes", () => {

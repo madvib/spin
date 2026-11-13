@@ -1044,7 +1044,7 @@ const preferThemeValue: GateRule = {
           checkPreferThemeValue(facts, restingFacts(base), options),
         );
         const clashFindings = checkAcrossBranches(base, (probe) =>
-          checkTypeStyleClashes(facts, probe),
+          checkTypeStyleClashes(facts, probe, base.resting),
         );
         const seen = new Set(
           restingFindings.map((f) => `${f.messageId}:${JSON.stringify(f.data)}`),

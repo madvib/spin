@@ -340,11 +340,28 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
     group: BUTTON,
     name: "icon",
     inked: false,
-    body: () => ({
-      width: "auto",
-      "padding-inline": "0",
-      "aspect-ratio": "1",
-    }),
+    body: (ctx) => {
+      const height = controlHeight(
+        {
+          fontSize: ctx?.theme?.font?.style?.body?.["font-size"],
+          fontLeading: ctx?.theme?.font?.style?.body?.["line-height"],
+        },
+        {
+          fontSize: ctx?.theme?.font?.style?.label?.["font-size"],
+          fontLeading: ctx?.theme?.font?.style?.label?.["line-height"],
+        },
+        {
+          spacing: ctx?.theme?.spacing?.[2],
+          borderWidth: ctx?.theme?.border?.width,
+        },
+      );
+      return {
+        ...(height !== undefined ? { "min-width": height } : {}),
+        width: "auto",
+        "padding-inline": "0",
+        "aspect-ratio": "1",
+      };
+    },
   },
 };
 
@@ -567,6 +584,10 @@ export function buttonRules(roots: readonly string[]): SpinRule[] {
           ["transition-duration", duration],
           ["transition-timing-function", easing],
         ];
+        yield {
+          [ctx.symbols.selector]: () => '[role="button"]',
+          "text-decoration": "none",
+        };
         // Hover is theme-defined feedback: the shadow step and the opt-in lift.
         // A theme that states no lift gets no transform — the no-movement
         // default the variable fallbacks declared, kept by omission rather

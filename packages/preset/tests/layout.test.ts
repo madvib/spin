@@ -252,6 +252,117 @@ test("a card's header stacks its text beside a trailing action", async () => {
   );
 });
 
+test("every form control spends one shared height floor", async () => {
+  // A toolbar is four controls in one row — a button, a text field, a search
+  // field, a select — and each is a DIFFERENT rule: the button's, the field
+  // box's, the single-line yield's, the search yield's. The row aligns only
+  // when all four spend the same floor, whatever subset the page names: a
+  // page with only a select and a button aligns those two.
+  for (const [name, document] of Object.entries(designLanguages)) {
+    const floors = new Set<string>();
+    for (
+      const markup of [
+        "<button>Deploy</button>",
+        "<input>",
+        '<input type="search">',
+        "<select><option>a</option></select>",
+      ]
+    ) {
+      const css = await sheetFor(markup, document);
+      const floor = declarationsFor(css, ":is(input, textarea, select)")["min-height"] ??
+        declarationsFor(css, CONTROL_FIELDS)["min-height"] ??
+        declarationsFor(css, 'input[type="search"]')["min-height"] ??
+        declarationsFor(
+          css,
+          ':is(button:where(:not([role])), :where([type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"]))',
+        )["min-height"];
+      assert(
+        floor !== undefined,
+        `${name}: ${markup} spends no control-height floor`,
+      );
+      floors.add(floor);
+    }
+    deepStrictEqual(
+      [...floors],
+      [
+        "calc(max(var(--font-style-body-size) * var(--font-style-body-leading), var(--font-style-label-size) * var(--font-style-label-leading)) + (2 * var(--spacing-2)) + (2 * var(--border-width)))",
+      ],
+      `${name}: the four controls share one floor`,
+    );
+  }
+});
+
+test("a control keeps its floor in every layout container", async () => {
+  // The floor is a MINIMUM, not a height: a fixed `height` on any control
+  // selector would pin it while its siblings stretch, re-opening the 2–3px
+  // `.join` step in every `flex`, `inline-flex`, `grid`, and `<form>` row.
+  // The joins' own `width: auto` / `flex: 1 1 auto` reset is what frees a
+  // joined field from the field box's full-line width — stated on
+  // `.join > *`, never on the control itself.
+  for (const [name, document] of Object.entries(designLanguages)) {
+    for (
+      const markup of [
+        '<div class="flex"><input><select><option>a</option></select><button>Go</button></div>',
+        '<div class="inline-flex"><input><select><option>a</option></select><button>Go</button></div>',
+        '<div class="grid"><input><select><option>a</option></select><button>Go</button></div>',
+        "<form><input><select><option>a</option></select><button>Go</button></form>",
+        '<div class="join"><input class="join-item" type="search"><button class="join-item">Go</button></div>',
+      ]
+    ) {
+      const css = await sheetFor(markup, document);
+      for (
+        const selector of [
+          ":is(input, textarea, select)",
+          CONTROL_FIELDS,
+          ':is(button:where(:not([role])), :where([type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"]))',
+        ]
+      ) {
+        const decls = declarationsFor(css, selector);
+        assert(
+          decls["min-height"] !== undefined,
+          `${name}: ${selector} spends no floor in ${markup}`,
+        );
+        deepStrictEqual(
+          decls["height"],
+          undefined,
+          `${name}: ${selector} pins a fixed height in ${markup}`,
+        );
+      }
+    }
+    const css = await sheetFor(
+      '<div class="join"><input class="join-item" type="search"><button class="join-item">Go</button></div>',
+    );
+    deepStrictEqual(
+      declarationsFor(css, ".join > *")["width"],
+      "auto",
+      "the join frees a joined field from the field box's full-line width",
+    );
+    deepStrictEqual(
+      declarationsFor(css, ".join > *")["flex"],
+      "1 1 auto",
+      "joined items split the line evenly from their contents",
+    );
+  }
+});
+
+test("a field in a row flex container sizes from its contents", async () => {
+  // The field box's `width: 100%` fills a form line — but as a flex item it
+  // is a full-row basis, so a bare input beside a button wrapped to its own
+  // line instead of siding by side. The row flex rules reset a direct field
+  // child to content width; column flex keeps the full-line width.
+  for (const utility of ["flex", "inline-flex"]) {
+    const css = await sheetFor(`<div class="${utility}"><input></div>`);
+    deepStrictEqual(
+      declarationsFor(
+        css,
+        `.${utility}:not(.flex-col):not(.flex-col-reverse) > :is(input, textarea, select)`,
+      )["width"],
+      "auto",
+      `${utility} frees a direct field child to its contents`,
+    );
+  }
+});
+
 test("a field and a button share one control height", async () => {
   // The two controls sit in the same rows — a search field beside its submit,
   // a form's input above its button — and they used to be two different
@@ -517,5 +628,36 @@ test("a bare label stacks vertically while <label class=\"flex\"> lays out as a 
   deepStrictEqual(
     declarationsFor(css, ":where(label).flex:where(:not(.flex-col):not(.flex-col-reverse))")["flex-direction"],
     "row",
+  );
+});
+
+test("an icon button sets min-width to match control height so it stays square in flex rows", async () => {
+  const css = await sheetFor('<button type="button" class="icon">x</button>');
+  const baseDecls = declarationsFor(
+    css,
+    ':is(button:where(:not([role])), :where([type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"]))',
+  );
+  const iconDecls = declarationsFor(
+    css,
+    ':is(button:where(:not([role])), :where([type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"])).icon, :is(button:where(:not([role])), :where([type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"]))[variant~="icon"]',
+  );
+  assert(
+    baseDecls["min-height"] !== undefined,
+    "the button base declares min-height",
+  );
+  deepStrictEqual(
+    iconDecls["min-width"],
+    baseDecls["min-height"],
+    "icon button min-width matches button control min-height",
+  );
+});
+
+test("a link acting as a button clears text-decoration above bare <a>", async () => {
+  const css = await sheetFor('<a href="/demo" role="button" class="primary">Demo</a>');
+  const decls = declarationsFor(css, '[role="button"]');
+  deepStrictEqual(
+    decls["text-decoration"],
+    "none",
+    "role=button clears the <a> underline with higher specificity than bare <a>",
   );
 });

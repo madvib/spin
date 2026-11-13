@@ -56,4 +56,10 @@ export const LABEL_EXAMPLES: readonly LabelExample[] = [
           <label><span>Locked by policy</span><textarea rows="2" disabled>Deploy blocked by failing health checks</textarea></label>`,
     ),
   },
+  {
+    name: "Search with a shortcut",
+    html: row(
+      `          <label class="flex items-center gap-2"><input type="search" placeholder="Search services"><kbd>K</kbd></label>`,
+    ),
+  },
 ];
