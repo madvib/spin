@@ -86,6 +86,13 @@ export const ROUTES = [
     place: "concern",
   },
   {
+    path: "/inbox",
+    label: "Inbox",
+    icon: "i-lucide-inbox",
+    description: "Annotated UI issues queued for coding agents",
+    place: "concern",
+  },
+  {
     path: "/preferences",
     label: "Preferences",
     icon: "i-lucide-settings",

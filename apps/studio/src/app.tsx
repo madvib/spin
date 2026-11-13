@@ -44,6 +44,7 @@ import BrandPage from "./routes/brand.tsx";
 import InitPage from "./routes/init.tsx";
 import PreferencesPage from "./routes/preferences.tsx";
 import FindingsPage from "./routes/findings.tsx";
+import InboxPage from "./routes/inbox.tsx";
 import { createEffect, createSignal, For, onMount, Suspense, type Component } from "solid-js";
 import { createSpinComponent } from "@spinjs/components/solid";
 import { toast } from "@spinjs/components/toast";
@@ -90,6 +91,7 @@ const PAGES = {
   "/tokens": ThemesLayout,
   "/components": ComponentsLayout,
   "/diagnostics": FindingsPage,
+  "/inbox": InboxPage,
 } satisfies Record<RoutePath, Component>;
 
 type RouteEntry = (typeof ROUTES)[number];
