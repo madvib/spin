@@ -105,6 +105,25 @@ export {
   projectSkillStatus,
   renderBrandSkill,
 } from "./skill.ts";
+export {
+  ISSUES_REL_PATH,
+  IssueAnnotationSchema,
+  IssueBoundingBoxSchema,
+  IssueRecordSchema,
+  IssueStatusSchema,
+  CreateIssueInputSchema,
+  createIssue,
+  readIssues,
+  removeIssue,
+  reopenIssue,
+  resolveIssue,
+} from "./issues.ts";
+export type {
+  CreateIssueInput,
+  IssueAnnotation,
+  IssueRecord,
+  IssueStatus,
+} from "./issues.ts";
 
 export {
   configurationIn,

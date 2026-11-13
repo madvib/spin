@@ -89,7 +89,7 @@ describe("the spin MCP server", () => {
     const listed = await mcp.listTools();
     deepStrictEqual(
       listed.tools.map((t) => t.name).sort(),
-      ["component", "icon", "utility"],
+      ["component", "icon", "issues", "utility"],
     );
   });
 
@@ -156,7 +156,7 @@ describe("the spin MCP server", () => {
       const listed = await studioMcp.listTools();
       deepStrictEqual(
         listed.tools.map((t) => t.name).sort(),
-        ["brand_draft", "component", "icon", "utility"],
+        ["brand_draft", "component", "icon", "issues", "utility"],
       );
 
       const drafted = jsonOf(
@@ -183,6 +183,42 @@ describe("the spin MCP server", () => {
     } finally {
       await studioMcp.close();
     }
+  });
+
+  it("creates, lists, and resolves issues via the issues MCP tool", async () => {
+    const created = jsonOf(
+      await mcp.callTool({
+        name: "issues",
+        arguments: {
+          action: "create",
+          route: "/dashboard",
+          annotations: [
+            {
+              selector: "card > footer button",
+              boundingBox: { x: 10, y: 20, width: 100, height: 36 },
+              route: "/dashboard",
+              tag: "button",
+              comment: "Align footer action button",
+            },
+          ],
+        },
+      }),
+    ) as { issue?: { id: string; status: string } };
+    assert(created.issue?.id.startsWith("iss_"));
+    deepStrictEqual(created.issue?.status, "open");
+
+    const listed = jsonOf(
+      await mcp.callTool({ name: "issues", arguments: { action: "list" } }),
+    ) as { issues: Array<{ id: string }> };
+    assert(listed.issues.some((i) => i.id === created.issue?.id));
+
+    const resolved = jsonOf(
+      await mcp.callTool({
+        name: "issues",
+        arguments: { action: "resolve", id: created.issue?.id },
+      }),
+    ) as { issue?: { status: string } };
+    deepStrictEqual(resolved.issue?.status, "resolved");
   });
 
   it("spin mcp CLI stays alive over stdio and answers initialize", async () => {

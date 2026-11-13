@@ -384,6 +384,72 @@ export function buildSpinMcpServer(
     },
   );
 
+  server.registerTool(
+    "issues",
+    {
+      title: "Annotated UI issues inbox",
+      description:
+        "List, create, resolve, or reopen annotated UI issues stored in .spin/issues.json.",
+      inputSchema: {
+        action: z.enum(["list", "create", "resolve", "reopen"]).describe(
+          "Action to perform on the local issues inbox.",
+        ),
+        id: z.string().optional().describe("Issue id for resolve/reopen."),
+        title: z.string().optional().describe("Optional title for create."),
+        route: z.string().optional().describe("Route URL for create, e.g. '/login'."),
+        annotations: z.array(
+          z.object({
+            selector: z.string(),
+            boundingBox: z.object({
+              x: z.number(),
+              y: z.number(),
+              width: z.number(),
+              height: z.number(),
+            }),
+            route: z.string(),
+            tag: z.string(),
+            classes: z.string().optional(),
+            component: z.string().optional(),
+            comment: z.string(),
+          }),
+        ).optional().describe("Element annotations for create."),
+      },
+    },
+    async ({ action, id, title, route, annotations }) => {
+      if (action === "list") {
+        return json(await client.issues.list({}));
+      }
+      if (action === "resolve" || action === "reopen") {
+        if (!id) return failed(`${action} requires an issue id`);
+        const res = action === "resolve"
+          ? await client.issues.resolve({ id })
+          : await client.issues.reopen({ id });
+        if (res.issue === null) return failed(`no issue with id "${id}"`);
+        return json(res);
+      }
+      if (!route || !annotations || annotations.length === 0) {
+        return failed("create requires route and at least one annotation");
+      }
+      return json(await client.issues.create({ title, route, annotations }));
+    },
+  );
+
+  server.registerResource(
+    "issues",
+    "spin://issues",
+    {
+      title: "Annotated UI issues inbox",
+      description: "Open and resolved UI annotations stored in .spin/issues.json.",
+      mimeType: "application/json",
+    },
+    async (uri) => {
+      const res = await client.issues.list({});
+      return {
+        contents: [{ uri: uri.href, text: JSON.stringify(res, null, 2) }],
+      };
+    },
+  );
+
   return server;
 }
 

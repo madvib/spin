@@ -24,6 +24,7 @@ import { projectRouter } from "@spinjs/server/procedures";
 import { previewRouter } from "./preview-procedures.ts";
 import { fontsRouter } from "@spinjs/server/procedures";
 import { iconsRouter } from "@spinjs/server/procedures";
+import { issuesRouter } from "@spinjs/server/procedures";
 import { findingsRouter } from "./findings-procedures.ts";
 import { componentsRouter } from "./components-procedures.ts";
 
@@ -40,6 +41,7 @@ export { componentsRouter } from "./components-procedures.ts";
 export { componentsContract } from "./components-contract.ts";
 export { fontsContract, fontsRouter } from "@spinjs/server/procedures";
 export { iconsContract, iconsRouter } from "@spinjs/server/procedures";
+export { issuesContract, issuesRouter } from "@spinjs/server/procedures";
 export { findingsContract, findingsRouter } from "./findings-procedures.ts";
 export { createSpinClient, type SpinClient } from "./client.ts";
 
@@ -85,6 +87,7 @@ export const router = {
   ...overlayRouter,
   ...fontsRouter,
   ...iconsRouter,
+  ...issuesRouter,
   ...findingsRouter,
 };
 

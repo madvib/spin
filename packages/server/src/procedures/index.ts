@@ -11,3 +11,4 @@ export { projectRouter, rootFor, setProjectRoot } from "./project-procedures.ts"
 export { fontsContract, fontsRouter } from "./fonts-procedures.ts";
 export { iconsContract, iconsRouter } from "./icons-procedures.ts";
 export { overlayContract, overlayRouter } from "./overlay.ts";
+export { issuesContract, issuesRouter } from "./issues.ts";

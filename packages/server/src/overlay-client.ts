@@ -264,18 +264,225 @@ export const OVERLAY_SCRIPT =
   }
   fab.addEventListener("pointerup", endFabDrag);
   fab.addEventListener("pointercancel", endFabDrag);
+  const fabMenu = document.createElement("div");
+  fabMenu.setAttribute("data-spin-fab-menu", "true");
+  fabMenu.setAttribute("role", "menu");
+  fabMenu.setAttribute(
+    "style",
+    "position:fixed;z-index:2147483002;display:none;flex-direction:column;gap:4px;min-width:190px;padding:6px;border-radius:12px;border:1px solid rgba(255,255,255,0.16);background:rgba(20,20,22,0.94);color:#fafafa;font-family:system-ui,-apple-system,sans-serif;font-size:12px;box-shadow:0 12px 32px rgba(0,0,0,0.45);backdrop-filter:blur(10px);",
+  );
+  const menuBtnStyle = "display:flex;align-items:center;justify-content:space-between;width:100%;padding:7px 10px;border:none;border-radius:8px;background:transparent;color:#fafafa;font:inherit;font-weight:500;cursor:pointer;text-align:left;";
+  const openStudioBtn = document.createElement("button");
+  openStudioBtn.type = "button";
+  openStudioBtn.setAttribute("data-spin-action", "studio");
+  openStudioBtn.setAttribute("style", menuBtnStyle);
+  openStudioBtn.textContent = "Open Studio";
+  const annotateBtn = document.createElement("button");
+  annotateBtn.type = "button";
+  annotateBtn.setAttribute("data-spin-action", "annotate");
+  annotateBtn.setAttribute("style", menuBtnStyle);
+  annotateBtn.textContent = "Annotate page";
+  const cornerRow = document.createElement("div");
+  cornerRow.setAttribute(
+    "style",
+    "display:flex;align-items:center;justify-content:space-between;gap:4px;padding:6px 6px 2px;border-top:1px solid rgba(255,255,255,0.12);margin-top:2px;",
+  );
+  const cornerLabel = document.createElement("span");
+  cornerLabel.textContent = "Corner";
+  cornerLabel.setAttribute("style", "color:rgba(255,255,255,0.6);font-size:11px;padding-left:4px;");
+  cornerRow.appendChild(cornerLabel);
+  const cornerBtns = document.createElement("div");
+  cornerBtns.setAttribute("style", "display:flex;gap:3px;");
+  for (const [key, label] of [["top-left", "TL"], ["top-right", "TR"], ["bottom-left", "BL"], ["bottom-right", "BR"]]) {
+    const cb = document.createElement("button");
+    cb.type = "button";
+    cb.textContent = label;
+    cb.setAttribute("data-spin-corner", key);
+    cb.setAttribute(
+      "style",
+      "padding:3px 6px;border-radius:6px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.06);color:#fafafa;font-size:10px;font-weight:600;cursor:pointer;",
+    );
+    cb.addEventListener("click", function () {
+      applyFabCorner(key);
+      positionFabMenu();
+    });
+    cornerBtns.appendChild(cb);
+  }
+  cornerRow.appendChild(cornerBtns);
+  fabMenu.appendChild(openStudioBtn);
+  fabMenu.appendChild(annotateBtn);
+  fabMenu.appendChild(cornerRow);
+
+  let menuOpen = false;
+  function positionFabMenu() {
+    const corner = fab.dataset.corner || "bottom-right";
+    fabMenu.style.top = corner.indexOf("top") === 0 ? "58px" : "";
+    fabMenu.style.bottom = corner.indexOf("bottom") === 0 ? "58px" : "";
+    fabMenu.style.left = corner.indexOf("left") !== -1 ? "16px" : "";
+    fabMenu.style.right = corner.indexOf("right") !== -1 ? "16px" : "";
+  }
+  function setMenuOpen(next) {
+    menuOpen = next;
+    if (next) positionFabMenu();
+    fabMenu.style.display = next ? "flex" : "none";
+  }
+  openStudioBtn.addEventListener("click", function () {
+    setMenuOpen(false);
+    setOpen(true);
+  });
+  document.addEventListener("click", function (event) {
+    if (!menuOpen) return;
+    const t = event.target;
+    if (t instanceof Node && (fab.contains(t) || fabMenu.contains(t))) return;
+    setMenuOpen(false);
+  });
+
+  // Annotation Mode: hover highlight + click-to-comment -> .spin/issues.json
+  let annotating = false;
+  let lockedTarget = null;
+  const annotatorBox = document.createElement("div");
+  annotatorBox.setAttribute("data-spin-annotator", "box");
+  annotatorBox.setAttribute(
+    "style",
+    "position:fixed;pointer-events:none;z-index:2147483001;display:none;border:2px solid #8b5cf6;background:rgba(139,92,246,0.12);border-radius:4px;",
+  );
+  const composer = document.createElement("div");
+  composer.setAttribute("data-spin-annotator", "composer");
+  composer.setAttribute(
+    "style",
+    "position:fixed;z-index:2147483003;display:none;flex-direction:column;gap:8px;width:280px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.16);background:rgba(20,20,22,0.96);color:#fafafa;font-family:system-ui,-apple-system,sans-serif;font-size:12px;box-shadow:0 14px 36px rgba(0,0,0,0.5);",
+  );
+  const composerTag = document.createElement("div");
+  composerTag.setAttribute("style", "font-family:ui-monospace,monospace;font-size:11px;color:#c4b5fd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;");
+  const composerInput = document.createElement("textarea");
+  composerInput.rows = 3;
+  composerInput.placeholder = "Describe the UI issue for your agent inbox...";
+  composerInput.setAttribute(
+    "style",
+    "width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:#fafafa;font:inherit;resize:vertical;",
+  );
+  const composerActions = document.createElement("div");
+  composerActions.setAttribute("style", "display:flex;justify-content:flex-end;gap:6px;");
+  const cancelNoteBtn = document.createElement("button");
+  cancelNoteBtn.type = "button";
+  cancelNoteBtn.textContent = "Cancel";
+  cancelNoteBtn.setAttribute("style", "padding:5px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:#fafafa;font:inherit;cursor:pointer;");
+  const sendNoteBtn = document.createElement("button");
+  sendNoteBtn.type = "button";
+  sendNoteBtn.textContent = "Send to Inbox";
+  sendNoteBtn.setAttribute("style", "padding:5px 10px;border-radius:6px;border:none;background:#8b5cf6;color:#fff;font:inherit;font-weight:600;cursor:pointer;");
+  composerActions.appendChild(cancelNoteBtn);
+  composerActions.appendChild(sendNoteBtn);
+  composer.appendChild(composerTag);
+  composer.appendChild(composerInput);
+  composer.appendChild(composerActions);
+
+  function cssSelectorFor(el) {
+    if (el.id) return "#" + el.id;
+    const tag = el.tagName.toLowerCase();
+    const cls = (el.getAttribute("class") || "").trim().split(/\\s+/).filter(Boolean).slice(0, 2);
+    return cls.length > 0 ? tag + "." + cls.join(".") : tag;
+  }
+  function stopAnnotating() {
+    annotating = false;
+    lockedTarget = null;
+    annotatorBox.style.display = "none";
+    composer.style.display = "none";
+    document.documentElement.style.cursor = "";
+  }
+  annotateBtn.addEventListener("click", function () {
+    setMenuOpen(false);
+    annotating = true;
+    lockedTarget = null;
+    composer.style.display = "none";
+    document.documentElement.style.cursor = "crosshair";
+  });
+  cancelNoteBtn.addEventListener("click", stopAnnotating);
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && (annotating || menuOpen)) {
+      setMenuOpen(false);
+      stopAnnotating();
+    }
+  });
+  document.addEventListener("pointermove", function (event) {
+    if (!annotating || lockedTarget) return;
+    const el = document.elementFromPoint(event.clientX, event.clientY);
+    if (!(el instanceof HTMLElement) || el.closest("[data-spin-fab],[data-spin-fab-menu],[data-spin-annotator],[data-spin-host]")) {
+      annotatorBox.style.display = "none";
+      return;
+    }
+    const r = el.getBoundingClientRect();
+    annotatorBox.style.display = "block";
+    annotatorBox.style.left = r.left + "px";
+    annotatorBox.style.top = r.top + "px";
+    annotatorBox.style.width = r.width + "px";
+    annotatorBox.style.height = r.height + "px";
+  }, true);
+  document.addEventListener("click", function (event) {
+    if (!annotating || lockedTarget) return;
+    const t = event.target;
+    if (!(t instanceof HTMLElement) || t.closest("[data-spin-fab],[data-spin-fab-menu],[data-spin-annotator],[data-spin-host]")) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const r = t.getBoundingClientRect();
+    lockedTarget = {
+      el: t,
+      selector: cssSelectorFor(t),
+      tag: t.tagName.toLowerCase(),
+      classes: t.getAttribute("class") || undefined,
+      boundingBox: { x: Math.round(r.left), y: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height) },
+    };
+    composerTag.textContent = lockedTarget.selector;
+    composerInput.value = "";
+    composer.style.display = "flex";
+    composer.style.left = Math.min(window.innerWidth - 296, Math.max(12, r.left)) + "px";
+    composer.style.top = Math.min(window.innerHeight - 170, Math.max(12, r.bottom + 8)) + "px";
+    composerInput.focus();
+  }, true);
+  sendNoteBtn.addEventListener("click", async function () {
+    if (!lockedTarget) return;
+    const comment = composerInput.value.trim();
+    if (!comment) return;
+    const route = window.location.pathname + window.location.search;
+    try {
+      await fetch(base + "/issues/create", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          json: {
+            route: route,
+            annotations: [{
+              selector: lockedTarget.selector,
+              boundingBox: lockedTarget.boundingBox,
+              route: route,
+              tag: lockedTarget.tag,
+              classes: lockedTarget.classes,
+              comment: comment,
+            }],
+          },
+        }),
+      });
+    } catch {
+      // Best effort when daemon is unreachable.
+    }
+    stopAnnotating();
+  });
+
   fab.addEventListener("click", function () {
     if (fabSuppressClick) {
       fabSuppressClick = false;
       return;
     }
-    setOpen(!open);
+    setMenuOpen(!menuOpen);
   });
   function ensureMounted() {
     const parent = document.body || document.documentElement;
     if (!parent) return;
     if (!host.isConnected) parent.appendChild(host);
     if (!fab.isConnected) parent.appendChild(fab);
+    if (!fabMenu.isConnected) parent.appendChild(fabMenu);
+    if (!annotatorBox.isConnected) parent.appendChild(annotatorBox);
+    if (!composer.isConnected) parent.appendChild(composer);
   }
   ensureMounted();
 

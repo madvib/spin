@@ -17,6 +17,8 @@ import {
   fontsRouter,
   iconsContract,
   iconsRouter,
+  issuesContract,
+  issuesRouter,
   overlayContract,
   overlayRouter,
   presetContract,
@@ -63,6 +65,7 @@ const MODULES: Readonly<Record<string, { contract: unknown; router: unknown }>> 
   findings: { contract: findingsContract, router: findingsRouter },
   fonts: { contract: fontsContract, router: fontsRouter },
   overlay: { contract: overlayContract, router: overlayRouter },
+  issues: { contract: issuesContract, router: issuesRouter },
 };
 
 /**
@@ -320,6 +323,7 @@ const INTERNAL: ReadonlySet<string> = new Set([
   "findings.corpus",
   "findings.order",
   "findings.shortcut",
+  "issues.remove",
 ]);
 
 /** The procedures a surface's source calls through the typed client. */

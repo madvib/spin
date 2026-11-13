@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "spin": {
+      "command": "bun",
+      "args": ["packages/dev/src/cli/main.ts", "mcp"]
+    }
+  }
+}
