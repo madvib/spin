@@ -1259,3 +1259,12 @@ test("state variants sort in interaction precedence order and never merge into b
     `panel [data-highlighted] must carry :not([aria-selected="true"]) so a selected option is never overwritten by hover:\n${css}`,
   );
 });
+
+test("scrollbar-none hides scrollbars across standards-track and webkit engines", async () => {
+  const css = await cssFor("scrollbar-none");
+  assertSets(css, "scrollbar-none", "scrollbar-width", "none");
+  assert(
+    css.includes(".scrollbar-none::-webkit-scrollbar") && css.includes("display:none"),
+    "emits webkit scrollbar suppression",
+  );
+});
