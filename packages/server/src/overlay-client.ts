@@ -33,25 +33,68 @@ export const OVERLAY_SCRIPT =
   // Positioning only: three fixed elements the user's sheet never has to
   // know. Everything the eye sees — the toggles, the chrome — lives in the
   // studio frame, where utilities resolve.
+  const FAB_CORNERS = ["top-left", "top-right", "bottom-left", "bottom-right"];
+  let fabCorner = "bottom-right";
+  try {
+    const savedCorner = localStorage.getItem("spin-fab-corner");
+    if (savedCorner && FAB_CORNERS.indexOf(savedCorner) !== -1) {
+      fabCorner = savedCorner;
+    }
+  } catch {
+    // Private mode keeps the default.
+  }
+
   const fab = document.createElement("button");
   fab.type = "button";
+  fab.setAttribute("data-spin-fab", "");
   fab.setAttribute(
     "style",
-    "position:fixed;right:16px;bottom:16px;z-index:2147483000;display:flex;" +
-      "align-items:center;gap:8px;padding:8px 16px;border:none;border-radius:999px;" +
-      "font:inherit;cursor:pointer;",
+    "position:fixed;z-index:2147483000;display:flex;align-items:center;gap:8px;" +
+      "padding:7px 13px;border:1px solid rgba(255,255,255,0.16);border-radius:999px;" +
+      "background:rgba(15,23,42,0.88);color:#f8fafc;backdrop-filter:blur(12px);" +
+      "-webkit-backdrop-filter:blur(12px);box-shadow:0 8px 24px rgba(0,0,0,0.28),0 1px 2px rgba(0,0,0,0.2);" +
+      "font:500 13px/1 system-ui,-apple-system,sans-serif;letter-spacing:-0.01em;" +
+      "cursor:grab;user-select:none;touch-action:none;transition:transform 120ms ease,box-shadow 120ms ease;",
   );
   fab.setAttribute("aria-label", "Open the theme studio");
   fab.setAttribute("aria-expanded", "false");
-  fab.textContent = "Studio";
+
+  function applyFabCorner(corner) {
+    fabCorner = FAB_CORNERS.indexOf(corner) !== -1 ? corner : "bottom-right";
+    fab.style.top = fabCorner.indexOf("top-") === 0 ? "16px" : "";
+    fab.style.bottom = fabCorner.indexOf("bottom-") === 0 ? "16px" : "";
+    fab.style.left = fabCorner.indexOf("-left") !== -1 ? "16px" : "";
+    fab.style.right = fabCorner.indexOf("-right") !== -1 ? "16px" : "";
+    try {
+      localStorage.setItem("spin-fab-corner", fabCorner);
+    } catch {
+      // Private mode keeps the session corner.
+    }
+  }
+  applyFabCorner(fabCorner);
+
+  const mark = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  mark.setAttribute("width", "14");
+  mark.setAttribute("height", "14");
+  mark.setAttribute("viewBox", "0 0 16 16");
+  mark.setAttribute("fill", "none");
+  mark.setAttribute("aria-hidden", "true");
+  mark.innerHTML =
+    '<path d="M8 1.5L13.5 4.75V11.25L8 14.5L2.5 11.25V4.75L8 1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>' +
+    '<circle cx="8" cy="8" r="2" fill="currentColor"/>';
+  fab.appendChild(mark);
+
+  const label = document.createElement("span");
+  label.textContent = "Studio";
+  fab.appendChild(label);
 
   const dot = document.createElement("span");
   dot.setAttribute(
     "style",
-    "display:none;width:8px;height:8px;border-radius:999px;background:#b91c1c;",
+    "display:none;width:7px;height:7px;border-radius:999px;background:#f59e0b;" +
+      "box-shadow:0 0 0 2px rgba(245,158,11,0.28);",
   );
   fab.appendChild(dot);
-
   const host = document.createElement("div");
   host.setAttribute(
     "style",
@@ -169,16 +212,75 @@ export const OVERLAY_SCRIPT =
       if (event.data === "spin:side-left" || event.data === "spin:side-right") {
         setSide(event.data === "spin:side-left" ? "left" : "right");
       }
+      if (typeof event.data === "string" && event.data.indexOf("spin:fab-") === 0) {
+        applyFabCorner(event.data.slice("spin:fab-".length));
+      }
     }
   });
-  fab.addEventListener("click", function () { setOpen(!open); });
-  document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape" && open) setOpen(false);
+  let fabDrag = null;
+  let fabSuppressClick = false;
+  fab.addEventListener("pointerdown", function (event) {
+    if (event.button !== 0) return;
+    const rect = fab.getBoundingClientRect();
+    fabDrag = {
+      id: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      offsetX: event.clientX - rect.left,
+      offsetY: event.clientY - rect.top,
+      moved: false,
+    };
+    fab.setPointerCapture(event.pointerId);
   });
-  document.body.appendChild(host);
-  document.body.appendChild(fab);
+  fab.addEventListener("pointermove", function (event) {
+    if (!fabDrag) return;
+    const dx = event.clientX - fabDrag.startX;
+    const dy = event.clientY - fabDrag.startY;
+    if (!fabDrag.moved && dx * dx + dy * dy > 36) {
+      fabDrag.moved = true;
+      fab.style.cursor = "grabbing";
+      fab.style.transition = "none";
+    }
+    if (!fabDrag.moved) return;
+    const x = Math.max(8, Math.min(window.innerWidth - fab.offsetWidth - 8, event.clientX - fabDrag.offsetX));
+    const y = Math.max(8, Math.min(window.innerHeight - fab.offsetHeight - 8, event.clientY - fabDrag.offsetY));
+    fab.style.left = x + "px";
+    fab.style.top = y + "px";
+    fab.style.right = "";
+    fab.style.bottom = "";
+  });
+  function endFabDrag(event) {
+    if (!fabDrag) return;
+    const moved = fabDrag.moved;
+    fabDrag = null;
+    fab.style.cursor = "grab";
+    fab.style.transition = "transform 120ms ease,box-shadow 120ms ease";
+    if (moved) {
+      fabSuppressClick = true;
+      const vert = event.clientY < window.innerHeight / 2 ? "top" : "bottom";
+      const horiz = event.clientX < window.innerWidth / 2 ? "left" : "right";
+      applyFabCorner(vert + "-" + horiz);
+    }
+  }
+  fab.addEventListener("pointerup", endFabDrag);
+  fab.addEventListener("pointercancel", endFabDrag);
+  fab.addEventListener("click", function () {
+    if (fabSuppressClick) {
+      fabSuppressClick = false;
+      return;
+    }
+    setOpen(!open);
+  });
+  function ensureMounted() {
+    const parent = document.body || document.documentElement;
+    if (!parent) return;
+    if (!host.isConnected) parent.appendChild(host);
+    if (!fab.isConnected) parent.appendChild(fab);
+  }
+  ensureMounted();
 
   async function poll() {
+    ensureMounted();
     try {
       const res = await fetch(base + "/overlay/get", {
         method: "POST",

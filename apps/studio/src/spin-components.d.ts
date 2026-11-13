@@ -48,6 +48,7 @@ declare global {
     "studio-color-picker-inline": HTMLElement & SpinProjectComponentAttributes;
     "studio-command-palette": HTMLElement & SpinProjectComponentAttributes;
     "studio-drawer-edge": HTMLElement & SpinProjectComponentAttributes;
+    "studio-fab-corner": HTMLElement & SpinProjectComponentAttributes;
     "studio-font-combobox": HTMLElement & SpinProjectComponentAttributes;
     "studio-mode-picker": HTMLElement & SpinProjectComponentAttributes;
     "studio-mode-pill": HTMLElement & SpinProjectComponentAttributes;
@@ -96,6 +97,7 @@ declare module "solid-js" {
       "studio-color-picker-inline": SpinProjectComponentAttributes;
       "studio-command-palette": SpinProjectComponentAttributes;
       "studio-drawer-edge": SpinProjectComponentAttributes;
+      "studio-fab-corner": SpinProjectComponentAttributes;
       "studio-font-combobox": SpinProjectComponentAttributes;
       "studio-mode-picker": SpinProjectComponentAttributes;
       "studio-mode-pill": SpinProjectComponentAttributes;

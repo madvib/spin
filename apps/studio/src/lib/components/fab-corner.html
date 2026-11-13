@@ -1,0 +1,25 @@
+<script lang="ts">
+import { toggleGroup } from "@spinjs/components/toggle-group";
+
+const machine = toggleGroup({
+  items: [
+    { value: "top-left", label: "Top left" },
+    { value: "top-right", label: "Top right" },
+    { value: "bottom-left", label: "Bottom left" },
+    { value: "bottom-right", label: "Bottom right" },
+  ],
+  value: ["bottom-right"],
+});
+</script>
+
+<div class="flex flex-wrap gap-2" role="group" aria-label="Studio launcher corner" {...machine.getRootProps()}>
+  <template for={machine.getItems()} as={row} key={row.value}>
+    <button
+      class={["secondary s-sm row-sm whitespace-nowrap", { "border-primary": machine.value.includes(row.value), "text-muted": !machine.value.includes(row.value) }]}
+      data-corner={row.value}
+      {...machine.getItemProps(row)}
+    >
+      <span>{row.label}</span>
+    </button>
+  </template>
+</div>

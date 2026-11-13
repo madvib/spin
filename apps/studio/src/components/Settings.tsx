@@ -25,6 +25,7 @@ import {
   setDockSide,
   systemMode,
 } from "../lib/store.ts";
+import { fabCorner, setFabCorner, type FabCorner } from "../lib/overlay-sync.ts";
 import type { ModeChoice } from "../lib/store.ts";
 import { analyzeTheme, declaredModes } from "../lib/theme.ts";
 import { tokenValue } from "../lib/overview.ts";
@@ -195,6 +196,40 @@ export function DrawerEdge() {
       ref={(el: HTMLElement) => setElement(el)}
       id="studio-drawer-edge"
       prop:value={[dockSide()]}
+    />
+  );
+}
+
+export function FabCornerPicker() {
+  const [element, setElement] = createSignal<HTMLElement>();
+  const ctl = createSpinComponent(element, toggleGroup);
+  const apply = (corner: string): void => {
+    if (
+      corner !== "top-left" &&
+      corner !== "top-right" &&
+      corner !== "bottom-left" &&
+      corner !== "bottom-right"
+    ) {
+      return;
+    }
+    setFabCorner(corner as FabCorner);
+  };
+  createEffect(() =>
+    ctl.bind(
+      { value: [fabCorner()] },
+      {
+        "value-change": (event: CustomEvent<{ value: readonly string[] }>) => {
+          const next = event.detail.value[0];
+          if (next !== undefined) apply(next);
+        },
+      },
+    )
+  );
+  return (
+    <studio-fab-corner
+      ref={(el: HTMLElement) => setElement(el)}
+      id="studio-fab-corner"
+      prop:value={[fabCorner()]}
     />
   );
 }

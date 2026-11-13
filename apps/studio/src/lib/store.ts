@@ -41,10 +41,10 @@ import {
   type StudioTheme,
 } from "./themes.ts";
 import { spinClient, spinClientAt } from "./client.ts";
+import { notePushedOverlay, pullExternalOverlayDrafts } from "./overlay-sync.ts";
 
 /**
  * Every theme the project serves, at load. Refresh is explicit: the user picks it up.
- *
  * Module scope, because there is no server: the studio is a static bundle,
  * so the browser is the only place this ever runs.
  */
@@ -83,9 +83,25 @@ if (typeof window !== "undefined") {
     void spinClient()
       .then((c) => c.overlay.studioPing({}))
       .catch(() => {});
+    void pullExternalOverlayDrafts(
+      (name) => docs()[name],
+      (name, formatted) => {
+        const at = historyFor(name);
+        const before = docs()[name] ?? seed(name) ?? "";
+        setHistory((prev) => ({
+          ...prev,
+          [name]: {
+            past: before ? [...at.past, before].slice(-UNDO_LIMIT) : at.past,
+            future: [],
+            present: formatted,
+          },
+        }));
+        setDocs((prev) => ({ ...prev, [name]: formatted }));
+      },
+    );
   };
   pingStudio();
-  globalThis.setInterval(pingStudio, 5_000);
+  globalThis.setInterval(pingStudio, 3_000);
 }
 
 /**
@@ -245,12 +261,13 @@ export function setActiveName(name: string): void {
   remember("spin-theme", name);
 }
 
+export type FabCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
+
 const [dockSide, setDockSideSignal] = createSignal<"left" | "right">(
   stored("spin-dock-side") === "left" ? "left" : "right",
 );
 
 export { activeName, dockSide };
-
 const [brandData, { refetch: refetchBrandResource }] = createResource(
   () => {
     const root = project()?.root;
@@ -768,6 +785,7 @@ async function pushOverlay(name: string, text: string): Promise<void> {
     const client = base !== null
       ? await spinClientAt(new URL("/__spin/rpc", base).toString())
       : await spinClient();
+    notePushedOverlay(name, document);
     await client.overlay.set({ themes: { [name]: document } });
   } catch {
     // Preview channel only; the text is the source of truth.
