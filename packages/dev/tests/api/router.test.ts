@@ -274,25 +274,52 @@ test("the organization lists the catalog under reader intent", async () => {
 });
 
 /**
- * Procedures no CLI or MCP surface calls, and why.
+ * Procedures no CLI or slimmed MCP surface calls, and why.
  *
- * Studio-called (`apps/studio/src`): `project.themes.facets`,
- * `project.config.read`, `project.config.write`, `components.tokens`,
- * `icons.collections`, `overlay.set`, `overlay.get` (via the injected
- * badge script). Daemon machinery: `overlay.clear`, `project.detect`. A new
- * procedure lands here only with its reason — the default is exposure, not
- * silence.
+ * Studio-called (`apps/studio/src`): `theme.tokens.*`, `project.brand.*`,
+ * `project.themes.{write,remove,copy,createFacet,facets}`,
+ * `project.config.{read,write}`, `project.skills.{status,install}`,
+ * `components.tokens`, `preview.css`, `overlay.{set,get,studioPing}`,
+ * `fonts.catalog`, `icons.collections`, `icons.saved.*`,
+ * `findings.{list,fix,corpus,order,shortcut}` (also used by `spin lsp`).
+ * Daemon machinery: `overlay.clear`, `project.detect`.
  */
 const INTERNAL: ReadonlySet<string> = new Set([
-  "overlay.set",
-  "overlay.clear",
-  "overlay.get",
+  "theme.tokens.set",
+  "theme.tokens.remove",
+  "theme.tokens.rename",
   "project.detect",
+  "project.brand.create",
+  "project.brand.setDesignLanguage",
+  "project.brand.setPalette",
+  "project.brand.setType",
+  "project.brand.get",
+  "project.themes.write",
+  "project.themes.remove",
+  "project.themes.copy",
+  "project.themes.createFacet",
   "project.themes.facets",
   "project.config.read",
   "project.config.write",
+  "project.skills.status",
+  "project.skills.install",
   "components.tokens",
+  "preview.css",
+  "overlay.set",
+  "overlay.clear",
+  "overlay.get",
+  "overlay.studioPing",
+  "fonts.catalog",
   "icons.collections",
+  "icons.saved.list",
+  "icons.saved.read",
+  "icons.saved.save",
+  "icons.saved.remove",
+  "findings.list",
+  "findings.fix",
+  "findings.corpus",
+  "findings.order",
+  "findings.shortcut",
 ]);
 
 /** The procedures a surface's source calls through the typed client. */

@@ -15,6 +15,8 @@ interface OverlayCell {
   listeners: Set<() => void>;
   /** The disk documents, noted by whoever generates from them. */
   disk: Record<string, ThemeDocument>;
+  /** Epoch ms of the most recent Studio heartbeat ping. */
+  studioLastPing?: number;
 }
 
 const CELL_KEY = "__spin_theme_overlay__";
@@ -164,4 +166,13 @@ export function resolveThemes(
   // does when the overlay wins wholesale.
   if (!hasOverlay()) return documents;
   return { ...documents, ...overlayThemes() };
+}
+
+export function noteStudioHeartbeat(): void {
+  cell().studioLastPing = Date.now();
+}
+
+export function isStudioActive(ttlMs = 15_000): boolean {
+  const last = cell().studioLastPing;
+  return last !== undefined && Date.now() - last < ttlMs;
 }

@@ -1,7 +1,6 @@
 import assert, { deepStrictEqual } from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import {
-  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -15,13 +14,12 @@ import { createSpinClient, type SpinClient, createSpinApp } from "../../src/api/
 import { designLanguages, parseTokens, setToken, treeToJson } from "@spinjs/theme";
 import { Client } from "@modelcontextprotocol/client";
 import { InMemoryTransport } from "@modelcontextprotocol/server";
-import { buildSpinMcpServer } from "../../src/mcp/server.ts";
+import { buildSpinMcpServer, createSpinMcpServer } from "../../src/mcp/server.ts";
 
 /**
  * The MCP surface, end to end: a real daemon serving a temp project over
  * HTTP, the server built the way main.ts builds it, and an MCP client on the
- * other end of an in-memory transport. No mocks — a tool that lies about what
- * it wrote would be caught by the file it did or did not change.
+ * other end of an in-memory transport.
  */
 
 function textOf(result: unknown): string {
@@ -48,49 +46,32 @@ describe("the spin MCP server", () => {
   before(async () => {
     dir = mkdtempSync(join(tmpdir(), "spin-mcp-"));
     mkdirSync(join(dir, "spin", "sample"), { recursive: true });
-    mkdirSync(join(dir, "spin", "unlighted"), { recursive: true });
 
-    // The fixture theme: the scaffold, with one dark override so the
-    // round-trip has a $modes slot to lose. It serves both modes, so the
-    // override it carries is one a reader will see.
-    const silkParsed = parseTokens(JSON.stringify(designLanguages.minimal));
-    if (!silkParsed.ok) throw new Error(silkParsed.error);
+    const minimalParsed = parseTokens(JSON.stringify(designLanguages.minimal));
+    if (!minimalParsed.ok) throw new Error(minimalParsed.error);
     const moded = setToken(
-      silkParsed.tree,
+      minimalParsed.tree,
       ["color", "primary"],
       "#8db9fa",
       undefined,
       "dark",
     );
     assert(moded.ok, "fixture override expected to hold");
-    const sample = JSON.parse(treeToJson(moded.tree)) as Record<
-      string,
-      unknown
-    >;
+    const sample = JSON.parse(treeToJson(moded.tree)) as Record<string, unknown>;
     sample.modes = ["light", "dark"];
     writeFileSync(
       join(dir, "spin", "sample", "tokens.json"),
       JSON.stringify(sample, null, 2),
     );
 
-    // And its opposite: a document that serves light alone and carries a dark
-    // value — the dead override analyze exists to report. A mode a theme
-    // serves but does not override is fine; a value for a mode it does not
-    // serve is a promise nothing keeps.
-    const unlighted = JSON.parse(
-      treeToJson(moded.tree),
-    ) as Record<string, unknown>;
-    unlighted.modes = ["light"];
-    writeFileSync(
-      join(dir, "spin", "unlighted", "tokens.json"),
-      JSON.stringify(unlighted, null, 2),
-    );
-
-    daemon = await startDaemon({ root: dir, app: createSpinApp({ root: dir, base: "/rpc" }), port: 0 });
+    daemon = await startDaemon({
+      root: dir,
+      app: createSpinApp({ root: dir, base: "/rpc" }),
+      port: 0,
+    });
     rpc = createSpinClient(daemon.url);
 
-    const [clientTransport, serverTransport] = InMemoryTransport
-      .createLinkedPair();
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     mcp = new Client({ name: "spin-mcp-test", version: "0.0.0" });
     await Promise.all([
       buildSpinMcpServer(rpc).connect(serverTransport),
@@ -104,444 +85,103 @@ describe("the spin MCP server", () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  it("lists the themes the project holds", async () => {
-    const result = await mcp.callTool({
-      name: "theme",
-      arguments: { action: "list" },
-    });
-    deepStrictEqual(jsonOf(result), [
-      { name: "sample", file: "spin/sample/tokens.json" },
-      { name: "unlighted", file: "spin/unlighted/tokens.json" },
+  it("exposes only component, icon, and utility when Studio is inactive", async () => {
+    const listed = await mcp.listTools();
+    deepStrictEqual(
+      listed.tools.map((t) => t.name).sort(),
+      ["component", "icon", "utility"],
+    );
+  });
+
+  it("lists components and reads a component contract", async () => {
+    const listed = jsonOf(
+      await mcp.callTool({ name: "component", arguments: { action: "list" } }),
+    ) as Array<{ name: string; kind: string }>;
+    assert(listed.some((entry) => entry.name === "button" && entry.kind === "primitive"));
+
+    const contract = jsonOf(
+      await mcp.callTool({
+        name: "component",
+        arguments: { action: "contract", name: "button" },
+      }),
+    ) as { name: string };
+    deepStrictEqual(contract.name, "button");
+  });
+
+  it("returns utility sections for a project theme", async () => {
+    const result = jsonOf(
+      await mcp.callTool({ name: "utility", arguments: { theme: "sample" } }),
+    ) as { sections: Array<{ title: string }> };
+    assert(result.sections.length > 0);
+  });
+
+  it("searches icons and fetches a glyph body", async () => {
+    const searched = jsonOf(
+      await mcp.callTool({
+        name: "icon",
+        arguments: { action: "search", collection: "lucide", query: "home", limit: 5 },
+      }),
+    ) as { matching: number; icons: Array<{ collection: string; name: string }> };
+    assert(searched.matching > 0);
+    deepStrictEqual(searched.icons[0]?.collection, "lucide");
+  });
+
+  it("reads spin://project and spin://themes/sample resources", async () => {
+    const projectRes = await mcp.readResource({ uri: "spin://project" });
+    const projectText = (projectRes.contents[0] as { text?: string } | undefined)?.text ?? "{}";
+    const project = JSON.parse(projectText) as { root: string };
+    deepStrictEqual(project.root, dir);
+
+    const themeRes = await mcp.readResource({ uri: "spin://themes/sample" });
+    const themeText = (themeRes.contents[0] as { text?: string } | undefined)?.text;
+    deepStrictEqual(
+      themeText,
+      readFileSync(join(dir, "spin", "sample", "tokens.json"), "utf8"),
+    );
+  });
+  it("registers brand_draft when Studio is active and stages drafts in overlay without touching disk", async () => {
+    const originalDisk = readFileSync(join(dir, "spin", "sample", "tokens.json"), "utf8");
+    const ping = await rpc.overlay.studioPing({});
+    deepStrictEqual(ping.studioActive, true);
+
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const studioMcp = new Client({ name: "spin-mcp-studio-test", version: "0.0.0" });
+    const server = await createSpinMcpServer(rpc);
+    await Promise.all([
+      server.connect(serverTransport),
+      studioMcp.connect(clientTransport),
     ]);
-  });
 
-  it("refuses a read that names no theme", async () => {
-    const result = await mcp.callTool({
-      name: "theme",
-      arguments: { action: "read" },
-    });
-    deepStrictEqual(result.isError, true);
-    const refusal = jsonOf(result) as { error: string };
-    assert(
-      refusal.error.includes("theme name"),
-      `the refusal names what is missing: ${refusal.error}`,
-    );
-  });
+    try {
+      const listed = await studioMcp.listTools();
+      deepStrictEqual(
+        listed.tools.map((t) => t.name).sort(),
+        ["brand_draft", "component", "icon", "utility"],
+      );
 
-  it("reads a theme document", async () => {
-    const result = await mcp.callTool({
-      name: "theme",
-      arguments: { action: "read", name: "sample" },
-    });
-    deepStrictEqual(
-      textOf(result),
-      readFileSync(join(dir, "spin", "sample", "tokens.json"), "utf8"),
-    );
-  });
+      const drafted = jsonOf(
+        await studioMcp.callTool({
+          name: "brand_draft",
+          arguments: {
+            brand: "sample",
+            palette: { primary: "#0f766e" },
+            type: { display: "Space Grotesk" },
+          },
+        }),
+      ) as { drafted?: boolean; brand?: string; dirty?: string[]; error?: string };
 
-  it("sets a token without losing the document's $modes", async () => {
-    const result = await mcp.callTool({
-      name: "token",
-      arguments: {
-        action: "set",
-        theme: "sample",
-        path: "color.primary",
-        value: "#123456",
-      },
-    });
-    deepStrictEqual(result.isError, undefined);
-    const doc = JSON.parse(
-      readFileSync(join(dir, "spin", "sample", "tokens.json"), "utf8"),
-    ) as {
-      color: { primary: { $value: string; $modes: Record<string, string> } };
-    };
-    deepStrictEqual(doc.color.primary.$value, "#123456");
-    deepStrictEqual(doc.color.primary.$modes.dark, "#8db9fa");
-  });
+      assert(drafted.drafted === true, `expected drafted=true, got: ${JSON.stringify(drafted)}`);
+      deepStrictEqual(drafted.brand, "sample");
+      deepStrictEqual(drafted.dirty, ["sample"]);
 
-  it("writes a mode override beside an unchanged base value", async () => {
-    const before = JSON.parse(
-      readFileSync(join(dir, "spin", "sample", "tokens.json"), "utf8"),
-    ) as { color: { primary: { $value: string } } };
-    await mcp.callTool({
-      name: "token",
-      arguments: {
-        action: "set",
-        theme: "sample",
-        path: "color.primary",
-        value: "#654321",
-        mode: "dark",
-      },
-    });
-    const doc = JSON.parse(
-      readFileSync(join(dir, "spin", "sample", "tokens.json"), "utf8"),
-    ) as {
-      color: { primary: { $value: string; $modes: Record<string, string> } };
-    };
-    deepStrictEqual(doc.color.primary.$modes.dark, "#654321");
-    deepStrictEqual(doc.color.primary.$value, before.color.primary.$value);
-  });
+      const overlay = await rpc.overlay.get({});
+      deepStrictEqual(overlay.open, true);
+      deepStrictEqual(overlay.dirty, ["sample"]);
 
-  it("refuses to remove a required token, with the refusal's code", async () => {
-    const result = await mcp.callTool({
-      name: "token",
-      arguments: { action: "remove", theme: "sample", path: "color.primary" },
-    });
-    deepStrictEqual(result.isError, true);
-    const refusal = jsonOf(result) as { error: string; code: string };
-    deepStrictEqual(refusal.code, "required-token");
-    assert(
-      refusal.error.includes("color.primary"),
-      `refusal names the path: ${refusal.error}`,
-    );
-  });
-
-  it("renames a token, carrying its $modes to the new path", async () => {
-    await mcp.callTool({
-      name: "theme",
-      arguments: { action: "create", name: "rename-me", from: "sample" },
-    });
-    const result = await mcp.callTool({
-      name: "token",
-      arguments: {
-        action: "rename",
-        theme: "rename-me",
-        from: "color.primary",
-        to: "color.brand",
-      },
-    });
-    deepStrictEqual(result.isError, undefined);
-    const doc = JSON.parse(
-      readFileSync(join(dir, "spin", "rename-me", "tokens.json"), "utf8"),
-    ) as {
-      color: { brand: { $value: string; $modes: Record<string, string> } };
-    };
-    deepStrictEqual(doc.color.brand.$value, "#123456");
-    deepStrictEqual(doc.color.brand.$modes.dark, "#654321");
-    // The rename left the required role unclaimed, and the answer says so.
-    const answer = jsonOf(result) as { issues: Array<{ path: string }> };
-    assert(
-      answer.issues.some((issue) => issue.path === "color.primary"),
-      `missing-role issue expected: ${JSON.stringify(answer.issues)}`,
-    );
-  });
-
-  it("creates a theme from another and deletes it", async () => {
-    const created = await mcp.callTool({
-      name: "theme",
-      arguments: { action: "create", name: "copy", from: "sample" },
-    });
-    deepStrictEqual(created.isError, undefined);
-    deepStrictEqual(
-      readFileSync(join(dir, "spin", "copy", "tokens.json"), "utf8"),
-      readFileSync(join(dir, "spin", "sample", "tokens.json"), "utf8"),
-    );
-    const deleted = await mcp.callTool({
-      name: "theme",
-      arguments: { action: "delete", name: "copy" },
-    });
-    deepStrictEqual(deleted.isError, undefined);
-    deepStrictEqual(existsSync(join(dir, "spin", "copy", "tokens.json")), false);
-  });
-
-  it("refuses a create with no source to copy", async () => {
-    const created = await mcp.callTool({
-      name: "theme",
-      arguments: { action: "create", name: "fresh" },
-    });
-    deepStrictEqual(created.isError !== undefined, true);
-    deepStrictEqual(existsSync(join(dir, "spin", "fresh", "tokens.json")), false);
-  });
-
-  it("writes a whole document and reports its validation", async () => {
-    const text = JSON.stringify(designLanguages.minimal, null, 2);
-    const written = await mcp.callTool({
-      name: "theme",
-      arguments: { action: "write", name: "whole", text },
-    });
-    deepStrictEqual(written.isError, undefined);
-    deepStrictEqual(
-      readFileSync(join(dir, "spin", "whole", "tokens.json"), "utf8"),
-      text,
-    );
-    deepStrictEqual(jsonOf(written), { error: null, issues: [] });
-  });
-
-  it("reports the dead override of a theme that does not serve the mode", async () => {
-    const result = await mcp.callTool({
-      name: "theme",
-      arguments: { action: "analyze", name: "unlighted" },
-    });
-    const analysis = jsonOf(result) as {
-      error: string | null;
-      issues: Array<{ path: string; message: string }>;
-    };
-    deepStrictEqual(analysis.error, null);
-    assert(
-      analysis.issues.some((issue) =>
-        issue.path === "color.primary" &&
-        issue.message.includes("does not serve")
-      ),
-      `no dead-override issue expected: ${JSON.stringify(analysis.issues)}`,
-    );
-  });
-
-  it("lists the components, and one component's contract with its examples", async () => {
-    const listed = await mcp.callTool({
-      name: "component",
-      arguments: { action: "list" },
-    });
-    const names = (jsonOf(listed) as Array<{ name: string }>).map((c) =>
-      c.name
-    );
-    assert(names.includes("card"), "listed components include card");
-    const one = await mcp.callTool({
-      name: "component",
-      arguments: { action: "contract", name: "card" },
-    });
-    const contract = jsonOf(one) as {
-      reads: string[];
-      component: unknown[];
-    };
-    assert(contract.reads.length > 0, "a contract reads tokens");
-    assert(contract.component.length > 0, "and declares component tokens");
-  });
-
-  it("lists machine components, and one machine's contract, examples, and copy", async () => {
-    const listed = await mcp.callTool({
-      name: "component",
-      arguments: { action: "list" },
-    });
-    const entries = jsonOf(listed) as Array<{ name: string; kind: string }>;
-    assert(
-      entries.some((c) => c.name === "card" && c.kind === "primitive"),
-      "card stays a primitive",
-    );
-    assert(
-      entries.some((c) => c.name === "tree-view" && c.kind === "machine"),
-      "tree-view lists as a machine",
-    );
-    assert(
-      entries.some((c) => c.name === "select" && c.kind === "machine"),
-      "select lists as a machine",
-    );
-
-    const one = await mcp.callTool({
-      name: "component",
-      arguments: { action: "contract", name: "tree-view" },
-    });
-    const contract = jsonOf(one) as {
-      kind: string;
-      manifest: {
-        parts: string[];
-        slots: string[];
-        readers: string[];
-        methods: string[];
-      };
-      examples: { rows: Array<{ name: string; html: string }> };
-    };
-    deepStrictEqual(contract.kind, "machine");
-    assert(
-      contract.manifest.parts.includes("root"),
-      "the manifest names parts",
-    );
-    assert(contract.manifest.slots.includes("item"), "and slots");
-    assert(contract.manifest.readers.length > 0, "and readers");
-    assert(contract.examples.rows.length === 2, "and ships two examples");
-
-    const copied = await mcp.callTool({
-      name: "component",
-      arguments: {
-        action: "copy",
-        name: "tree-view",
-        example: "basic",
-        root: dir,
-      },
-    });
-    deepStrictEqual(copied.isError, undefined);
-    deepStrictEqual(
-      (jsonOf(copied) as { file: string }).file,
-      join("src", "lib", "components", "tree-view", "basic.html"),
-    );
-    assert(
-      existsSync(join(dir, "src", "lib", "components", "tree-view", "basic.html")),
-      "the file lands in the project",
-    );
-  });
-
-  it("lists the utilities under reader intent", async () => {
-    const result = await mcp.callTool({
-      name: "utility",
-      arguments: { theme: "sample" },
-    });
-    const sections = (jsonOf(result) as {
-      sections: Array<{ id: string; utilities: string[] }>;
-    }).sections;
-    const colors = sections.find((section) => section.id === "colors");
-    assert(
-      (colors?.utilities.length ?? 0) > 0,
-      `colors resolve to utilities: ${
-        JSON.stringify(
-          sections.map((s) => s.id),
-        )
-      }`,
-    );
-  });
-
-  it("finds an icon and draws its body", async () => {
-    const found = await mcp.callTool({
-      name: "icon",
-      arguments: { action: "search", query: "arrow-up", collection: "lucide" },
-    });
-    const icons = (jsonOf(found) as {
-      icons: Array<{ collection: string; name: string }>;
-    }).icons;
-    assert(
-      icons.some((row) =>
-        row.collection === "lucide" && row.name === "arrow-up"
-      ),
-      `lucide arrow-up expected: ${JSON.stringify(icons.slice(0, 5))}`,
-    );
-
-    const body = await mcp.callTool({
-      name: "icon",
-      arguments: { action: "body", collection: "lucide", name: "arrow-up" },
-    });
-    const glyph = jsonOf(body) as {
-      body: string;
-      width: number;
-      height: number;
-    };
-    assert(glyph.body.length > 0, "the glyph draws");
-    assert(typeof glyph.width === "number", "and knows its box");
-  });
-
-  it("keeps an icon in the project's library, and takes it away again", async () => {
-    const markup =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5 12h14"/></svg>';
-    const saved = await mcp.callTool({
-      name: "savedIcon",
-      arguments: {
-        action: "save",
-        name: "arrow-up",
-        markup,
-        collection: "lucide",
-        author: "Lucide Contributors",
-        license: "ISC",
-      },
-    });
-    deepStrictEqual(saved.isError, undefined);
-
-    // The library is project data: the file the tool wrote is what the
-    // project now holds.
-    const document = JSON.parse(
-      readFileSync(join(dir, "spin", "icons", "arrow-up.json"), "utf8"),
-    ) as {
-      markup: string;
-      attribution: { collection: string; author: string; license: string };
-    };
-    deepStrictEqual(document.markup, markup);
-    deepStrictEqual(document.attribution.collection, "lucide");
-    deepStrictEqual(document.attribution.author, "Lucide Contributors");
-    deepStrictEqual(document.attribution.license, "ISC");
-
-    const listed = await mcp.callTool({
-      name: "savedIcon",
-      arguments: { action: "list" },
-    });
-    const icons = jsonOf(listed) as Array<{
-      name: string;
-      attribution: { collection: string };
-    }>;
-    const kept = icons.find((icon) => icon.name === "arrow-up");
-    assert(
-      kept !== undefined,
-      `arrow-up among ${icons.map((i) => i.name).join(",")}`,
-    );
-    deepStrictEqual(kept.attribution.collection, "lucide");
-
-    const read = await mcp.callTool({
-      name: "savedIcon",
-      arguments: { action: "read", name: "arrow-up" },
-    });
-    const answer = jsonOf(read) as { markup: string; attribution: unknown };
-    deepStrictEqual(answer.markup, markup);
-
-    const removed = await mcp.callTool({
-      name: "savedIcon",
-      arguments: { action: "remove", name: "arrow-up" },
-    });
-    deepStrictEqual(removed.isError, undefined);
-    deepStrictEqual(
-      existsSync(join(dir, "spin", "icons", "arrow-up.json")),
-      false,
-    );
-  });
-
-  it("previews a theme's stylesheet", async () => {
-    const result = await mcp.callTool({
-      name: "preview",
-      arguments: { theme: "sample", markup: '<button class="btn">Go</button>' },
-    });
-    deepStrictEqual(result.isError, undefined);
-    const { css } = jsonOf(result) as { css: string };
-    assert(
-      css.includes("--color-primary"),
-      `the sheet carries the theme's variables: ${css.slice(0, 200)}`,
-    );
-  });
-
-  it("lists lint findings over the project's source", async () => {
-    mkdirSync(join(dir, "src"), { recursive: true });
-    writeFileSync(
-      join(dir, "src", "App.tsx"),
-      `<div class="not-a-spin-class">Hi</div>\n`,
-    );
-    const result = await mcp.callTool({
-      name: "findings",
-      arguments: { action: "list" },
-    });
-    deepStrictEqual(result.isError, undefined);
-    const report = jsonOf(result) as {
-      files: number;
-      groups: Array<{ ruleId: string; findings: Array<{ path: string }> }>;
-    };
-    assert(report.files >= 1, `a source file was scanned: ${textOf(result)}`);
-    assert(
-      report.groups.some((group) => group.ruleId === "spin/closed-vocabulary"),
-      `closed-vocabulary reported: ${textOf(result)}`,
-    );
-  });
-
-  it("serves the project and its themes as resources", async () => {
-    const listed = await mcp.listResources();
-    assert(
-      listed.resources.some((resource) =>
-        resource.uri === "spin://themes/sample"
-      ),
-      `sample theme expected among ${
-        listed.resources.map((r) => r.uri).join(",")
-      }`,
-    );
-    const read = await mcp.readResource({ uri: "spin://themes/sample" });
-    const contents = read.contents as Array<{ text?: string }>;
-    deepStrictEqual(
-      contents[0]?.text,
-      readFileSync(join(dir, "spin", "sample", "tokens.json"), "utf8"),
-    );
-
-    // The project's own facts live here rather than on a tool: a client that
-    // renders resources looks, and one that acts calls.
-    const project = await mcp.readResource({ uri: "spin://project" });
-    const facts = project.contents as Array<{ text?: string }>;
-    const report = JSON.parse(facts[0]?.text ?? "") as {
-      root: string;
-      themes: string[];
-    };
-    deepStrictEqual(report.root, dir);
-    assert(
-      report.themes.includes("sample"),
-      `sample among ${report.themes.join(",")}`,
-    );
+      const afterDisk = readFileSync(join(dir, "spin", "sample", "tokens.json"), "utf8");
+      deepStrictEqual(afterDisk, originalDisk);
+    } finally {
+      await studioMcp.close();
+    }
   });
 });

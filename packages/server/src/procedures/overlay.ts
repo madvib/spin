@@ -14,6 +14,8 @@ import { implement } from "@orpc/server";
 import {
   clearOverlay,
   hasOverlay,
+  isStudioActive,
+  noteStudioHeartbeat,
   overlayDirty,
   overlayThemes,
   setOverlay,
@@ -44,6 +46,20 @@ export const overlayContract = oc.tag("overlay").router({
      * state both read this — one source, so they cannot disagree.
      */
     get: oc.output(OverlayStateSchema),
+    /** Record an active Studio session heartbeat. */
+    studioPing: oc
+      .input(v.object({}))
+      .output(v.object({ studioActive: v.boolean() })),
+    /** Report whether Studio is active and whether the overlay is dirty. */
+    status: oc
+      .input(v.object({}))
+      .output(
+        v.object({
+          studioActive: v.boolean(),
+          open: v.boolean(),
+          dirty: v.array(v.string()),
+        }),
+      ),
   },
 });
 
@@ -62,6 +78,15 @@ export const overlayRouter = os.router({
     get: os.overlay.get.handler(() => ({
       open: hasOverlay(),
       themes: overlayThemes(),
+      dirty: overlayDirty(),
+    })),
+    studioPing: os.overlay.studioPing.handler(() => {
+      noteStudioHeartbeat();
+      return { studioActive: isStudioActive() };
+    }),
+    status: os.overlay.status.handler(() => ({
+      studioActive: isStudioActive(),
+      open: hasOverlay(),
       dirty: overlayDirty(),
     })),
   },

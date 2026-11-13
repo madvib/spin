@@ -178,5 +178,23 @@ export const projectRouter = os.router({
         projectService.config.write(rootFor(input), input.config)
       ),
     },
+
+    skills: {
+      status: os.project.skills.status.handler(async ({ input }) => {
+        const { projectSkillStatus } = await import("../project/skill.ts");
+        return projectSkillStatus(rootFor(input), input.customDir);
+      }),
+
+      install: os.project.skills.install.handler(async ({ input }) => {
+        const { installProjectSkills } = await import("../project/skill.ts");
+        return installProjectSkills({
+          root: rootFor(input),
+          skillDir: input.skillDir,
+          ...(input.general === undefined ? {} : { general: input.general }),
+          ...(input.brandSkill === undefined ? {} : { brandSkill: input.brandSkill }),
+          ...(input.brandDir === undefined ? {} : { brandDir: input.brandDir }),
+        });
+      }),
+    },
   },
 });

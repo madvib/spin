@@ -79,6 +79,13 @@ if (typeof window !== "undefined") {
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") refetchThemes();
   });
+  const pingStudio = () => {
+    void spinClient()
+      .then((c) => c.overlay.studioPing({}))
+      .catch(() => {});
+  };
+  pingStudio();
+  globalThis.setInterval(pingStudio, 5_000);
 }
 
 /**

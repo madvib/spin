@@ -249,6 +249,52 @@ export const renameBrand = oc
     summary: "Rename a brand: its directory, its seating, and the name inside",
   });
 
+export const skillStatus = oc
+  .input(
+    v.object({
+      root: v.optional(v.string()),
+      customDir: v.optional(v.string()),
+    }),
+  )
+  .output(
+    v.object({
+      dirs: v.array(
+        v.object({
+          dir: v.string(),
+          general: v.boolean(),
+          brandSkill: v.nullable(v.string()),
+        }),
+      ),
+    }),
+  )
+  .route({
+    method: "POST",
+    path: "/project/skills/status",
+    summary: "Report installed Spin skills across known skill directories",
+  });
+
+export const installSkills = oc
+  .input(
+    v.object({
+      root: v.optional(v.string()),
+      skillDir: v.string(),
+      general: v.optional(v.boolean()),
+      brandSkill: v.optional(v.boolean()),
+      brandDir: v.optional(v.string()),
+    }),
+  )
+  .output(
+    v.object({
+      written: v.array(v.string()),
+      error: v.nullable(v.string()),
+    }),
+  )
+  .route({
+    method: "POST",
+    path: "/project/skills/install",
+    summary: "Install general spin skill and optional <brand>-brand skill",
+  });
+
 export const projectContract = {
   project: {
     // `detect`, `current` and `init` are the project's own, not a theme's:
@@ -277,6 +323,10 @@ export const projectContract = {
     config: {
       read: readConfig,
       write: writeConfig,
+    },
+    skills: {
+      status: skillStatus,
+      install: installSkills,
     },
   },
 };

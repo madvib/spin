@@ -238,9 +238,12 @@ export const InitProjectOptionsSchema = v.object({
   vendor: v.optional(v.boolean()),
   /** The linter to scaffold a config for. Defaults to detected, else `"none"`. */
   linter: v.optional(LinterKindSchema),
-  /** Write the project agent skill under `.agents/skills/spin/`. */
+  /** Write the project agent skill under `skillDir` (defaults to `.agents/skills`). */
   skill: v.optional(v.boolean()),
-  /** Seed from an existing brand directory instead of a design language. */
+  /** Target directory (relative to root) for project agent skills. */
+  skillDir: v.optional(v.string()),
+  /** Generate the `<brand>-brand` skill alongside the general `spin` skill. */
+  brandSkill: v.optional(v.boolean()),
   from: v.optional(
     v.pipe(
       v.string(),

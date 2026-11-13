@@ -5,4 +5,4 @@
  * daemon on a temp root and this file stays wiring.
  */
 
-export { buildSpinMcpServer } from "./server.ts";
+export { buildSpinMcpServer, createSpinMcpServer } from "./server.ts";

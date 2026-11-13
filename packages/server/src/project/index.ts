@@ -67,8 +67,10 @@ export {
   clearOverlay,
   hasOverlay,
   forgetDiskDocument,
+  isStudioActive,
   noteDiskDocument,
   noteDiskDocuments,
+  noteStudioHeartbeat,
   onOverlayChange,
   overlayDirty,
   overlayThemes,
@@ -96,8 +98,13 @@ export {
   setBrandType,
 } from "./brand-service.ts";
 export type { BrandPaletteSeed as BrandPaletteSeedArgs, BrandTypeChoice as BrandTypeChoiceArgs } from "./brand-service.ts";
-
 export { listIcons, readIcon, removeIcon, writeIcon } from "./icons.ts";
+export {
+  KNOWN_SKILL_DIRS,
+  installProjectSkills,
+  projectSkillStatus,
+  renderBrandSkill,
+} from "./skill.ts";
 
 export {
   configurationIn,

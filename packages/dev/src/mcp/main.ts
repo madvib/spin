@@ -11,7 +11,7 @@
 
 import { resolveSpinClient } from "../api/index.ts";
 import { StdioServerTransport } from "@modelcontextprotocol/server/stdio";
-import { buildSpinMcpServer } from "./server.ts";
+import { createSpinMcpServer } from "./server.ts";
 
 const args = process.argv.slice(2);
 const flagValue = (name: string): string | undefined => {
@@ -19,7 +19,7 @@ const flagValue = (name: string): string | undefined => {
   return at >= 0 ? args[at + 1] : undefined;
 };
 
-const server = buildSpinMcpServer(
+const server = await createSpinMcpServer(
   resolveSpinClient({ url: flagValue("--url"), root: flagValue("--root") }),
 );
 await server.connect(new StdioServerTransport());

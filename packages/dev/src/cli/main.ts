@@ -46,8 +46,12 @@ export interface InitCommand {
   readonly vendor?: boolean;
   /** The linter the generated config wires. Defaults to detected, else `"oxlint"` when prompting. */
   readonly linter?: "oxlint" | "eslint" | "none";
-  /** Write the project agent skill under `.agents/skills/spin/`. */
+  /** Write the project agent skill under `skillDir` (defaults to `.agents/skills`). */
   readonly skill?: boolean;
+  /** Target directory (relative to root) for project agent skills. */
+  readonly skillDir?: string;
+  /** Generate the `<brand>-brand` skill alongside the general `spin` skill. */
+  readonly brandSkill?: boolean;
   /** The daemon to dial, when the procedures live elsewhere. */
   readonly url?: string;
   /** Seed from an existing brand directory instead of a design language. */
@@ -159,9 +163,10 @@ Options for init:
   --components-dir <dir> components directory (default: src/lib/components)
   --vendor               vendor the full design language text instead of a sparse document
   --linter <linter>      oxlint | eslint | none (default: detected, else oxlint)
-  --skill                write the project agent skill (.agents/skills/spin)
+  --skill                write the project agent skill (default: .agents/skills/spin)
+  --skill-dir <dir>      skill folder (.agents/skills | .claude/skills | .cursor/skills | custom)
+  --brand-skill          generate <brand>-brand/SKILL.md beside the spin skill
   --no-skill             skip the project agent skill
-  --root <dir>           the project root (default: the current directory)
   --from <dir>           seed from an existing brand directory instead of a design language
   --url <url>            the daemon to dial (default: in-process)
   -y, --yes              skip the interactive prompts
@@ -235,6 +240,8 @@ function parseInit(argv: readonly string[]): Command {
   let vendor: boolean | undefined;
   let linter: "oxlint" | "eslint" | "none" | undefined;
   let skill: boolean | undefined;
+  let skillDir: string | undefined;
+  let brandSkill: boolean | undefined;
   let url: string | undefined;
   let from: string | undefined;
   let yes = false;
@@ -280,6 +287,14 @@ function parseInit(argv: readonly string[]): Command {
       case "skill":
         skill = true;
         break;
+      case "skill-dir":
+        skillDir = argument.value as string;
+        skill ??= true;
+        break;
+      case "brand-skill":
+        brandSkill = true;
+        skill ??= true;
+        break;
       case "no-skill":
         skill = false;
         break;
@@ -312,8 +327,9 @@ function parseInit(argv: readonly string[]): Command {
     ...(vendor === undefined ? {} : { vendor }),
     ...(linter === undefined ? {} : { linter }),
     ...(skill === undefined ? {} : { skill }),
+    ...(skillDir === undefined ? {} : { skillDir }),
+    ...(brandSkill === undefined ? {} : { brandSkill }),
     ...(url === undefined ? {} : { url }),
-    ...(from === undefined ? {} : { from }),
     yes,
   };
 }
@@ -612,10 +628,10 @@ function read(argv: readonly string[]): Argument[] {
     "components-dir",
     "prefix",
     "linter",
+    "skill-dir",
     "from",
     "port",
     "host",
-    // The harness's own options: the runner reads them, but the values
     // they carry are theirs, not the command's.
     "route",
     "themes",
@@ -728,8 +744,7 @@ async function runInit(
 ): Promise<number> {
   const { resolveSpinClient } = await import("../api/index.ts");
   const { detectBundler } = await import("@spinjs/server/project");
-  let { name, language, bundler, linter, skill } = command;
-  // Interactive when a TTY asks: prompt for what the flags did not say.
+  let { name, language, bundler, linter, skill, skillDir, brandSkill } = command;
   const interactive = process.stdin.isTTY && !command.yes;
   if (interactive) {
     const { createInterface } = await import("node:readline/promises");
@@ -762,8 +777,28 @@ async function runInit(
         linter = picked;
       }
       if (command.skill === undefined) {
-        const answer = (await io.question(`agent skill (.agents/skills/spin) (Y/n): `)).trim().toLowerCase();
-        skill = answer === "" || answer === "y" || answer === "yes";
+        const answer = (
+          await io.question(
+            "agent skill dir (.agents/skills | .claude/skills | .cursor/skills | custom | skip): ",
+          )
+        ).trim();
+        const lower = answer.toLowerCase();
+        if (lower === "skip" || lower === "no" || lower === "n") {
+          skill = false;
+        } else {
+          skill = true;
+          if (answer !== "" && lower !== "y" && lower !== "yes") {
+            skillDir = answer;
+          }
+          if (command.brandSkill === undefined) {
+            const brandAnswer = (
+              await io.question(`generate ${name}-brand skill? (y/N): `)
+            )
+              .trim()
+              .toLowerCase();
+            brandSkill = brandAnswer === "y" || brandAnswer === "yes";
+          }
+        }
       }
     } finally {
       io.close();
@@ -789,6 +824,8 @@ async function runInit(
       ...(command.vendor === undefined ? {} : { vendor: command.vendor }),
       ...(linter === undefined ? {} : { linter }),
       ...(skill === undefined ? {} : { skill }),
+      ...(skillDir === undefined ? {} : { skillDir }),
+      ...(brandSkill === undefined ? {} : { brandSkill }),
       ...(command.from === undefined ? {} : { from: command.from }),
     });
     if (inited.error !== null) return fail(inited.error);
@@ -847,11 +884,11 @@ async function runMcp(
   _warn: (line: string) => void,
 ): Promise<number> {
   const { resolveSpinClient } = await import("../api/index.ts");
-  const { buildSpinMcpServer } = await import("../mcp/index.ts");
+  const { createSpinMcpServer } = await import("../mcp/index.ts");
   const { StdioServerTransport } = await import(
     "@modelcontextprotocol/server/stdio"
   );
-  const server = buildSpinMcpServer(
+  const server = await createSpinMcpServer(
     resolveSpinClient({ root: command.root, url: command.url }),
   );
   await server.connect(new StdioServerTransport());

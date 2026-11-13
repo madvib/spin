@@ -23,6 +23,7 @@ import {
   PROJECT_DIR,
 } from "./facts.ts";
 import { listIcons, readIcon, removeIcon, writeIcon } from "./icons.ts";
+import { installProjectSkills } from "./skill.ts";
 import { copyBrandDirectory, createBrand, getBrand, renameBrand, setBrandDesignLanguage, setBrandPalette, setBrandType } from "./brand-service.ts";
 import type {
   ProjectConfiguration,
@@ -122,38 +123,6 @@ const SPIN_ESLINT_CONFIG = `import spin from "@spinjs/dev/eslint";
 export default [...spin.configs.recommended];
 `;
 
-/**
- * The project agent skill, tailored to the project it lands in: its brand
- * directory, its `.mcp.json` server entry, the primitives and utilities it
- * spends, the components it copies, and the lint that checks them.
- */
-function projectSkillText(brandDir: string): string {
-  return `---
-name: spin
-description: Author Spin UI in this project: semantic HTML primitives, layout utilities, portable components, and lint verification.
----
-
-# Spin UI authoring
-
-Author UI in this project with Spin: checked primitives, small utilities, and portable components. The project's brand lives in \`${brandDir}/\`.
-
-## Brand
-
-- Read and edit the brand's token layers in \`${brandDir}/\`. Keep light and dark modes serving together, and keep the contract scales shared across themes.
-- Shape the brand in Studio when it is running; otherwise edit the JSON documents directly.
-
-## Markup
-
-- Spend semantic HTML primitives: \`card\`, \`panel\`, \`dialog\`, \`field\`, \`button\`.
-- Style with layout utilities only: spacing, sizing, and placement. Never hand-write token values; spend the theme's tokens.
-- Copy portable components with \`spin component copy <name> <example>\` and drive them through their app-controller surface (\`@spinjs/components\`).
-
-## Verify
-
-- Run \`spin mcp\` (via \`.mcp.json\`) when an agent session needs the project's RPC surface: themes, brands, components, and findings.
-- Run the linter before finishing: findings are the report, and a finding the check cannot explain is a finding to fix, not to suppress.
-`;
-}
 
 /**
  * Scaffolds the linter config and the project skill a fresh project keeps.
@@ -162,7 +131,13 @@ Author UI in this project with Spin: checked primitives, small utilities, and po
  */
 async function scaffoldLinterAndSkill(
   root: string,
-  options: { linter: "oxlint" | "eslint" | "none"; skill: boolean; brandDir: string },
+  options: {
+    linter: "oxlint" | "eslint" | "none";
+    skill: boolean;
+    skillDir?: string;
+    brandSkill?: boolean;
+    brandDir: string;
+  },
 ): Promise<void> {
   const { mkdir, readFile, readdir, writeFile } = await import("node:fs/promises");
   const { join } = await import("node:path");
@@ -189,13 +164,13 @@ async function scaffoldLinterAndSkill(
     }
   }
   if (options.skill) {
-    const path = join(root, ".agents/skills/spin/SKILL.md");
-    try {
-      await readFile(path, "utf8");
-    } catch {
-      await mkdir(join(root, ".agents/skills/spin"), { recursive: true });
-      await writeFile(path, projectSkillText(options.brandDir), "utf8");
-    }
+    await installProjectSkills({
+      root,
+      skillDir: options.skillDir ?? ".agents/skills",
+      general: true,
+      brandSkill: options.brandSkill === true,
+      brandDir: options.brandDir,
+    });
   }
 }
 
@@ -678,6 +653,8 @@ export async function initProject(
     await scaffoldLinterAndSkill(options.root, {
       linter,
       skill: options.skill === true,
+      ...(options.skillDir === undefined ? {} : { skillDir: options.skillDir }),
+      ...(options.brandSkill === undefined ? {} : { brandSkill: options.brandSkill }),
       brandDir: `${themesDir}/${options.name}`,
     });
     await writeProjectComponentsDts(
