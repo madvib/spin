@@ -573,8 +573,8 @@ test("no custom property is defined in terms of itself", async () => {
  * guarded wrapper reports it inert the first time anything asks for it.
  * `backdrop-blur` itself is OURS now (an owned static rule), so wind4's blur
  * pattern stays excluded while our utility generates.
- * `from-primary`, whose values read variables nothing defines, completes the
- * family and is asserted for its consequence below.
+ * `from-primary`, whose values read variables nothing defines, also trips its
+ * guarded handler lazily on first generation and lands in the inert set.
  *
  * The inert SET is pinned, not just the names. A new exclusion is a
  * decision — wind4 grew a rule we cannot use — and it should be one somebody
@@ -642,30 +642,32 @@ test("wind4's font back doors stay shut", async () => {
 
 test("wind4's inert rules stay out of the layer", async () => {
   const uno = await layered();
-  // Force the lazy report with a blur utility WE do not own: the guarded
-  // wrapper only learns the handler cannot run when something reaches it.
+  // Force the lazy reports for dynamic utilities we do not own (`filter-blur`
+  // and `from-primary`) before reading `wind4Exclusions()`, and sort the set so
+  // earlier tests running in the same process cannot shift order or membership.
   await uno.generate("filter-blur", { preflights: false });
+  await uno.generate("from-primary", { preflights: false });
   const KNOWN_INERT: readonly string[] = [
     "transform",
     "transform-cpu",
     "transform-gpu",
     "^(?:(backdrop-)|filter-)?blur(?:-(.+))?$",
-  ];
+    "^(from|via|to|stops)-(.+)$",
+  ].sort();
   const inert = wind4Exclusions()
     .filter((exclusion) => exclusion.reason === "inert")
-    .map((exclusion) => exclusion.rule);
+    .map((exclusion) => exclusion.rule)
+    .sort();
   deepStrictEqual(
     inert,
-    [...KNOWN_INERT],
+    KNOWN_INERT,
     `wind4's inert rules changed — a new one means a utility quietly left the layer: ${
       inert.join(", ")
     }`,
   );
   // And the consequence, which is the part a caller would notice: each of them
-  // generates no rule at all. `from-primary` is not in the exclusion list — it
-  // is not ours and wind4 does not claim it — but it is a member of this
-  // family of defects, so it is asserted here too. The blur PATTERN is not a
-  // utility and generates nothing by itself, so it is excluded from the loop.
+  // generates no rule at all. The regex patterns are not utilities and
+  // generate nothing by themselves, so concrete triggers stand in below.
   const leaked: string[] = [];
   for (
     const name of [

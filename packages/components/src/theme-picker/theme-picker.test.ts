@@ -168,3 +168,21 @@ test("selecting while closed commits without opening", () => {
   deepStrictEqual(api.open, false);
   deepStrictEqual(events.valueChange.length, 1);
 });
+
+test("syncDocument: false ignores stored theme in localStorage", () => {
+  const prev = (globalThis as Record<string, unknown>)["localStorage"];
+  (globalThis as Record<string, unknown>)["localStorage"] = {
+    getItem: () => "minimal",
+    setItem: () => {},
+  };
+  try {
+    const { api } = mount({
+      syncDocument: false,
+      defaultValue: "silk",
+      themes: [{ value: "silk", label: "Silk" }, { value: "nord", label: "Nord" }],
+    });
+    deepStrictEqual(api.value, "silk");
+  } finally {
+    (globalThis as Record<string, unknown>)["localStorage"] = prev;
+  }
+});

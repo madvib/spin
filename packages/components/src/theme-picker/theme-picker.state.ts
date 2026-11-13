@@ -152,13 +152,16 @@ export function initial(
     typeof args.storageKey === "string" && args.storageKey.length > 0
       ? args.storageKey
       : "spin:theme";
-  const stored = typeof localStorage !== "undefined" ? readStored(storageKey) : null;
+  const syncDocument = written("syncDocument") ? args.syncDocument !== false : true;
+  const stored = syncDocument && typeof localStorage !== "undefined"
+    ? readStored(storageKey)
+    : null;
   const seeded = stored ?? value;
   return {
     value: seeded,
     themes: parsed,
     highlightedValue: seeded,
     storageKey,
-    syncDocument: written("syncDocument") ? args.syncDocument !== false : true,
+    syncDocument,
   };
 }

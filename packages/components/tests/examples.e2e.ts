@@ -135,4 +135,96 @@ test("spin examples e2e", () =>
         assert.notEqual(value, null, "every thumb reports a value");
       }
     });
+    await step("tabs: click, ArrowRight, Home, and aria-selected/tabpanel sync", async () => {
+      await page.goto("http://127.0.0.1:5253/#/components/component-tabs", {
+        waitUntil: "load",
+      });
+      const tabs = page.locator("tabs-basic [role='tab']");
+      const panels = page.locator("tabs-basic [role='tabpanel']");
+      await tabs.first().waitFor({ state: "attached", timeout: 5000 });
+      assert.equal(await tabs.nth(0).getAttribute("aria-selected"), "true");
+      assert.equal(await panels.nth(0).getAttribute("hidden"), null);
+      assert.notEqual(await panels.nth(1).getAttribute("hidden"), null);
+
+      await tabs.nth(1).click();
+      assert.equal(await tabs.nth(1).getAttribute("aria-selected"), "true");
+      assert.equal(await panels.nth(1).getAttribute("hidden"), null);
+      assert.notEqual(await panels.nth(0).getAttribute("hidden"), null);
+
+      await tabs.nth(1).focus();
+      await page.keyboard.press("ArrowRight");
+      assert.equal(await tabs.nth(2).getAttribute("aria-selected"), "true");
+      await page.keyboard.press("Home");
+      assert.equal(await tabs.nth(0).getAttribute("aria-selected"), "true");
+    });
+
+    await step("toc: ArrowDown, End, Home, and scrollTo command update aria-current", async () => {
+      await page.goto("http://127.0.0.1:5253/#/components/component-toc", {
+        waitUntil: "load",
+      });
+      const tocEl = page.locator("toc-basic").first();
+      const links = page.locator("toc-basic a[data-part='link']");
+      await links.first().waitFor({ state: "attached", timeout: 5000 });
+      assert.equal(await links.nth(0).getAttribute("aria-current"), "location");
+      assert.equal(await links.nth(1).getAttribute("href"), "#installation");
+
+      await tocEl.evaluate((el) => (el as unknown as { scrollTo(v: string): void }).scrollTo("installation"));
+      assert.equal(await links.nth(1).getAttribute("aria-current"), "location");
+      assert.equal(await links.nth(0).getAttribute("aria-current"), null);
+
+      await links.nth(1).focus();
+      await page.keyboard.press("ArrowDown");
+      assert.equal(await links.nth(2).getAttribute("aria-current"), "location");
+      assert.equal(await links.nth(2).getAttribute("data-deep"), "");
+
+      await page.keyboard.press("End");
+      assert.equal(await links.nth(3).getAttribute("aria-current"), "location");
+
+      await page.keyboard.press("Home");
+      assert.equal(await links.nth(0).getAttribute("aria-current"), "location");
+    });
+
+    await step("mode-picker: click cycles light -> dark -> system", async () => {
+      await page.goto("http://127.0.0.1:5253/#/components/component-mode-picker", {
+        waitUntil: "load",
+      });
+      const trigger = page.locator("main mode-picker-basic button[data-part='trigger']").first();
+      await trigger.waitFor({ state: "attached", timeout: 5000 });
+      const initial = await trigger.getAttribute("data-mode");
+      assert.ok(
+        initial === "light" || initial === "dark" || initial === "system",
+        `initial mode valid (got "${initial}")`,
+      );
+      await trigger.click();
+      const next = await trigger.getAttribute("data-mode");
+      assert.notEqual(next, initial, "clicking trigger advances mode choice");
+      await trigger.click();
+      const third = await trigger.getAttribute("data-mode");
+      assert.notEqual(third, next, "second click advances mode choice again");
+    });
+
+    await step("theme-picker: trigger opens listbox, ArrowDown + Enter selects, Escape closes", async () => {
+      await page.goto("http://127.0.0.1:5253/#/components/component-theme-picker", {
+        waitUntil: "load",
+      });
+      const trigger = page.locator("main theme-picker-basic button[data-part='trigger']").first();
+      const label = page.locator("main theme-picker-basic [data-part='triggerLabel']").first();
+      const listbox = page.locator("main theme-picker-basic [role='listbox']").first();
+      await trigger.waitFor({ state: "attached", timeout: 5000 });
+      assert.equal(await trigger.getAttribute("aria-expanded"), "false");
+      assert.equal(await label.textContent(), "silk");
+
+      await trigger.click();
+      assert.equal(await trigger.getAttribute("aria-expanded"), "true");
+      await listbox.focus();
+      await page.keyboard.press("ArrowDown");
+      await page.keyboard.press("Enter");
+      assert.equal(await trigger.getAttribute("aria-expanded"), "false");
+      assert.notEqual(await label.textContent(), "silk");
+
+      await trigger.click();
+      assert.equal(await trigger.getAttribute("aria-expanded"), "true");
+      await page.keyboard.press("Escape");
+      assert.equal(await trigger.getAttribute("aria-expanded"), "false");
+    });
   }));
