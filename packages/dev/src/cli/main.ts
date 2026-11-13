@@ -891,7 +891,13 @@ async function runMcp(
   const server = await createSpinMcpServer(
     resolveSpinClient({ root: command.root, url: command.url }),
   );
-  await server.connect(new StdioServerTransport());
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  await new Promise<void>((resolve) => {
+    const done = () => resolve();
+    transport.onclose = done;
+    process.stdin.once("end", done);
+  });
   return 0;
 }
 

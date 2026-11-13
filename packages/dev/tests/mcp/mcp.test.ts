@@ -184,4 +184,48 @@ describe("the spin MCP server", () => {
       await studioMcp.close();
     }
   });
+
+  it("spin mcp CLI stays alive over stdio and answers initialize", async () => {
+    const { spawn } = await import("node:child_process");
+    // Reuses suite temp project `dir`
+    const child = spawn(
+      process.execPath,
+      ["packages/dev/src/cli/main.ts", "mcp", "--root", dir],
+      { cwd: process.cwd(), stdio: ["pipe", "pipe", "pipe"] },
+    );
+    const out = await new Promise<string>((resolve, reject) => {
+      let buf = "";
+      const timer = setTimeout(() => {
+        child.kill();
+        reject(new Error(`spin mcp timed out; stdout=${buf}`));
+      }, 5000);
+      child.stdout.on("data", (chunk: Buffer) => {
+        buf += String(chunk);
+        if (buf.includes('"protocolVersion"')) {
+          clearTimeout(timer);
+          child.kill();
+          resolve(buf);
+        }
+      });
+      child.on("exit", (code) => {
+        if (!buf.includes('"protocolVersion"')) {
+          clearTimeout(timer);
+          reject(new Error(`spin mcp exited early (${code}); stdout=${buf}`));
+        }
+      });
+      child.stdin.write(
+        JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "initialize",
+          params: {
+            protocolVersion: "2024-11-05",
+            capabilities: {},
+            clientInfo: { name: "test", version: "1.0" },
+          },
+        }) + "\n",
+      );
+    });
+    assert(out.includes('"protocolVersion"'), "MCP initialize response received over stdio");
+  });
 });
