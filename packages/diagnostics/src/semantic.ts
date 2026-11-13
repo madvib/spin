@@ -308,8 +308,12 @@ export function removalOf(
   node: ClassFacts,
   index: number,
 ): TextEdit | undefined {
-  const token = node.tokens?.[index];
+  const tokens = node.tokens;
+  const token = tokens?.[index];
   if (token === undefined) return undefined;
+  if (tokens !== undefined && tokens.length === 1 && node.attributeRange !== undefined) {
+    return { range: node.attributeRange, text: "" };
+  }
   const [start, end] = token.range;
   if (token.spaceAfter) return { range: [start, end + 1], text: "" };
   if (token.spaceBefore) return { range: [start - 1, end], text: "" };

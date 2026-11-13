@@ -96,7 +96,7 @@ test("the plugin's edits are applied by ESLint's fixer", () => {
     config({ "spin/closed-vocabulary": "error" }),
     "app.jsx",
   );
-  deepStrictEqual(result.output, `<span className="" />`);
+  deepStrictEqual(result.output, `<span />`);
   deepStrictEqual(result.messages, []);
 });
 

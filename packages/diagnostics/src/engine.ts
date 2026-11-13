@@ -184,6 +184,7 @@ export function lintTree(
   filename: string,
   ast: WalkNode,
   run: RuleRun,
+  code?: string,
 ): Diagnostic[] {
   const findings: Diagnostic[] = [];
   const visitors = new Map<string, ((node: GateNode) => void)[]>();
@@ -194,6 +195,7 @@ export function lintTree(
       filename,
       options: [run.semantic],
       answers: run.answers,
+      ...(code === undefined ? {} : { sourceCode: { text: code } }),
       report(descriptor) {
         const fix = descriptor.fix?.();
         const position = {

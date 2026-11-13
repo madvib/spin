@@ -110,6 +110,7 @@ interface Element {
   column: number;
   /** Where the class list starts in the source. */
   valueStart: number;
+  readonly attributeRange?: readonly [number, number];
 }
 /**
  * The elements the fixture declares, read off its text.
@@ -137,6 +138,8 @@ function elementsOf(source: string): Element[] {
     const attribute = match[3] as string;
     const name = attribute.slice(0, attribute.indexOf("="));
     const literal = quoted !== null;
+    const attrStart = start + (match.index ?? 0) + 1 + (match[1] as string).length +
+      (match[2] as string).length;
     out.push({
       tag: match[1] as string,
       classes: (match[4] as string).split(/\s+/).filter(Boolean),
@@ -147,8 +150,15 @@ function elementsOf(source: string): Element[] {
         (match[2] as string).length,
       // Where the class list starts: after the name, the `=` and the quote —
       // or the `={` and the backtick for a template.
-      valueStart: start + (match.index ?? 0) + 1 + (match[1] as string).length +
-        (match[2] as string).length + name.length + (literal ? 2 : 3),
+      valueStart: attrStart + name.length + (literal ? 2 : 3),
+      ...(literal
+        ? {
+          attributeRange: [
+            /\s/.test(source[attrStart - 1] ?? "") ? attrStart - 1 : attrStart,
+            attrStart + attribute.length,
+          ] as const,
+        }
+        : {}),
     });
   });
   return out;
@@ -305,6 +315,7 @@ function coreEdits(file: string): Edit[] {
       tag: element.tag,
       classes: element.classes,
       tokens: tokensOf(element),
+      attributeRange: element.attributeRange,
       position: { line: element.line, column: element.column },
     };
     for (const finding of checkNoRedundantClass(facts, node, STRICT)) {

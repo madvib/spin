@@ -97,7 +97,7 @@ test("the findings carry the edit that settles them", async () => {
     deepStrictEqual(fix === undefined, false);
     deepStrictEqual(
       applyFixes(DIRTY, [fix as TextEdit]).code,
-      `export const App = () => <span className="" />;\n`,
+      `export const App = () => <span />;\n`,
     );
   } finally {
     await rm(directory, { recursive: true });

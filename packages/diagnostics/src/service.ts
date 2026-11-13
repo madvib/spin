@@ -329,7 +329,7 @@ export async function lintFiles(
       unreadable.push(file);
       continue;
     }
-    findings.push(...lintTree(file, ast, run));
+    findings.push(...lintTree(file, ast, run, code));
   }
 
   return { findings, unreadable, missing };

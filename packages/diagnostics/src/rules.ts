@@ -72,6 +72,7 @@ export interface GateContext {
    * template's keys.
    */
   sourceCode?: {
+    readonly text?: string;
     parserServices?: {
       defineTemplateBodyVisitor?: (
         template: Record<string, (node: GateNode) => void>,
@@ -824,10 +825,17 @@ function dynamicPrefixInterpolations(node: GateNode): string[] {
 }
 
 /** The classes of an element, as the core reads them. */
-function classFacts(node: GateNode, facts?: Facts) {
+function classFacts(node: GateNode, facts?: Facts, sourceText?: string) {
   const literal = literalOf(node);
   const branches = expressionBranches(node);
   const siblingResting = siblingContextClasses(node, facts);
+  let attributeRange: readonly [number, number] | undefined;
+  if (literal !== undefined && node.range !== undefined) {
+    const [attrStart, attrEnd] = node.range;
+    const leadingSpace = attrStart > 0 && sourceText !== undefined &&
+      /\s/.test(sourceText[attrStart - 1] ?? "");
+    attributeRange = [leadingSpace ? attrStart - 1 : attrStart, attrEnd];
+  }
   return {
     tag: tagOf(node),
     classes: branches.all,
@@ -837,6 +845,7 @@ function classFacts(node: GateNode, facts?: Facts) {
     tokens: literal === undefined
       ? undefined
       : tokensOf(literal.text, literal.start),
+    attributeRange,
     ancestors: ancestorsOf(node),
     position: positionOf(node),
   };
@@ -1210,7 +1219,7 @@ const noRedundantClass: GateRule = {
     const visit = (node: GateNode) => {
       if (!carriesClasses(node)) return;
       const facts = factsForFile(context.filename ?? "", context.answers);
-      const base = classFacts(node, facts);
+      const base = classFacts(node, facts, context.sourceCode?.text);
       report(
         context,
         node,
@@ -1253,7 +1262,7 @@ const preferThemeValue: GateRule = {
     const visit = (node: GateNode) => {
       if (!carriesClasses(node)) return;
       const facts = factsForFile(context.filename ?? "", context.answers);
-      const base = classFacts(node, facts);
+      const base = classFacts(node, facts, context.sourceCode?.text);
       const restingFindings = filterOwnFindings(
         base,
         checkPreferThemeValue(facts, restingFacts(base), options),
@@ -1307,7 +1316,7 @@ const preferElement: GateRule = {
     const visit = (node: GateNode) => {
       if (!carriesClasses(node)) return;
       const facts = factsForFile(context.filename ?? "", context.answers);
-      const base = classFacts(node, facts);
+      const base = classFacts(node, facts, context.sourceCode?.text);
       report(
         context,
         node,
@@ -1346,7 +1355,7 @@ const closedVocabulary: GateRule = {
     const visit = (node: GateNode) => {
       if (!carriesClasses(node)) return;
       const facts = factsForFile(context.filename ?? "", context.answers);
-      const base = classFacts(node, facts);
+      const base = classFacts(node, facts, context.sourceCode?.text);
       const findings = checkClosedVocabulary(facts, base);
       for (const interpolated of dynamicPrefixInterpolations(node)) {
         findings.push({
@@ -1519,7 +1528,7 @@ const noUnpairedInk: GateRule = {
     const visit = (node: GateNode) => {
       if (!carriesClasses(node)) return;
       const facts = factsForFile(context.filename ?? "", context.answers);
-      const base = classFacts(node, facts);
+      const base = classFacts(node, facts, context.sourceCode?.text);
       report(
         context,
         node,

@@ -160,6 +160,8 @@ export interface ClassFacts {
    * still drop the class by hand.
    */
   readonly tokens?: readonly ClassToken[];
+  /** Full attribute range (including leading whitespace when present), for dropping empty class attributes. */
+  readonly attributeRange?: readonly [number, number];
   /**
    * The elements above this one, nearest first.
    *
