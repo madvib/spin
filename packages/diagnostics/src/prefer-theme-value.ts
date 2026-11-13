@@ -101,6 +101,7 @@ export function checkPreferThemeValue(
     if (!isReported(reading.tier, options.strictness)) continue;
     if (reading.dead) continue;
     const decision = reading.decision;
+    if (decision === "decoration") continue;
     // A decision the element's own variant has claimed is the VARIANT's
     // answer, not the scope's: the scope no longer owns it. A class that
     // sets it is either the variant's own answer or a deliberate override,

@@ -222,7 +222,7 @@ test("the decoration family is not the element rule's business", () => {
     strictness: "strict",
     semanticTags: "all",
   };
-  deepStrictEqual(other("A", "no-underline", all), []);
+  deepStrictEqual(other("a", "no-underline", all), []);
   deepStrictEqual(other("span", "underline", all), []);
   // The redundancy rule still says it: the class sets what the element sets.
   const [finding] = redundant("button", "no-underline", all);
