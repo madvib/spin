@@ -64,17 +64,27 @@ export type ProjectReport = v.InferOutput<typeof ProjectReportSchema>;
 
 /** What `spin/config.json` holds, when it holds anything. Unknown keys stripped, never rejected. */
 export const SpinConfigFileSchema = v.object({
-  /** The theme the studio seats on load, when it names a served theme. */
-  activeTheme: v.optional(v.string()),
-  /** Display order for the theme list. */
-  themeOrder: v.optional(v.array(v.string())),
-  /** The shipped set the scale-key contract compares. */
-  contractThemes: v.optional(v.array(v.string())),
+  /** The project's brand: the `spin/<brand>/` directory the project serves by default. */
+  brand: v.optional(v.string()),
+  /** Project directory holding user-authored components. Default `"src/lib/components"`. */
+  componentsDir: v.optional(v.string()),
+  /** How much the semantic rules report. Default `"strict"`. */
+  strictness: v.optional(v.picklist(["strict", "balanced", "lenient"])),
+  /** The project's icons: the collection the lint holds icon classes to. */
+  icons: v.optional(v.object({
+    /** The iconify collection the project's icon classes come from, e.g. `"lucide"`. */
+    collection: v.optional(v.string()),
+  })),
 });
 
 export type SpinConfigFile = v.InferOutput<typeof SpinConfigFileSchema>;
 
-/** A brand's name: the `spin/<brand>/` directory and the seating key. */
+/** What `spin/shortcuts.json` holds: each composition's name, and the classes it expands to. */
+export const SpinShortcutsFileSchema = v.record(v.string(), v.string());
+
+export type SpinShortcutsFile = v.InferOutput<typeof SpinShortcutsFileSchema>;
+
+/** A brand's name: the `spin/<brand>/` directory it lives in. */
 export const BrandNameSchema = ThemeNameSchema;
 
 /** What a rename names: the brand, and the name it takes. */
@@ -141,7 +151,7 @@ export const BrandCreateOptionsSchema = v.object({
   description: v.optional(v.string()),
   /** The themes directory. Defaults to `"spin"`. */
   themesDir: v.optional(v.string()),
-  /** Seat the brand in `spin/config.json` as the active theme. Defaults to true. */
+  /** Seat the brand in `spin/config.json` as the project's brand. Defaults to true. */
   seat: v.optional(v.boolean()),
 });
 

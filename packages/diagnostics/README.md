@@ -1,7 +1,7 @@
 # @spinjs/diagnostics
 
 The checks: the six `spin/*` rules, the lint service, and the editor plugins.
-The core decides what is wrong; oxlint, ESLint, the CLI, and the LSP deliver
+The core decides what is wrong; oxlint, ESLint, and the LSP deliver
 the same answer.
 
 ```ts

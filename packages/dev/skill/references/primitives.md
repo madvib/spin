@@ -20,7 +20,7 @@ Write `<button>`, `<span>`.
 - `<button>` owns background, corner, decoration, edge, elevation, face, ink, size, tracking, weight.
 - `<span>` lays out only.
 
-Closed variants: `bare`, `button-icon`, `contrast`, `danger`, `ghost`, `icon`, `outline`, `primary`, `s-lg`, `s-sm`, `secondary`.
+Closed variants: `bare`, `button-icon`, `contrast`, `danger`, `ghost`, `icon`, `outline`, `primary`, `s-lg`, `s-sm`, `s-xs`, `secondary`, `subtle`.
 
 Brand tokens a brand states for this primitive:
 - `button.shadow` (shadow).

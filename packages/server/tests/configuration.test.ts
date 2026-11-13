@@ -17,7 +17,6 @@ import {
   extendsIn,
   mountIn,
   readConfiguration,
-  shortcutsIn,
   themesIn,
 } from "@spinjs/server/project";
 
@@ -35,43 +34,6 @@ export default defineConfig({
   presets: [spin()],
 });
 `;
-
-test("a config declares the shortcuts it composes", () => {
-  const declared = shortcutsIn(
-    `spin.vite({ shortcuts: { stack: "flex flex-col gap-4" } })`,
-  );
-  deepStrictEqual(declared.shortcuts["stack"], ["flex", "flex-col", "gap-4"]);
-  deepStrictEqual(declared.unreadable, false);
-});
-
-test("a shortcut may be a list of classes", () => {
-  const declared = shortcutsIn(
-    `spin.vite({ shortcuts: { stack: ["flex", "flex-col"] } })`,
-  );
-  deepStrictEqual(declared.shortcuts["stack"], ["flex", "flex-col"]);
-});
-
-test("a table kept in the config's own constant is read", () => {
-  const declared = shortcutsIn(`
-const studioShortcuts = { stack: "flex flex-col gap-4" };
-spin.vite({ shortcuts: studioShortcuts });
-`);
-  deepStrictEqual(declared.shortcuts["stack"], ["flex", "flex-col", "gap-4"]);
-  deepStrictEqual(declared.unreadable, false);
-});
-
-test("a table this cannot see is reported as unreadable", () => {
-  const declared = shortcutsIn(`spin.vite({ shortcuts: studioShortcuts })`);
-  deepStrictEqual(declared.unreadable, true);
-  deepStrictEqual(Object.keys(declared.shortcuts), []);
-});
-
-test("a shortcut whose expansion is not knowable is reported", () => {
-  const declared = shortcutsIn(
-    `spin.vite({ shortcuts: { stack: makeStack() } })`,
-  );
-  deepStrictEqual(declared.unreadable, true);
-});
 
 test("a config declares the content it scans", () => {
   const declared = contentIn(`spin.vite({
@@ -105,27 +67,17 @@ test("a config that mounts nothing says nothing", () => {
   deepStrictEqual(mountIn(`spin.vite({ themes: {} })`), null);
 });
 
-test("a comment cannot declare a shortcut", () => {
-  const declared = shortcutsIn(`
-// shortcuts: { ghost: "hidden" }
-/* shortcuts: { other: "hidden" } */
-spin.vite({ shortcuts: { stack: "flex" } });
-`);
-  deepStrictEqual(Object.keys(declared.shortcuts), ["stack"]);
-});
-
 test("a project's configuration is read from its own file", async () => {
   const dir = await withConfig(
     "vite.config.ts",
     `export default {
-  spin: { shortcuts: { stack: "flex" }, content: { filesystem: ["src/**"] } },
+  spin: { content: { filesystem: ["src/**"] } },
 };
 `,
   );
 
   const declared = await readConfiguration(dir);
   deepStrictEqual(declared.file, "vite.config.ts");
-  deepStrictEqual(declared.shortcuts["stack"], ["flex"]);
   deepStrictEqual(declared.content, ["src/**"]);
 });
 
@@ -134,7 +86,6 @@ test("a project with no configuration declares none", async () => {
 
   const declared = await readConfiguration(dir);
   deepStrictEqual(declared.file, null);
-  deepStrictEqual(declared.shortcuts, {});
   deepStrictEqual(declared.content, []);
   deepStrictEqual(declared.mount, null);
   deepStrictEqual(declared.unreadable, false);
@@ -143,7 +94,6 @@ test("a project with no configuration declares none", async () => {
 test("the configuration a text declares is the declaration itself", () => {
   const declared = configurationIn(CONFIG, "uno.config.ts");
   deepStrictEqual(declared.file, "uno.config.ts");
-  deepStrictEqual(declared.shortcuts, {});
   deepStrictEqual(declared.unreadable, false);
 });
 

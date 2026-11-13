@@ -47,7 +47,8 @@ describe("the spin MCP server", () => {
 
   before(async () => {
     dir = mkdtempSync(join(tmpdir(), "spin-mcp-"));
-    mkdirSync(join(dir, "spin"));
+    mkdirSync(join(dir, "spin", "sample"), { recursive: true });
+    mkdirSync(join(dir, "spin", "unlighted"), { recursive: true });
 
     // The fixture theme: the scaffold, with one dark override so the
     // round-trip has a $modes slot to lose. It serves both modes, so the
@@ -68,7 +69,7 @@ describe("the spin MCP server", () => {
     >;
     sample.modes = ["light", "dark"];
     writeFileSync(
-      join(dir, "spin", "sample.json"),
+      join(dir, "spin", "sample", "tokens.json"),
       JSON.stringify(sample, null, 2),
     );
 
@@ -81,7 +82,7 @@ describe("the spin MCP server", () => {
     ) as Record<string, unknown>;
     unlighted.modes = ["light"];
     writeFileSync(
-      join(dir, "spin", "unlighted.json"),
+      join(dir, "spin", "unlighted", "tokens.json"),
       JSON.stringify(unlighted, null, 2),
     );
 
@@ -109,8 +110,8 @@ describe("the spin MCP server", () => {
       arguments: { action: "list" },
     });
     deepStrictEqual(jsonOf(result), [
-      { name: "sample", file: "spin/sample.json" },
-      { name: "unlighted", file: "spin/unlighted.json" },
+      { name: "sample", file: "spin/sample/tokens.json" },
+      { name: "unlighted", file: "spin/unlighted/tokens.json" },
     ]);
   });
 
@@ -134,7 +135,7 @@ describe("the spin MCP server", () => {
     });
     deepStrictEqual(
       textOf(result),
-      readFileSync(join(dir, "spin", "sample.json"), "utf8"),
+      readFileSync(join(dir, "spin", "sample", "tokens.json"), "utf8"),
     );
   });
 
@@ -150,7 +151,7 @@ describe("the spin MCP server", () => {
     });
     deepStrictEqual(result.isError, undefined);
     const doc = JSON.parse(
-      readFileSync(join(dir, "spin", "sample.json"), "utf8"),
+      readFileSync(join(dir, "spin", "sample", "tokens.json"), "utf8"),
     ) as {
       color: { primary: { $value: string; $modes: Record<string, string> } };
     };
@@ -160,7 +161,7 @@ describe("the spin MCP server", () => {
 
   it("writes a mode override beside an unchanged base value", async () => {
     const before = JSON.parse(
-      readFileSync(join(dir, "spin", "sample.json"), "utf8"),
+      readFileSync(join(dir, "spin", "sample", "tokens.json"), "utf8"),
     ) as { color: { primary: { $value: string } } };
     await mcp.callTool({
       name: "token",
@@ -173,7 +174,7 @@ describe("the spin MCP server", () => {
       },
     });
     const doc = JSON.parse(
-      readFileSync(join(dir, "spin", "sample.json"), "utf8"),
+      readFileSync(join(dir, "spin", "sample", "tokens.json"), "utf8"),
     ) as {
       color: { primary: { $value: string; $modes: Record<string, string> } };
     };
@@ -211,7 +212,7 @@ describe("the spin MCP server", () => {
     });
     deepStrictEqual(result.isError, undefined);
     const doc = JSON.parse(
-      readFileSync(join(dir, "spin", "rename-me.json"), "utf8"),
+      readFileSync(join(dir, "spin", "rename-me", "tokens.json"), "utf8"),
     ) as {
       color: { brand: { $value: string; $modes: Record<string, string> } };
     };
@@ -232,15 +233,15 @@ describe("the spin MCP server", () => {
     });
     deepStrictEqual(created.isError, undefined);
     deepStrictEqual(
-      readFileSync(join(dir, "spin", "copy.json"), "utf8"),
-      readFileSync(join(dir, "spin", "sample.json"), "utf8"),
+      readFileSync(join(dir, "spin", "copy", "tokens.json"), "utf8"),
+      readFileSync(join(dir, "spin", "sample", "tokens.json"), "utf8"),
     );
     const deleted = await mcp.callTool({
       name: "theme",
       arguments: { action: "delete", name: "copy" },
     });
     deepStrictEqual(deleted.isError, undefined);
-    deepStrictEqual(existsSync(join(dir, "spin", "copy.json")), false);
+    deepStrictEqual(existsSync(join(dir, "spin", "copy", "tokens.json")), false);
   });
 
   it("refuses a create with no source to copy", async () => {
@@ -249,7 +250,7 @@ describe("the spin MCP server", () => {
       arguments: { action: "create", name: "fresh" },
     });
     deepStrictEqual(created.isError !== undefined, true);
-    deepStrictEqual(existsSync(join(dir, "spin", "fresh.json")), false);
+    deepStrictEqual(existsSync(join(dir, "spin", "fresh", "tokens.json")), false);
   });
 
   it("writes a whole document and reports its validation", async () => {
@@ -260,7 +261,7 @@ describe("the spin MCP server", () => {
     });
     deepStrictEqual(written.isError, undefined);
     deepStrictEqual(
-      readFileSync(join(dir, "spin", "whole.json"), "utf8"),
+      readFileSync(join(dir, "spin", "whole", "tokens.json"), "utf8"),
       text,
     );
     deepStrictEqual(jsonOf(written), { error: null, issues: [] });
@@ -526,7 +527,7 @@ describe("the spin MCP server", () => {
     const contents = read.contents as Array<{ text?: string }>;
     deepStrictEqual(
       contents[0]?.text,
-      readFileSync(join(dir, "spin", "sample.json"), "utf8"),
+      readFileSync(join(dir, "spin", "sample", "tokens.json"), "utf8"),
     );
 
     // The project's own facts live here rather than on a tool: a client that
@@ -539,8 +540,8 @@ describe("the spin MCP server", () => {
     };
     deepStrictEqual(report.root, dir);
     assert(
-      report.themes.includes("sample.json"),
-      `sample.json among ${report.themes.join(",")}`,
+      report.themes.includes("sample"),
+      `sample among ${report.themes.join(",")}`,
     );
   });
 });

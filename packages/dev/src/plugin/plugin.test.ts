@@ -47,9 +47,11 @@ describe("the themes a directory holds", () => {
       JSON.stringify({ name: "probe" }),
     );
     const doc = JSON.stringify({
-      color: { primary: { $value: "#123456" } },
+      $extends: "minimal",
+      color: { $type: "color", primary: { $value: "#123456" } },
     });
-    await writeFile(join(root, "spin/local.json"), doc);
+    await mkdir(join(root, "spin", "local"));
+    await writeFile(join(root, "spin", "local", "tokens.json"), doc);
     return root;
   }
 
@@ -77,7 +79,8 @@ describe("the icons every app gets by default", () => {
       join(root, "package.json"),
       JSON.stringify({ name: "probe" }),
     );
-    await writeFile(join(root, "spin/local.json"), JSON.stringify(designLanguages.minimal));
+    await mkdir(join(root, "spin", "local"));
+    await writeFile(join(root, "spin", "local", "tokens.json"), JSON.stringify(designLanguages.minimal));
     await writeFile(
       join(root, "index.html"),
       '<span class="i-lucide-folder"></span>',

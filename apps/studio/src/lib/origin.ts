@@ -3,10 +3,10 @@
  *
  * Composition merges every layer into one document and keeps no provenance,
  * so the studio answers origin by walking the layers top-down itself: the
- * brand's component files first, then its elements layer, then its tokens
- * layer, then the design language the tokens layer extends. The first layer that
- * states the leaf's path owns it. A composite's tuple children inherit the
- * composite's origin — the expansion is the parse's, not a layer's.
+ * brand's tokens first, then the global reference, then the design language
+ * the tokens layer extends. The first layer that states the leaf's path owns
+ * it. A composite's tuple children inherit the composite's origin — the
+ * expansion is the parse's, not a layer's.
  */
 
 import { designLanguages, isDesignLanguage } from "@spinjs/theme";
@@ -15,8 +15,7 @@ import { designLanguages, isDesignLanguage } from "@spinjs/theme";
 export type LeafOrigin =
   | "language"
   | "tokens"
-  | "elements"
-  | "component"
+  | "reference"
   | "facet"
   | "unknown";
 
@@ -24,19 +23,15 @@ export type LeafOrigin =
 export interface OriginLayers {
   readonly language: string;
   readonly tokens: Record<string, unknown> | undefined;
-  readonly elements: Record<string, unknown> | undefined;
-  readonly components: ReadonlyArray<{
-    readonly file: string;
-    readonly doc: Record<string, unknown>;
-  }>;
+  readonly reference: Record<string, unknown> | undefined;
 }
 
 /**
  * The walk's layers from a brand report.
  *
- * Component files are the `primitives/*.json` keys; anything else that is
- * not the tokens or elements layer is ignored, because the walk owns its
- * layer list and a file it does not know is not a layer.
+ * The tokens layer and the global reference; anything else the report
+ * carries is ignored, because the walk owns its layer list and a file it
+ * does not know is not a layer.
  */
 export function layersOf(
   layers: Record<string, unknown>,
@@ -46,17 +41,10 @@ export function layersOf(
     typeof value === "object" && value !== null && !Array.isArray(value)
       ? (value as Record<string, unknown>)
       : undefined;
-  const components: { file: string; doc: Record<string, unknown> }[] = [];
-  for (const [file, value] of Object.entries(layers)) {
-    if (!file.startsWith("primitives/") || !file.endsWith(".json")) continue;
-    const doc = docOf(value);
-    if (doc !== undefined) components.push({ file, doc });
-  }
   return {
     language: designLanguage ?? "minimal",
     tokens: docOf(layers["tokens.json"]),
-    elements: docOf(layers["elements.json"]),
-    components,
+    reference: docOf(layers["../reference.json"]),
   };
 }
 /** Whether a document states a dotted path. */
@@ -87,11 +75,8 @@ function languageDoc(name: string): Record<string, unknown> | undefined {
 export function leafOrigin(path: readonly string[], layers: OriginLayers): LeafOrigin {
   for (let end = path.length; end > 0; end--) {
     const prefix = path.slice(0, end);
-    for (const component of layers.components) {
-      if (states(component.doc, prefix)) return "component";
-    }
-    if (states(layers.elements, prefix)) return "elements";
     if (states(layers.tokens, prefix)) return "tokens";
+    if (states(layers.reference, prefix)) return "reference";
     if (states(languageDoc(layers.language), prefix)) return "language";
   }
   return "unknown";
@@ -105,24 +90,14 @@ export function originFile(
 ): string {
   if (origin === "language") return `${layers.language}.json`;
   if (origin === "tokens") return "tokens.json";
-  if (origin === "elements") return "elements.json";
-  if (origin === "component") {
-    for (let end = path.length; end > 0; end--) {
-      const prefix = path.slice(0, end);
-      for (const component of layers.components) {
-        if (states(component.doc, prefix)) return component.file;
-      }
-    }
-    return "primitives/";
-  }
+  if (origin === "reference") return "../reference.json";
   return "the theme";
 }
 
 /** The chip's one word for an origin. */
 export function originLabel(origin: LeafOrigin): string {
   if (origin === "language") return "language";
-  if (origin === "tokens" || origin === "elements") return "brand";
-  if (origin === "component") return "component";
+  if (origin === "tokens" || origin === "reference") return "brand";
   if (origin === "facet") return "facet";
   return "language";
 }

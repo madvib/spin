@@ -77,6 +77,17 @@ const machine = select({
 ## Framework controllers
 
 ```tsx
+// React — useSpinComponent from @spinjs/components/react
+import { useSpinComponent } from "@spinjs/components/react";
+import { select } from "@spinjs/components";
+
+const ref = useRef<HTMLElement>(null);
+const ctl = useSpinComponent(ref, select);
+useEffect(() => ctl.bind({ value: "bun" }), []);
+return <app-select ref={ref} />;
+```
+
+```tsx
 // Solid — createSpinComponent from @spinjs/components/solid
 import { createSpinComponent } from "@spinjs/components/solid";
 import { select } from "@spinjs/components";
@@ -89,19 +100,8 @@ createEffect(() => ctl.bind({ value: "bun" }, {
 return <app-select ref={setElement} />;
 ```
 
-```tsx
-// React — useSpinComponent from @spinjs/components/react
-import { useSpinComponent } from "@spinjs/components/react";
-import { select } from "@spinjs/components";
-
-const ref = useRef<HTMLElement>(null);
-const ctl = useSpinComponent(ref, select);
-useEffect(() => ctl.bind({ value: "bun" }), []);
-return <app-select ref={ref} />;
-```
-
 ```ts
-// Vanilla, Vue, Svelte — spinComponentCtl from @spinjs/components/controller
+// Vue, Svelte, Vanilla — spinComponentCtl from @spinjs/components/controller
 import { spinComponentCtl } from "@spinjs/components/controller";
 import { select } from "@spinjs/components";
 
@@ -114,7 +114,24 @@ const unbind = ctl.bind({ value: "bun" }, {
 ```
 
 Always clean up the `ctl.bind(...)` subscription in the framework effect
-that created it.
+that created it: the `useEffect` return in React, `onCleanup` in Solid,
+`onUnmounted` in Vue, `onDestroy` in Svelte, the teardown callback in
+Vanilla.
+
+Project tags typecheck in every framework: `src/spin-components.d.ts`
+augments the frameworks the project's manifest spends
+(`declare module "react"`, `"solid-js"`, `"vue"`, `"svelte/elements"`),
+and `@spinjs/dev/elements/<framework>` types the Spin elements the same
+way. No framework is privileged; a project that names none falls back to
+React and Solid.
+
+## Variant attributes
+
+A variant is a class or a `variant` attribute — the same opt-in, two
+spellings. `<badge variant="primary">` and `<badge class="badge-primary">`
+wear the same tone; `<button class="subtle s-xs">` is a quiet toolbar
+control in the extra-small size, and `<button variant="subtle">` opts in
+the same way for a document that carries its variants as data.
 
 ## The MCP equivalents
 
@@ -122,6 +139,6 @@ that created it.
 - `component` tool, `contract` action: what `spin component contract`
   prints.
 - `component` tool, `copy` action: what `spin component copy` writes.
-- `findings` tool, `list` action: what `spin lint` reports.
+- `findings` tool, `list` action: what the linter reports.
 - `utility` tool: the utility classes a theme can produce, grouped by
   reader intent.

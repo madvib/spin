@@ -13,13 +13,13 @@
 
 import type { Dirent, Stats } from "node:fs";
 import { readdir, readFile, stat } from "node:fs/promises";
-import { basename, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { DEFAULT_SEMANTIC_OPTIONS, type SemanticOptions } from "./core.ts";
 import {
-  declaredClassesIn,
+  candidatesIn,
   warmVocabulary,
 } from "./generated.ts";
-import { buildRootOf, forgetFacts, judgedRoot } from "./provider.ts";
+import { forgetFacts, judgedRoot, themesRootOf } from "./provider.ts";
 import { readProjectShortcuts } from "./shortcuts.ts";
 import {
   type Diagnostic,
@@ -154,15 +154,15 @@ export async function filesUnder(path: string): Promise<string[]> {
         out.push(child);
         continue;
       }
-      // A theme document beside the sources: `spin/*.json`, but never the
-      // project's own configuration, never a package manifest, and never
-      // the icons beside the themes. A `.json` file handed over directly
-      // is already included: a path that names a file is that file.
+      // A theme layer beside the sources: a brand's `tokens.json` or the
+      // global `reference.json`. Anything else the shape does not serve is
+      // not linted here — facets are validated on load, and stray files
+      // owe nothing. A `.json` file handed over directly is already
+      // included: a path that names a file is that file.
       if (
         entry.name.endsWith(".json") &&
-        entry.name !== "config.json" &&
-        entry.name !== "package.json" &&
-        basename(directory) === "spin"
+        (entry.name === "tokens.json" || entry.name === "reference.json") &&
+        (basename(directory) === "spin" || basename(dirname(directory)) === "spin")
       ) {
         out.push(child);
       }
@@ -240,10 +240,9 @@ export async function lint(
 async function serviceAnswers(files: readonly string[]): Promise<EngineAnswers> {
   const { engineAnswers } = await import("@spinjs/preset");
   const { designLanguages } = await import("@spinjs/theme");
-  const { findProjectRootIn, readProjectThemes } = await import("./project.ts");
+  const { readProjectThemesAt } = await import("./project.ts");
   const first = files[0];
-  const root = first === undefined ? "" : (findProjectRootIn(first) ?? "");
-  const themes = root === "" ? {} : readProjectThemes(root);
+  const themes = first === undefined ? {} : readProjectThemesAt(themesRootOf(first));
   return engineAnswers([
     ...Object.values(designLanguages),
     ...Object.values(themes),
@@ -269,10 +268,10 @@ async function warmFiles(files: readonly string[]): Promise<void> {
     byRoot.set(root, list);
   }
   for (const [root, group] of byRoot) {
-    const classes = await declaredClassesIn(group);
-    const build = buildRootOf(group[0] as string);
+    const classes = await candidatesIn(group);
+    const themesRoot = themesRootOf(group[0] as string);
     for (
-      const parts of Object.values(readProjectShortcuts(build).shortcuts)
+      const parts of Object.values(readProjectShortcuts(themesRoot).shortcuts)
     ) {
       for (const part of parts) classes.add(part);
     }
@@ -339,21 +338,15 @@ export async function lintFiles(
 /**
  * Whether a theme file is a brand layer rather than a composed document.
  *
- * A brand directory holds the brand's own voice in layers — `tokens.json`,
-  * `reference.json`, `elements.json`, `primitives/*.json` — and each layer
-  * is a fragment over the design language the brand names. Flat `spin/<name>.json`
- * files beside them are composed documents, and owe the full contract.
+ * A brand directory holds the brand's own voice in `tokens.json`, and the
+ * themes directory holds the global `reference.json` beside the brands —
+ * each a fragment over the design language the brand names. Anything else
+ * is a composed document, and owes the full contract.
  */
 function isBrandLayer(file: string): boolean {
   const segments = file.split("/");
   const name = segments[segments.length - 1] as string;
-  if (
-    name === "tokens.json" || name === "reference.json" ||
-    name === "elements.json"
-  ) return true;
-  return segments.length >= 2 &&
-    segments[segments.length - 2] === "primitives" &&
-    name.endsWith(".json");
+  return name === "tokens.json" || name === "reference.json";
 }
 
 /**

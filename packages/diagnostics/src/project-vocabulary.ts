@@ -19,7 +19,6 @@ import { designLanguages } from "@spinjs/theme";
 import type { EngineAnswers } from "./engine-types.ts";
 import { deriveVocabulary } from "./vocabulary.ts";
 import type { Facts } from "./core.ts";
-import { generatedClassesNow } from "./generated.ts";
 import { paintKeyFor, type Tier, TIER_BY_GROUP } from "./tiers.ts";
 import type { Decision } from "./properties.ts";
 import { noShortcuts, type ShortcutDeclaration } from "./shortcuts.ts";
@@ -64,6 +63,8 @@ export function factsFor(
   generated: ReadonlySet<string> = new Set(),
   shortcuts: ShortcutDeclaration = noShortcuts(),
   components: readonly string[] = [],
+  iconCollections: ReadonlySet<string> = new Set(),
+  savedIcons: ReadonlySet<string> = new Set(),
 ): Facts {
   const trees = treesOf(documents);
   if (trees.length === 0) return unreadable(answers.surfaces);
@@ -122,13 +123,15 @@ export function factsFor(
     // and the rest of the facts still stand.
     //
     // Only the project's own table is vocabulary: a class the project
-    // declares in its build configuration is a class the project produces.
+    // declares in its shortcuts file is a class the project produces.
     // The preset ships no shortcuts of its own, so nothing is seeded here.
     shortcuts: shortcuts.unreadable ? null : new Map(
       Object.entries(shortcuts.shortcuts).map((
         [name, value],
       ) => [name, shortcutParts(value)] as const),
     ),
+    iconCollections,
+    savedIcons,
   };
 }
 
@@ -181,6 +184,8 @@ function unreadable(surfaces: Surfaces): Facts {
     paths: new Map(),
     surfaces,
     shortcuts: null,
+    iconCollections: new Set(),
+    savedIcons: new Set(),
   };
 }
 
@@ -196,9 +201,11 @@ function unreadable(surfaces: Surfaces): Facts {
 export function projectFacts(
   projectThemes: Record<string, ThemeDocument>,
   answers: EngineAnswers,
-  generated: ReadonlySet<string> = generatedClassesNow(),
+  generated: ReadonlySet<string> = new Set<string>(),
   shortcuts: ShortcutDeclaration = noShortcuts(),
   components: readonly string[] = [],
+  iconCollections: ReadonlySet<string> = new Set(),
+  savedIcons: ReadonlySet<string> = new Set(),
 ): Facts {
   return factsFor(
     [...Object.values(designLanguages), ...Object.values(projectThemes)],
@@ -206,5 +213,7 @@ export function projectFacts(
     generated,
     shortcuts,
     components,
+    iconCollections,
+    savedIcons,
   );
 }

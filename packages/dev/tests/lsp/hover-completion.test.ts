@@ -24,8 +24,8 @@ import type { EngineAnswers } from "@spinjs/diagnostics";
 /** A project with a theme, holding one document under each spelling. */
 async function project(): Promise<{ root: string; uri: string; vueUri: string; text: string; vueText: string }> {
   const root = await mkdtemp(join(tmpdir(), "spin-lsp-"));
-  await mkdir(`${root}/spin`);
-  await writeFile(`${root}/spin/spin.json`, JSON.stringify(editorialLanguage));
+  await mkdir(`${root}/spin/spin`, { recursive: true });
+  await writeFile(`${root}/spin/spin/tokens.json`, JSON.stringify(editorialLanguage));
   await mkdir(`${root}/src`);
   const text = `export const App = (active: boolean) => (
   <p class="bg-primary">plain</p>

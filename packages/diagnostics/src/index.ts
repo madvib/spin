@@ -23,7 +23,7 @@
  */
 
 import { RULES } from "./rules.ts";
-import { ensureCwdWarmed } from "./generated.ts";
+import { warmIfLinterHost } from "./generated.ts";
 
 export * from "./core.ts";
 export { factsFor, projectFacts } from "./project-vocabulary.ts";
@@ -146,15 +146,10 @@ export {
  * around them differs.
  */
 // oxlint's `jsPlugins: ["@spinjs/diagnostics"]` loads this entry and runs
-// visitors synchronously; library callers (`spin lint`, `spin lsp`, bundler)
-// warm per-project or skip warming so import stays fast.
-if (
-  typeof process !== "undefined" &&
-  Array.isArray(process.argv) &&
-  process.argv.some((arg) => arg.includes("oxlint"))
-) {
-  await ensureCwdWarmed();
-}
+// visitors synchronously; under a linter the named scope warms before the
+// first visitor runs, and library callers (`spin lsp`, bundler) warm
+// per-project or skip warming so import stays fast.
+await warmIfLinterHost();
 
 export default {
   meta: { name: "spin" },

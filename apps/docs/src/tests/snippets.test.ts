@@ -105,12 +105,12 @@ describe("Per-subgroup docs snippets", () => {
       sample.replace(/^npx spin\s+/, "").split(/\s+/);
     const kind = (sample: string): string => {
       const command = parseArgs(args(sample));
-      return "kind" in command ? command.kind : "lint";
+      return "kind" in command ? command.kind : "unknown";
     };
-    expect(kind(TOOLING_SNIPPETS.lint)).toBe("lint");
-    expect(kind(TOOLING_SNIPPETS.lintFix)).toBe("lint");
     expect(kind(TOOLING_SNIPPETS.studioServe)).toBe("studio");
     expect(kind(TOOLING_SNIPPETS.mcp)).toBe("mcp");
+    expect(TOOLING_SNIPPETS.lint.startsWith("npx oxlint")).toBe(true);
+    expect(TOOLING_SNIPPETS.lintFix.startsWith("npx oxlint")).toBe(true);
   });
 
   test("the MCP config names the stdio server", () => {

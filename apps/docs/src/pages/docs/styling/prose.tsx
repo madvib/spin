@@ -119,7 +119,7 @@ export default function StylingProse(): JSX.Element {
         <Code
           code={FONT_MAP_SNIPPET}
           lang="json"
-          title="Re-pointing an element's type in spin/<brand>/elements.json"
+          title="Re-pointing an element's type in spin/<brand>/tokens.json"
         />
         <p class="max-w-prose">
           While elements carry a style, <code>&lt;a&gt;</code> and{" "}

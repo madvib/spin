@@ -120,7 +120,7 @@ export function PageHeader(props: {
           <button
             type="button"
             onClick={onCopyMarkdown}
-             class="bare inline-flex items-center gap-1 rounded-md border bg-surface-raised px-2 py-1 type-code text-muted transition-colors duration-fast hover:border-strong"
+             class="subtle s-xs inline-flex items-center gap-1 type-code text-muted transition-colors duration-fast"
           >
             <span
               class={

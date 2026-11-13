@@ -19,7 +19,7 @@
  * it.
  */
 
-import { ensureCwdWarmed } from "./generated.ts";
+import { warmIfLinterHost } from "./generated.ts";
 import {
   type GateNode,
   type GateRule,
@@ -99,10 +99,10 @@ export const ruleNames = RULE_NAMES;
  * everywhere. A configuration that wants a different set writes the rules
  * out by name instead.
  */
-// ESLint and oxlint invoke rule visitors synchronously with no async pre-lint
-// hook; warming at plugin load resolves the project's dynamic Uno utilities
-// before the first visitor runs while keeping `@spinjs/diagnostics` lazy.
-await ensureCwdWarmed();
+// Linter visitors are synchronous with no async hook; warming the named
+// scope at plugin load resolves the project's dynamic utilities before the
+// first visitor runs. Any other host pays nothing.
+await warmIfLinterHost();
 
 export const plugin: EslintPlugin = {
   meta: { name: "spin", version: "0.1.0" },
@@ -113,7 +113,7 @@ export const plugin: EslintPlugin = {
 plugin.configs.recommended = [
   {
     name: "spin/recommended",
-    files: ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
+    files: ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx", "**/*.html", "**/*.vue", "**/*.svelte"],
     plugins: { spin: plugin },
     rules: {
       "spin/no-redundant-class": "error",

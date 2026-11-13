@@ -661,3 +661,58 @@ test("a link acting as a button clears text-decoration above bare <a>", async ()
     "role=button clears the <a> underline with higher specificity than bare <a>",
   );
 });
+
+test("a subtle button wears the raised surface with the default edge and no shadow", async () => {
+  // The quiet toolbar control: the raised fill and the divider edge it
+  // would otherwise rebuild from utilities, with the page's ink — and no
+  // shadow, because a row of quiet controls must not float.
+  const css = await sheetFor('<button class="subtle">Copy</button>');
+  const decls = declarationsFor(
+    css,
+    ':is(button:where(:not([role])), :where([type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"])).subtle, :is(button:where(:not([role])), :where([type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"]))[variant~="subtle"]',
+  );
+  deepStrictEqual(decls["background-color"], "var(--color-surface-raised)");
+  deepStrictEqual(decls["border-color"], "var(--color-border)");
+  deepStrictEqual(decls["box-shadow"], "none");
+  deepStrictEqual(decls["color"], "var(--color-text)");
+});
+
+test("a subtle hover answers without lifting", async () => {
+  // The edge takes the strong step and the fill settles to the page
+  // surface; the shadow and the transform stay suppressed, because a
+  // quiet control that floats on hover is not quiet.
+  const css = await sheetFor('<button class="subtle">Copy</button>');
+  const hover = declarationsFor(
+    css,
+    ':is(button:where(:not([role])), :where([type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"])).subtle:hover:not(:disabled):not([aria-disabled="true"]):not([aria-busy="true"])',
+  );
+  deepStrictEqual(hover["background-color"], "var(--color-surface)");
+  deepStrictEqual(hover["border-color"], "var(--color-border-strong)");
+  deepStrictEqual(hover["box-shadow"], "none");
+  deepStrictEqual(hover["transform"], "none");
+});
+
+test("an extra-small button floors below the small step but above a badge", async () => {
+  // The toolbar size: the small step's padding with the code voice, so the
+  // min-height lands under `s-sm` — and the floor accounts for the edge,
+  // which is what keeps the control distinguishable from an edgeless pill.
+  const css = await sheetFor('<button class="s-xs">Copy</button><button class="s-sm">Save</button>');
+  const base = ':is(button:where(:not([role])), :where([type="submit"], [type="reset"], [type="button"]:not([role]), [role="button"]))';
+  const xs = declarationsFor(css, `${base}.s-xs, ${base}[variant~="s-xs"]`);
+  const sm = declarationsFor(css, `${base}.s-sm, ${base}[variant~="s-sm"]`);
+  deepStrictEqual(xs["padding-inline-start"], "var(--spacing-2)");
+  deepStrictEqual(xs["padding-top"], "var(--spacing-1)");
+  deepStrictEqual(xs["font-size"], "var(--button-s-xs-type-size)");
+  deepStrictEqual(
+    xs["min-height"],
+    "calc(var(--button-s-xs-type-size) + (2 * var(--spacing-1)) + (2 * var(--border-width)))",
+  );
+  assert(
+    (xs["min-height"] ?? "").includes("(2 * var(--border-width))"),
+    "the extra-small floor accounts for the edge",
+  );
+  deepStrictEqual(
+    sm["min-height"],
+    "calc(var(--button-s-sm-type-size) + (2 * var(--spacing-1)) + (2 * var(--border-width)))",
+  );
+});

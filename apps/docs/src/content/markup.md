@@ -67,11 +67,11 @@ Add `.primary`, `.secondary`, `.outline`, `.ghost`, `.contrast`, or `.danger` (o
 </div>
 ```
 
-Reach for a variant class (`.primary`, `.secondary`, `.ghost`) when one button on a screen plays a different role. Edit component tokens in `spin/<brand>/primitives/*.json` (such as `button.radius` or `card.padding`) when you want to change how that element looks everywhere in your app (see [Layers](/docs/themes/customization#layers) and [Reference](/docs/themes/reference#elements)). When a widget needs multi-part state orchestration, keyboard navigation, and roving focus — a combobox, select, tabs, dialog, or menu — vendor a statechart machine into `src/lib/components/` with `npx spin component copy <name> <example>` so you own its markup while your brand and primitives style every part inside it (see the [Components catalog](/components)).
+Reach for a variant class (`.primary`, `.secondary`, `.ghost`) when one button on a screen plays a different role. Edit component tokens in `spin/<brand>/tokens.json` (such as `button.radius` or `card.padding`) when you want to change how that element looks everywhere in your app (see [Layers](/docs/themes/customization#layers) and [Reference](/docs/themes/reference#elements)). When a widget needs multi-part state orchestration, keyboard navigation, and roving focus — a combobox, select, tabs, dialog, or menu — vendor a statechart machine into `src/lib/components/` with `npx spin component copy <name> <example>` so you own its markup while your brand and primitives style every part inside it (see the [Components catalog](/components)).
 
 ## How the system reasons about your markup
 
-Write markup against primitives and utilities and run `npx spin lint .` (see [Lints](/docs/tooling/lints)) to verify four promises that keep your templates consistent across theme and mode switches:
+Write markup against primitives and utilities and run `npx oxlint .` (see [Lints](/docs/tooling/lints)) to verify four promises that keep your templates consistent across theme and mode switches:
 
 1. **Elements arrive with their look decided.** Write `<button>` or `<h1>` and its default weight, size, and surface are already set; restating the same value in a utility class adds noise without changing a pixel, so `spin/no-redundant-class` flags the duplicate class and removes it on `--fix`:
 

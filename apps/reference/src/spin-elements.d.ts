@@ -16,3 +16,5 @@
  */
 // oxlint-disable-next-line typescript/triple-slash-reference
 /// <reference types="@spinjs/preset/elements" />
+// oxlint-disable-next-line typescript/triple-slash-reference
+/// <reference types="@spinjs/preset/elements/solid" />

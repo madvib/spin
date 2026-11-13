@@ -146,15 +146,31 @@ test("the registration module imports every file from the project root", () => {
   );
 });
 
-test("the generated types name every tag in both the DOM map and Solid JSX", () => {
-  const dts = renderComponentsDts(["studio-b", "studio-a"]);
+function declaredModules(dts: string): string[] {
+  return [...dts.matchAll(/^declare module "([^"]+)" \{/gm)].map((m) => m[1]!);
+}
+
+test("the generated types name every tag in the DOM map and the named frameworks", () => {
+  const dts = renderComponentsDts(["studio-b", "studio-a"], ["react", "vue"]);
   for (const tag of ["studio-a", "studio-b"]) {
     deepStrictEqual(dts.includes(`"${tag}": HTMLElement & SpinProjectComponentAttributes;`), true);
     deepStrictEqual(dts.includes(`"${tag}": SpinProjectComponentAttributes;`), true);
   }
+  deepStrictEqual(declaredModules(dts), ["react", "vue"]);
   deepStrictEqual(dts.includes('declare module "spin/styles.css";'), true);
   deepStrictEqual(dts.includes('declare module "spin.css";'), true);
   deepStrictEqual(dts.includes('declare module "uno.css";'), true);
   deepStrictEqual(dts.includes('declare module "spin/components";'), true);
+});
+
+test("an unnamed framework set falls back to React and Solid", () => {
+  const dts = renderComponentsDts(["studio-a"]);
+  deepStrictEqual(declaredModules(dts), ["react", "solid-js"]);
+});
+
+test("svelte reads the tags through its elements module", () => {
+  const dts = renderComponentsDts(["studio-a"], ["svelte"]);
+  deepStrictEqual(declaredModules(dts), ["svelte/elements"]);
+  deepStrictEqual(dts.includes("SvelteHTMLElements"), true);
 });
 

@@ -2,10 +2,10 @@
  * A project's brands: one directory of layered theme documents each.
  *
  * The brand is the init flow's unit: `spin/<brand>/` holds the definition
- * (`brand.json` — name, description, nothing token-shaped), the token
- * layers (`tokens.json` first, then `elements.json`, then each primitive
- * file), and the seating the project serves under (`spin/config.json`).
- * Reading the disk, seating the brand, and refusing collisions live here;
+ * (`brand.json` — name, description, nothing token-shaped) and the token
+ * layer (`tokens.json` — every token override the brand states). A global
+ * `reference.json` at the root of the themes directory composes under
+ * every brand. Reading the disk and refusing collisions live here;
  * judging and generating live in `@spinjs/theme/brand`.
  *
  * The error voice matches `assertFacet`: brand + file + issue, said aloud —
@@ -88,30 +88,30 @@ function themeJson(document: unknown): string {
   return JSON.stringify(document, null, 2) + "\n";
 }
 
-/** The brand's own layers, in the order the build composes: tokens, elements, primitives. */
-async function readLayers(dir: string): Promise<{ file: string; layer: ThemeDocument }[]> {
-  const { readdir } = await import("node:fs/promises");
+/**
+ * The brand's own layers, in the order the build composes.
+ *
+ * The global `reference.json` first when the themes directory holds one,
+ * then the brand's `tokens.json`. Every token override the brand states
+ * lives in `tokens.json`: there are no other layers.
+ */
+async function readLayers(
+  brandDir: string,
+  themesRoot: string,
+): Promise<{ file: string; layer: ThemeDocument }[]> {
   const { join } = await import("node:path");
   const tagged: { file: string; layer: ThemeDocument }[] = [];
-  const tokens = await readJson(join(dir, "tokens.json"));
-  if (tokens !== undefined) tagged.push({ file: join(dir, "tokens.json"), layer: tokens });
-  const elements = await readJson(join(dir, "elements.json"));
-  if (elements !== undefined) tagged.push({ file: join(dir, "elements.json"), layer: elements });
-  let primitiveFiles: string[] = [];
-  try {
-    primitiveFiles = (await readdir(join(dir, "primitives"))).filter((name) => name.endsWith(".json")).sort();
-  } catch {
-    // No primitives directory: the brand states no component overrides.
+  const reference = await readJson(join(themesRoot, "reference.json"));
+  if (reference !== undefined) {
+    tagged.push({ file: join(themesRoot, "reference.json"), layer: reference });
   }
-  for (const file of primitiveFiles) {
-    const layer = await readJson(join(dir, "primitives", file));
-    if (layer !== undefined) tagged.push({ file: join(dir, "primitives", file), layer });
-  }
+  const tokens = await readJson(join(brandDir, "tokens.json"));
+  if (tokens !== undefined) tagged.push({ file: join(brandDir, "tokens.json"), layer: tokens });
   return tagged;
 }
 
-function parentOf(tagged: readonly { layer: ThemeDocument }[]): { name: string; document: ThemeDocument | undefined } | { name: undefined; document: undefined } {
-  const tokens = tagged[0]?.layer;
+function parentOf(tagged: readonly { file: string; layer: ThemeDocument }[]): { name: string; document: ThemeDocument | undefined } | { name: undefined; document: undefined } {
+  const tokens = tagged.find((entry) => entry.file.endsWith("tokens.json"))?.layer;
   const parentName = tokens?.["$extends"];
   if (typeof parentName !== "string") return { name: undefined, document: undefined };
   if (!isDesignLanguage(parentName)) return { name: parentName, document: undefined };
@@ -119,13 +119,13 @@ function parentOf(tagged: readonly { layer: ThemeDocument }[]): { name: string; 
 }
 
 /**
- * Makes a brand: the directory, the definition, and the config seating.
+ * Makes a brand: the directory, the definition, and the project's brand.
  *
  * The brand starts with no tokens — `create` writes the directory, the
- * `brand.json` definition, and the `spin/config.json` seating, and the
- * design language, palette, and type follow as their own procedures. A
- * brand that already exists is a collision, refused naming the brand:
- * `create` never overwrites a brand someone saved.
+ * `brand.json` definition, and the project's `brand` when the project names
+ * none yet, and the design language, palette, and type follow as their own
+ * procedures. A brand that already exists is a collision, refused naming
+ * the brand: `create` never overwrites a brand someone saved.
  */
 export async function createBrand(options: BrandCreateOptions): Promise<BrandWriteResult> {
   const { mkdir, writeFile, readFile } = await import("node:fs/promises");
@@ -171,7 +171,9 @@ export async function createBrand(options: BrandCreateOptions): Promise<BrandWri
       } catch {
         config = {};
       }
-      await writeFile(configFile, themeJson({ ...config, activeTheme: options.name }), "utf8");
+      if (typeof config["brand"] !== "string") {
+        await writeFile(configFile, themeJson({ ...config, brand: options.name }), "utf8");
+      }
     }
     return { error: null };
   } catch (err) {
@@ -180,14 +182,13 @@ export async function createBrand(options: BrandCreateOptions): Promise<BrandWri
 }
 
 /**
- * Renames a brand: the directory, the seating, and the name inside.
+ * Renames a brand: the directory, the project's brand, and the name inside.
  *
- * The `spin/<brand>/` directory moves, the config's `activeTheme` and
- * `themeOrder` entries naming the old brand move with it, the `brand.json`
-  * `name` moves, and any layer `$extends` naming the old brand moves too
-  * (brands extend design languages, so usually a no-op — still walked, refusing
- * nothing). A missing source and a colliding target are refused in the
- * create voice.
+ * The `spin/<brand>/` directory moves, the config's `brand` entry naming
+ * the old brand moves with it, the `brand.json` `name` moves, and any layer
+ * `$extends` naming the old brand moves too (brands extend design
+ * languages, so usually a no-op — still walked, refusing nothing). A
+ * missing source and a colliding target are refused in the create voice.
  */
 export async function renameBrand(
   root: string,
@@ -235,7 +236,7 @@ export async function renameBrand(
     } catch {
       // No definition to rename inside.
     }
-    for (const entry of await readLayers(toDir)) {
+    for (const entry of await readLayers(toDir, dir)) {
       if (entry.layer["$extends"] === brand) {
         await writeFile(entry.file, themeJson({ ...entry.layer, $extends: to }), "utf8");
       }
@@ -243,14 +244,9 @@ export async function renameBrand(
     const configFile = join(dir, CONFIG_FILENAME);
     try {
       const config = JSON.parse(await readFile(configFile, "utf8")) as Record<string, unknown>;
-      const next: Record<string, unknown> = { ...config };
-      if (config["activeTheme"] === brand) next["activeTheme"] = to;
-      if (Array.isArray(config["themeOrder"])) {
-        next["themeOrder"] = (config["themeOrder"] as unknown[]).map((name) =>
-          name === brand ? to : name
-        );
+      if (config["brand"] === brand) {
+        await writeFile(configFile, themeJson({ ...config, brand: to }), "utf8");
       }
-      await writeFile(configFile, themeJson(next), "utf8");
     } catch {
       // No config to reseat.
     }
@@ -351,7 +347,9 @@ export async function copyBrandDirectory(
     } catch {
       config = {};
     }
-    await writeFile(configFile, themeJson({ ...config, activeTheme: name }), "utf8");
+    if (typeof config["brand"] !== "string") {
+      await writeFile(configFile, themeJson({ ...config, brand: name }), "utf8");
+    }
     return { error: null };
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
@@ -533,7 +531,7 @@ export async function getBrand(
   brand: string,
   themesDir?: string,
 ): Promise<BrandReport> {
-  const { join } = await import("node:path");
+  const { join, relative } = await import("node:path");
   const dir = await themesDirOf(root, themesDir);
   const brandDir = join(dir, brand);
   const definition = (await readJson(join(brandDir, "brand.json"))) as Record<string, unknown> | undefined;
@@ -547,10 +545,10 @@ export async function getBrand(
       issues: [{ layer: "definition", path: "", message: `no brand named ${brand}` }],
     };
   }
-  const tagged = await readLayers(brandDir);
+  const tagged = await readLayers(brandDir, dir);
   const layers: Record<string, ThemeDocument> = {};
   for (const entry of tagged) {
-    layers[entry.file.slice(brandDir.length + 1)] = entry.layer;
+    layers[relative(brandDir, entry.file)] = entry.layer;
   }
   if (tagged.length === 0) {
     return {

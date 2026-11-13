@@ -596,7 +596,7 @@ export default function StylingElements(): JSX.Element {
           Reach for a variant class (<code>.primary</code>,{" "}
           <code>.secondary</code>, <code>.ghost</code>) when one button on a
           screen plays a different role. Edit component tokens in{" "}
-          <code>spin/&lt;brand&gt;/primitives/*.json</code> (such as{" "}
+          <code>spin/&lt;brand&gt;/tokens.json</code> (such as{" "}
           <code>button.radius</code> or <code>card.padding</code>) when you
           want to change how that element looks everywhere in your app (see{" "}
           <A href="/docs/themes/customization#layers">Layers</A> and{" "}
@@ -619,7 +619,7 @@ export default function StylingElements(): JSX.Element {
       >
         <p class="max-w-prose">
           Write markup against primitives and utilities and run{" "}
-          <code>npx spin lint .</code> (documented in{" "}
+          <code>npx oxlint .</code> (documented in{" "}
           <A href="/docs/tooling/lints">Lints</A>) to verify four promises that
           keep your templates consistent across theme and mode switches:
         </p>

@@ -1,36 +1,16 @@
 /**
  * The CLI: a client of the service.
  *
- * The rules are decided in the core, and the service owns the operations
- * over them. The CLI is a client: it reads the command line, asks the
- * service, and prints what came back. It decides nothing about what is
- * wrong with the code — that is the service's answer, and the editor's
- * answer, and they are the same answer.
- *
- * The lint is the operation:
- *
- *   spin lint [path] [--fix] [--format json]   the rules, over a path
- *
- * The parser is the one thing the CLI needs that a linter brings with it:
- * a tree to walk. It reads TypeScript and JavaScript, JSX included, and
- * hands over the same ESTree shape ESLint's own parser produces — which is
- * why the findings land on the same lines and columns a linter's do.
+ * Project scaffolding, brand reads, component reads, the studio, the agent
+ * server, and the language server. The rules live in `@spinjs/diagnostics`
+ * behind the oxlint and ESLint plugins — the CLI no longer walks source
+ * itself.
  */
 
-import { readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { realpathSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  applyFixes,
-  DEFAULT_SEMANTIC_OPTIONS,
-  type Diagnostic,
-  lint,
-  type RuleName,
-  RULES,
-  type SemanticOptions,
-  type SemanticTags,
-  type Strictness,
-  type TextEdit,
   analyzeContract,
   contractInsertions,
   contractJson,
@@ -43,14 +23,6 @@ export class CliUsageError extends Error {}
 
 /* ------------------------------------------------------------ the options -- */
 
-/** The dials the semantic rules read. */
-const STRICTNESS: readonly Strictness[] = ["strict", "balanced", "lenient"];
-const SEMANTIC_TAGS: readonly SemanticTags[] = [
-  "all",
-  "native",
-  "spin",
-  "none",
-];
 const FORMATS = ["text", "json"] as const;
 
 /** How the findings are printed. */
@@ -150,23 +122,9 @@ export interface ComponentCommand {
   readonly format: Format;
 }
 
-/** What the CLI was asked to do: the rules, over a path. */
-export interface LintCommand {
-  readonly kind: "lint";
-  readonly paths: readonly string[];
-  /** How the findings are printed. */
-  readonly format: Format;
-  /** The dials the semantic rules read. */
-  readonly semantic: SemanticOptions;
-  /** The rules to run. */
-  readonly rules: readonly RuleName[];
-  /** Whether the edits the findings carry were asked for. */
-  readonly fix: boolean;
-}
 
 /** What the CLI was asked to do. */
 export type Command =
-  | LintCommand
   | InitCommand
   | StudioCommand
   | McpCommand
@@ -180,8 +138,7 @@ export interface HelpCommand {
   readonly kind: "help";
 }
 
-const USAGE = `spin — the project and the rules.
-
+const USAGE = `spin — the project, its brands, and its components.
 Usage:
   spin init [options]
   spin studio [options]
@@ -189,7 +146,6 @@ Usage:
   spin lsp [options]
   spin brand <list|analyze|rename> [name] [options]
   spin component <list|contract|copy> [name] [example] [options]
-  spin lint [options] [path...]
   studio      open the standalone theme editor: the API, and the studio beside it
   mcp         run the agent server over stdio
   lsp         run the language server over stdio
@@ -230,7 +186,7 @@ Options for brand:
   --root <dir>           the project root (default: the current directory)
   --url <url>            the daemon to dial (default: in-process)
   --format <text|json>   how the answer is printed (default: text)
-  --contract[=a,b]       compare the scale keys across the shipped set (default: contractThemes in spin/config.json)
+  --contract[=a,b]       compare the scale keys across the shipped set (names the themes, or reads positionals)
   --migrate              list the missing scale keys with their neighbors (needs --contract)
   -h, --help             this text
 
@@ -240,44 +196,25 @@ Options for component:
   --format <text|json>   how the answer is printed (default: text)
   -h, --help             this text
 
-Options for lint:
-  --format <text|json>     how the findings are printed (default: text)
-  --strictness <dial>      strict | balanced | lenient (default: strict)
-  --semantic-tags <which>  all | native | spin | none (default: native)
-  --rule <name>            run only this rule (repeatable)
-  --fix                    apply the edits the findings carry
-  -h, --help               this text
-
-
-Paths may be files or directories. The files read are the JavaScript and
-TypeScript ones (.js, .jsx, .mjs, .cjs, .ts, .tsx) and the component files
-beside them (.html, .vue, .svelte, .astro — but never an index.html document shell).
-
 Exit codes:
-  0  nothing to report, or only warnings
+  0  nothing to report
   1  an error to report
   2  the CLI could not read what it was asked to read`;
 
-/**
- * Read the command line.
- *
- * The dials are the semantic rule's own, under the names the rule's schema
- * gives them: `--strictness balanced` is `{ strictness: "balanced" }`.
- */
+/** Read the command line. */
 export function parseArgs(argv: readonly string[]): Command {
   // A `--` is the end of the options: everything after it is the command,
-  // whatever it is called. `bun run lint:cli -- lint src/` is one way to
-  // say it.
+  // whatever it is called.
   const [command, ...rest] = argv[0] === "--" ? argv.slice(1) : argv;
   if (command === undefined) {
     throw new CliUsageError(
-      "Name a command: init, studio, mcp, lsp, brand, component, or lint.",
+      "Name a command: init, studio, mcp, lsp, brand, or component.",
     );
   }
   if (command === "-h" || command === "--help" || command === "help") {
     return { kind: "help" };
   }
-  if (command === "lint") return parseLint(rest);
+  if (command === "lint") throw new CliUsageError(`Unknown command "lint". Run the spin rules through oxlint or ESLint instead.`);
   if (command === "init") return parseInit(rest);
   if (command === "studio") return parseStudio(rest);
   if (command === "mcp") return parseMcp(rest);
@@ -652,93 +589,6 @@ function parseComponent(argv: readonly string[]): Command {
   };
 }
 
-/** The rules, over a path. */
-function parseLint(argv: readonly string[]): Command {
-  const paths: string[] = [];
-  const rules: RuleName[] = [];
-  let format: Format = "text";
-  let strictness: Strictness = "strict";
-  let semanticTags: SemanticTags = DEFAULT_SEMANTIC_OPTIONS.semanticTags;
-  let fix = false;
-  let help = false;
-
-  for (const argument of read(argv)) {
-    switch (argument.name) {
-      case "help":
-        help = true;
-        break;
-      case "format": {
-        const value = argument.value as string;
-        if (!FORMATS.includes(value as Format)) {
-          throw new CliUsageError(
-            `--format takes ${FORMATS.join(" or ")}, not "${value}".`,
-          );
-        }
-        format = value as Format;
-        break;
-      }
-      case "strictness": {
-        const value = argument.value as string;
-        if (!STRICTNESS.includes(value as Strictness)) {
-          throw new CliUsageError(
-            `--strictness takes ${STRICTNESS.join(", ")}, not "${value}".`,
-          );
-        }
-        strictness = value as Strictness;
-        break;
-      }
-      case "semantic-tags": {
-        const value = argument.value as string;
-        if (!SEMANTIC_TAGS.includes(value as SemanticTags)) {
-          throw new CliUsageError(
-            `--semantic-tags takes ${
-              SEMANTIC_TAGS.join(", ")
-            }, not "${value}".`,
-          );
-        }
-        semanticTags = value as SemanticTags;
-        break;
-      }
-      case "rule": {
-        const value = argument.value as string;
-        const name = value.startsWith("spin/") ? value.slice(5) : value;
-        if (!(name in RULES)) {
-          throw new CliUsageError(
-            `--rule takes a rule of this plugin, not "${value}".`,
-          );
-        }
-        rules.push(name as RuleName);
-        break;
-      }
-      case "fix":
-        fix = true;
-        break;
-      default:
-        if (argument.option) {
-          throw new CliUsageError(`Unknown option "${argument.raw}".`);
-        }
-        paths.push(argument.name);
-    }
-  }
-
-  if (help) {
-    return { kind: "help" };
-  }
-  // No path names the whole tree: a lint that judges only the paths an
-  // author remembers is a lint with holes, and the product's own gate is
-  // this command with no arguments.
-  const scoped = paths.length > 0 ? paths : ["."];
-  return {
-    kind: "lint",
-    paths: scoped,
-    format,
-    semantic: { strictness, semanticTags },
-    rules: rules.length > 0
-      ? [...new Set(rules)]
-      : (Object.keys(RULES) as RuleName[]),
-    fix,
-  };
-}
 
 
 /**
@@ -751,9 +601,6 @@ function read(argv: readonly string[]): Argument[] {
   const out: Argument[] = [];
   const takesValue = new Set([
     "format",
-    "strictness",
-    "semantic-tags",
-    "rule",
     "config",
     "harness",
     "root",
@@ -831,53 +678,14 @@ interface Argument {
   readonly raw: string;
 }
 
-/* -------------------------------------------------------------- the report -- */
-
-/** The findings, as text. */
-export function formatText(findings: readonly Diagnostic[]): string {
-  const lines: string[] = [];
-  let file = "";
-  for (const finding of findings) {
-    if (finding.file !== file) {
-      file = finding.file;
-      lines.push(file);
-    }
-    lines.push(
-      `  ${finding.line}:${finding.column}  ${finding.ruleId}  ${finding.message}`,
-    );
-  }
-  if (findings.length > 0) {
-    lines.push("");
-    lines.push(
-      `${findings.length} finding${findings.length === 1 ? "" : "s"}`,
-    );
-  }
-  return lines.join("\n");
-}
-
-/** The findings, as JSON. */
-export function formatJson(findings: readonly Diagnostic[]): string {
-  const files = new Set(findings.map((finding) => finding.file));
-  return JSON.stringify(
-    {
-      version: 1,
-      findings,
-      summary: { findings: findings.length, files: files.size },
-    },
-    null,
-    2,
-  );
-}
 
 /* ------------------------------------------------------------------ the run -- */
 
 /**
  * Run the CLI.
  *
- * The exit code is what a script reads: 0 when there is nothing to report,
- * 1 when there is an error, 2 when the CLI could not read what it was
- * asked to read. A warning is reported and does not fail the run: an
- * advisory is another way of doing it, not a mistake.
+ * The exit code is what a script reads: 0 when the command ran, 2 when the
+ * CLI could not read what it was asked to read.
  */
 export async function run(
   argv: readonly string[],
@@ -897,8 +705,6 @@ export async function run(
     return 0;
   }
   switch (command.kind) {
-    case "lint":
-      return await runLint(command, write, warn);
     case "init":
       return await runInit(command, write, warn);
     case "studio":
@@ -913,116 +719,6 @@ export async function run(
       return await runComponent(command, write, warn);
   }
 }
-
-/** The rules, over a path. */
-async function runLint(
-  command: LintCommand,
-  write: (line: string) => void,
-  warn: (line: string) => void,
-): Promise<number> {
-  const options = {
-    rules: command.rules,
-    semantic: command.semantic,
-  };
-  let report = await lintAll(command.paths, options);
-  for (const path of report.missing) warn(`Cannot read "${path}".`);
-  for (const file of report.unreadable) warn(`Could not read "${file}".`);
-
-  if (command.fix) {
-    report = await fix(command.paths, options, warn);
-  }
-  write(
-    command.format === "json"
-      ? formatJson(report.findings)
-      : formatText(report.findings),
-  );
-  if (report.missing.length > 0 || report.unreadable.length > 0) return 2;
-  return report.findings.some((finding) => finding.severity === "error")
-    ? 1
-    : 0;
-}
-
-/** The rules, over every path, and the reports they give. */
-async function lintAll(
-  paths: readonly string[],
-  options: { rules: readonly RuleName[]; semantic: SemanticOptions },
-) {
-  const findings: Diagnostic[] = [];
-  const unreadable: string[] = [];
-  const missing: string[] = [];
-  for (const path of paths) {
-    const report = await lint(path, undefined, options);
-    findings.push(...report.findings);
-    unreadable.push(...report.unreadable);
-    missing.push(...report.missing);
-  }
-  return { findings, unreadable, missing };
-}
-
-/**
- * Apply the edits the findings carry, and read the files again.
- *
- * Two edits can touch the same text — a class and its neighbour both
- * leaving — and only one of them can be applied at a time. So the files
- * are read again after the edits, and the next pass settles what the first
- * could not. The loop ends when a pass changes nothing.
- */
-async function fix(
-  paths: readonly string[],
-  options: { rules: readonly RuleName[]; semantic: SemanticOptions },
-  warn: (line: string) => void,
-): Promise<Awaited<ReturnType<typeof lintAll>>> {
-  let report = await lintAll(paths, options);
-  for (let pass = 0; pass < 10; pass += 1) {
-    if (!writeFixes(report.findings, warn)) break;
-    report = await lintAll(paths, options);
-  }
-  return report;
-}
-
-/**
- * Apply the edits the findings carry, and write the files back.
- *
- * The findings that were applied are gone: the file no longer says what
- * they said. The ones that could not be applied — two edits over the same
- * text — stay, because the file still says what they said.
- */
-function writeFixes(
-  findings: readonly Diagnostic[],
-  warn: (line: string) => void,
-): boolean {
-  const byFile = new Map<string, Diagnostic[]>();
-  for (const finding of findings) {
-    if (finding.fix === undefined) continue;
-    const list = byFile.get(finding.file) ?? [];
-    list.push(finding);
-    byFile.set(finding.file, list);
-  }
-  let changed = false;
-  for (const [file, list] of byFile) {
-    let code: string;
-    try {
-      code = readFileSync(file, "utf8");
-    } catch {
-      warn(`Could not read "${file}".`);
-      continue;
-    }
-    const { code: patched, applied } = applyFixes(
-      code,
-      list.map((finding) => finding.fix as TextEdit),
-    );
-    if (applied === 0) continue;
-    try {
-      writeFileSync(file, patched);
-    } catch (error) {
-      warn(error instanceof Error ? error.message : String(error));
-      continue;
-    }
-    changed = true;
-  }
-  return changed;
-}
-
 
 /** Make a project: a brand, and a build config that wires spin. */
 async function runInit(
@@ -1194,7 +890,10 @@ async function runCrossTheme(
   }
   let shortcuts: Record<string, readonly string[]> = {};
   try {
-    shortcuts = (await readConfiguration(root)).shortcuts;
+    const { readConfiguration, readProjectShortcutsFile } = await import("@spinjs/server/project");
+    const { join } = await import("node:path");
+    const config = await readConfiguration(root);
+    shortcuts = readProjectShortcutsFile(join(root, config.themesDir)).shortcuts;
   } catch {
     // No configuration: no project compositions to judge.
   }
@@ -1266,6 +965,23 @@ async function runContract(
 
 
 /** Read the brands: list or analyze one. */
+async function warnForeignFiles(root: string, warn: (line: string) => void): Promise<void> {
+  try {
+    const { foreignFiles, readConfiguration, resolveProjectDir } = await import("@spinjs/server/project");
+    const { join } = await import("node:path");
+    const config = await readConfiguration(root).catch(() => null);
+    const value = config?.themesDir ?? "spin";
+    const resolved = await resolveProjectDir(root, value, "themes").catch(() => null);
+    if (resolved === null || resolved.file) return;
+    for (const file of foreignFiles(resolved.path)) {
+      warn(`${join(value, file)} is code inside the themes directory: themes hold DTCG JSON, config.json, shortcuts.json, and icons/ — move it out.`);
+    }
+  } catch {
+    // No themes directory: nothing foreign in it.
+  }
+}
+
+/** Read the brands: list or analyze one. */
 async function runBrandRead(
   command: BrandCommand,
   write: (line: string) => void,
@@ -1286,6 +1002,7 @@ async function runBrandRead(
       print(listed.map((entry) => entry.name));
       return 0;
     }
+    await warnForeignFiles(command.root ?? process.cwd(), warn);
     // `--contract` answers the per-pair question: whether the shipped set
     // declares the same scale keys. `--migrate` needs that question asked:
     // without it there is no gap to place.
@@ -1297,18 +1014,9 @@ async function runBrandRead(
       const listed = await client.project.themes.list({
         ...(command.root === undefined ? {} : { root: command.root }),
       });
-      let names = [...(command.contractThemes ?? [])];
+      const names = [...(command.contractThemes ?? [])];
       if (names.length === 0) {
-        try {
-          const { readConfig } = await import("@spinjs/server/project");
-          const root = command.root ?? process.cwd();
-          names = [...(await readConfig(root)).config.contractThemes ?? []];
-        } catch {
-          // No configuration: no shipped set to compare.
-        }
-      }
-      if (names.length === 0) {
-        warn("the contract compares a shipped set: name themes with --contract=a,b, or set contractThemes in spin/config.json.");
+        warn("the contract compares a shipped set: name themes with --contract=a,b.");
         return 2;
       }
       return await runContract(command, listed, names, write, warn);

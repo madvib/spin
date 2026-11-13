@@ -69,7 +69,7 @@ export function CodeFrame(props: {
             aria-label={
               props.title ? `Copy ${props.title}` : "Copy code snippet"
             }
-             class="bare inline-flex items-center gap-1 rounded-sm px-2 py-1 type-code text-muted transition-colors duration-fast hover:bg-surface"
+             class="subtle s-xs inline-flex items-center gap-1 type-code text-muted transition-colors duration-fast"
           >
             <span
               class={

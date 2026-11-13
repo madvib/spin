@@ -16,7 +16,7 @@ Every painted fill role in your theme has a paired foreground ink verified again
 
 ## Project shortcuts
 
-Spin ships no shortcuts of its own. Declare the compositions your app repeats in `spin.vite({ shortcuts: { ... } })` — the worked example lives on [Install &amp; Bundlers](/docs/getting-started/install#config). Both the stylesheet compiler and `spin/closed-vocabulary` read `shortcuts` from your bundler config, and `spin lint` verifies that every utility inside your custom shortcut exists in your theme:
+Spin ships no shortcuts of its own. Declare the compositions your app repeats in `spin.vite({ shortcuts: { ... } })` — the worked example lives on [Install &amp; Bundlers](/docs/getting-started/install#config). Both the stylesheet compiler and `spin/closed-vocabulary` read `shortcuts` from your bundler config, and the linter verifies that every utility inside your custom shortcut exists in your theme:
 
 ```ts
 spin.vite({

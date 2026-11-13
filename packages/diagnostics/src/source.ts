@@ -527,53 +527,53 @@ export interface ShortcutOutcome {
 }
 
 /**
- * Declares a shortcut in the project's own build configuration.
+ * Declares a shortcut in the project's own shortcuts file.
  *
  * A shortcut is a class the project composes, and a project's compositions
- * live in its configuration: the file where the project says what its
- * stylesheet is made of. So the declaration goes there, and the lint reads
- * it from the same place — a class the project declared is a class the
- * project produces, and the closed vocabulary knows it from then on.
+ * live in `shortcuts.json` beside its brands: the file where the project
+ * says what its compositions expand to. So the declaration goes there,
+ * and the lint reads it from the same place — a class the project
+ * declared is a class the project produces, and the closed vocabulary
+ * knows it from then on.
  */
 export async function declareShortcut(
   root: string,
   name: string,
   classes: readonly string[],
 ): Promise<ShortcutOutcome> {
-  const config = await configFile(root);
-  if (config === undefined) {
-    return {
-      name,
-      error:
-        "The project declares no build configuration, so there is nowhere to declare a shortcut.",
-      file: null,
-    };
-  }
-  let text: string;
+  const { CONFIG_FILES } = await import("@spinjs/server/project");
+  const { configurationIn } = await import("@spinjs/server/project");
+  const themesRoot = shortcutsRoot(root, CONFIG_FILES, configurationIn);
+  const file = join(themesRoot, "shortcuts.json");
+  let table: Record<string, unknown> = {};
   try {
-    text = readFileSync(config, "utf8");
-  } catch {
-    return { name, error: `Could not read "${config}".`, file: null };
-  }
-  const patched = withShortcut(text, name, classes);
-  if (patched.kind === "nowhere") {
-    return {
-      name,
-      error:
-        "The project's configuration declares no shortcuts, and does not wire spin in a place this can add one. Declare the shortcut by hand.",
-      file: relative(root, config),
-    };
-  }
-  if (patched.kind === "unreadable") {
-    return {
-      name,
-      error:
-        "The project's configuration declares its shortcuts somewhere this cannot read. Add the shortcut by hand.",
-      file: relative(root, config),
-    };
+    const text = readFileSync(file, "utf8");
+    const parsed: unknown = JSON.parse(text);
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+      return {
+        name,
+        error: `Could not read "${relative(root, file)}": it is not a JSON object. Fix it by hand.`,
+        file: relative(root, file),
+      };
+    }
+    table = parsed as Record<string, unknown>;
+  } catch (error) {
+    if (existsSync(file)) {
+      return {
+        name,
+        error: error instanceof Error ? error.message : String(error),
+        file: null,
+      };
+    }
   }
   try {
-    writeFileSync(config, patched.text, "utf8");
+    const { mkdirSync } = await import("node:fs");
+    mkdirSync(themesRoot, { recursive: true });
+    writeFileSync(
+      file,
+      JSON.stringify({ ...table, [name]: classes.join(" ") }, null, 2) + "\n",
+      "utf8",
+    );
   } catch (error) {
     return {
       name,
@@ -581,141 +581,40 @@ export async function declareShortcut(
       file: null,
     };
   }
-  return { name, error: null, file: relative(root, config) };
+  return { name, error: null, file: relative(root, file) };
 }
 
 /**
- * The project's build configuration, when it has one.
+ * The themes directory a shortcut is declared in.
  *
- * The project owns where its configuration lives, so it is asked: the file
- * names are the project's, and the nearest one above the root is the
- * project's own.
+ * The build configuration above the root names it — the default `spin/`
+ * when nothing does — resolved against the configuration's own directory
+ * when one is found, else the root itself.
  */
-async function configFile(root: string): Promise<string | undefined> {
-  const { CONFIG_FILES } = await import("@spinjs/server/project");
+function shortcutsRoot(
+  root: string,
+  configFiles: readonly string[],
+  configurationIn: (text: string, file: string | null) => { themesDir: string },
+): string {
   let directory = resolve(root);
   for (;;) {
-    for (const name of CONFIG_FILES) {
+    for (const name of configFiles) {
       const candidate = join(directory, name);
-      if (existsSync(candidate)) return candidate;
+      if (existsSync(candidate)) {
+        try {
+          const value = configurationIn(readFileSync(candidate, "utf8"), name).themesDir;
+          return join(directory, value);
+        } catch {
+          return join(directory, "spin");
+        }
+      }
     }
     const parent = resolve(directory, "..");
-    if (parent === directory) return undefined;
+    if (parent === directory) return join(resolve(root), "spin");
     directory = parent;
   }
 }
 
-/**
- * What a declaration in a configuration's text came to.
- *
- * - **declared** — the text with the shortcut in it.
- * - **unreadable** — the project declares shortcuts somewhere this cannot
- *   place one.
- * - **nowhere** — the project declares none, and wires spin in no place
- *   this can add one.
- */
-export type ShortcutDeclaration =
-  | { readonly kind: "declared"; readonly text: string }
-  | { readonly kind: "unreadable" }
-  | { readonly kind: "nowhere" };
-
-/**
- * The text with one more shortcut declared in it.
- *
- * A configuration that declares its shortcuts in an object literal gets
- * the declaration inside that literal; one that does not declare them at
- * all gets the property inside the call that wires spin in. A declaration
- * this cannot place — a table imported from another module — is left
- * alone, and the caller says so rather than writing something the project
- * cannot read.
- */
-export function withShortcut(
-  text: string,
-  name: string,
-  classes: readonly string[],
-): ShortcutDeclaration {
-  const literal = shortcutLiteral(text);
-  if (literal !== undefined) {
-    const at = literal.end - 1;
-    const indent = indentationAt(text, literal.start);
-    const declaration = `  "${name}": "${classes.join(" ")}",\n`.replace(
-      /^ {2}/,
-      indent,
-    );
-    return {
-      kind: "declared",
-      text: text.slice(0, at) + declaration + text.slice(at),
-    };
-  }
-  if (/\bshortcuts\s*:/.test(text)) {
-    // The project declares shortcuts, but not where this can put one.
-    return { kind: "unreadable" };
-  }
-  const call = text.indexOf("spin.vite(");
-  if (call === -1) return { kind: "nowhere" };
-  const open = text.indexOf("{", call);
-  if (open === -1) return { kind: "nowhere" };
-  const indent = indentationAt(text, open);
-  const property = `${indent}shortcuts: {\n${indent}  "${name}": "${
-    classes.join(" ")
-  }",\n${indent}},\n`;
-  return {
-    kind: "declared",
-    text: text.slice(0, open + 1) + "\n" + property + text.slice(open + 1),
-  };
-}
-
-/**
- * The object literal a configuration's shortcuts are declared in.
- *
- * The declaration is either the literal itself or the name of a table the
- * configuration declares: `shortcuts: { … }` and `shortcuts: myTable` are
- * both ways of saying the same thing, and the second is followed to where
- * the table is written.
- */
-function shortcutLiteral(
-  text: string,
-): { start: number; end: number } | undefined {
-  const declaration = /\bshortcuts\s*:\s*/.exec(text);
-  if (declaration === null) return undefined;
-  const after = declaration.index + declaration[0].length;
-  const rest = text.slice(after);
-  if (rest.startsWith("{")) {
-    const end = closingBrace(text, after);
-    if (end === undefined) return undefined;
-    return { start: after, end };
-  }
-  const named = /^[A-Za-z_$][\w$]*/.exec(rest);
-  if (named === null) return undefined;
-  const table = new RegExp(
-    `\\b(?:const|let|var)\\s+${named[0]}\\s*(?::[^=]*?)?=\\s*\\{`,
-  ).exec(text);
-  if (table === null) return undefined;
-  const open = text.indexOf("{", table.index);
-  const end = closingBrace(text, open);
-  if (end === undefined) return undefined;
-  return { start: open, end };
-}
-
-/** The index of the brace that closes the one at `open`. */
-function closingBrace(text: string, open: number): number | undefined {
-  let depth = 0;
-  for (let index = open; index < text.length; index += 1) {
-    const ch = text[index];
-    if (ch === "{") depth += 1;
-    if (ch === "}") {
-      depth -= 1;
-      if (depth === 0) return index + 1;
-    }
-  }
-  return undefined;
-}
-
-/** The indentation of the line the index sits on. */
-function indentationAt(text: string, index: number): string {
-  const line = text.slice(0, index).split("\n").pop() ?? "";
-  return /^[\t ]*/.exec(line)?.[0] ?? "";
-}
 
 /* ------------------------------------------------------------------ inside -- */
 

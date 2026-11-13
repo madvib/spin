@@ -94,6 +94,10 @@ export interface Facts {
   readonly surfaces: Surfaces;
   /** The project's own component tags beyond the primitives' claimed scopes. */
   readonly components: readonly string[];
+  /** The icon collections the project declares, across its brands and config. Empty means unenforced. */
+  readonly iconCollections: ReadonlySet<string>;
+  /** The saved glyphs the project holds, as the `i-<collection>-<name>` classes that name them. */
+  readonly savedIcons: ReadonlySet<string>;
 }
 
 

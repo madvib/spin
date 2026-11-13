@@ -78,8 +78,10 @@ const VARIANT_NAMES = [
   "secondary",
   "outline",
   "ghost",
+  "subtle",
   "contrast",
   "danger",
+  "s-xs",
   "s-sm",
   "s-lg",
   "icon",
@@ -153,7 +155,7 @@ function deadVariantSelector(variant: VariantShape): string {
  */
 function variantType(
   ctx: ThemeContext | undefined,
-  variant: Exclude<PaintedVariant, "s-sm" | "s-lg" | "icon">,
+  variant: Exclude<PaintedVariant, "s-xs" | "s-sm" | "s-lg" | "icon">,
 ): Record<string, string | undefined> {
   const theme: Theme | undefined = ctx?.theme;
   const s = theme?.button?.[variant]?.type ?? theme?.button?.type;
@@ -221,6 +223,22 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
       ...variantType(ctx, "ghost"),
     }),
   },
+  subtle: {
+    group: BUTTON,
+    name: "subtle",
+    inked: true,
+    body: (ctx) => ({
+      // A quiet control for toolbars and headers: the raised surface with
+      // the default edge and the page's ink, and no shadow — the base's
+      // lift would make a row of quiet controls float. The edge opts out
+      // of nothing: it is the same divider the secondary wears.
+      "background-color": ctx?.theme?.color?.["surface-raised"],
+      "border-color": varFallback(buttonEdge(ctx), ctx?.theme?.color?.border),
+      "box-shadow": "none",
+      color: ctx?.theme?.color?.text,
+      ...variantType(ctx, "subtle"),
+    }),
+  },
   danger: {
     group: BUTTON,
     name: "danger",
@@ -263,6 +281,43 @@ const VARIANTS: Record<PaintedVariant, VariantShape> = {
       color: ctx?.theme?.color?.text,
       ...variantType(ctx, "outline"),
     }),
+  },
+  "s-xs": {
+    group: BUTTON,
+    name: "s-xs",
+    inked: false,
+    body: (ctx) => {
+      // An extra-small button reads `button.s-xs.type`, falling back to the
+      // code style toolbar buttons already wear — as a whole tuple. The
+      // padding matches the small step; the voice is what makes it smaller.
+      const s = ctx?.theme?.button?.["s-xs"]?.type ?? ctx?.theme?.font?.style?.code;
+      const fontFamily = s?.["font-family"];
+      const fontSize = s?.["font-size"];
+      const fontWeight = s?.["font-weight"];
+      const fontTracking = s?.["letter-spacing"];
+      const fontLeading = s?.["line-height"];
+      const spacing1 = ctx?.theme?.spacing?.[1];
+      const spacing2 = ctx?.theme?.spacing?.[2];
+      const borderWidth = ctx?.theme?.border?.width;
+      return {
+        "padding-inline-start": spacing2,
+        "padding-inline-end": spacing2,
+        "padding-top": spacing1,
+        "padding-bottom": spacing1,
+        ...(fontFamily !== undefined ? { "font-family": fontFamily } : {}),
+        ...(fontSize !== undefined ? { "font-size": fontSize } : {}),
+        ...(fontWeight !== undefined ? { "font-weight": fontWeight } : {}),
+        ...(fontTracking !== undefined ? { "letter-spacing": fontTracking } : {}),
+        ...(fontLeading !== undefined ? { "line-height": fontLeading } : {}),
+        ...(fontSize !== undefined && spacing1 !== undefined &&
+            borderWidth !== undefined
+          ? {
+            "min-height":
+              `calc(${fontSize} + (2 * ${spacing1}) + (2 * ${borderWidth}))`,
+          }
+          : {}),
+      };
+    },
   },
   "s-sm": {
     group: BUTTON,
@@ -408,6 +463,19 @@ const VARIANT_HOVER: Record<string, {
       transform: "none",
     }),
   },
+  subtle: {
+    selector: `${BUTTON}.subtle:hover${ALIVE}:not([aria-busy="true"])`,
+    // The hover answers without lifting: the edge takes the strong step
+    // and the fill settles to the page surface, while the shadow and the
+    // transform stay suppressed — a quiet control that floats on hover is
+    // not quiet.
+    body: (ctx) => ({
+      "background-color": ctx?.theme?.color?.surface,
+      "border-color": ctx?.theme?.color?.["border-strong"],
+      "box-shadow": "none",
+      transform: "none",
+    }),
+  },
 };
 
 const VARIANT_ACTIVE: Record<string, {
@@ -423,6 +491,13 @@ const VARIANT_ACTIVE: Record<string, {
   },
   bare: {
     selector: `${BUTTON}.bare:active${ALIVE}:not([aria-busy="true"]), ${BUTTON}[variant~="bare"]:active${ALIVE}:not([aria-busy="true"])`,
+    body: () => ({
+      "box-shadow": "none",
+      transform: "none",
+    }),
+  },
+  subtle: {
+    selector: `${BUTTON}.subtle:active${ALIVE}:not([aria-busy="true"]), ${BUTTON}[variant~="subtle"]:active${ALIVE}:not([aria-busy="true"])`,
     body: () => ({
       "box-shadow": "none",
       transform: "none",

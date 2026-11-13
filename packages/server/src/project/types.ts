@@ -69,8 +69,6 @@ export interface ProjectConfiguration {
    * project root. `null` when the project declares no configuration.
    */
   readonly file: string | null;
-  /** The shortcuts the configuration declares: each name, and the classes it expands to. */
-  readonly shortcuts: Readonly<Record<string, readonly string[]>>;
   /** The content globs the configuration declares. */
   readonly content: readonly string[];
   /**

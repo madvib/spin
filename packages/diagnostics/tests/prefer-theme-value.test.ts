@@ -235,7 +235,7 @@ test("a control's spacing is answered by its size variant", () => {
   const [control] = override("button", "px-3");
   deepStrictEqual(
     control?.data["remedy"],
-    "Use a variant (`s-lg`, `s-sm`) or the theme's value.",
+    "Use a variant (`s-lg`, `s-sm`, …) or the theme's value.",
   );
   // A block is not a control: the theme's spacing step is the answer there.
   const [block] = override("p", "mt-6");

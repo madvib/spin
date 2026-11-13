@@ -129,14 +129,11 @@ test("an incomplete composed doc refuses through the real build path, naming the
   );
   const dir = await mkdtemp(join(tmpdir(), "spin-compose-"));
   const brand = join(dir, "spin", "thin");
-  await mkdir(join(brand, "primitives"), { recursive: true });
+  await mkdir(brand, { recursive: true });
   await writeFile(
     join(brand, "tokens.json"),
-    JSON.stringify({ $extends: "minimal" }),
-  );
-  await writeFile(
-    join(brand, "elements.json"),
     JSON.stringify({
+      $extends: "minimal",
       element: { h1: { type: { $type: "typography", $value: "{font.style.title}" } } },
     }),
   );

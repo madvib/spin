@@ -125,7 +125,7 @@ export default function Architecture(): JSX.Element {
           <li>
             <strong>Verify in editor and CI.</strong> If a color tweak breaks
             readability or a template uses a class outside your theme scale,
-            Studio and <code>spin lint</code> point straight to the fix.
+            Studio and <code>oxlint</code> point straight to the fix.
           </li>
         </ol>
       </Section>

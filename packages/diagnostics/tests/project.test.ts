@@ -39,9 +39,9 @@ test("a file outside every project has no root", async () => {
 test("the project's themes are read by name", async () => {
   const root = await mkdtemp(join(tmpdir(), "spin-"));
   try {
-    await mkdir(`${root}/spin`);
+    await mkdir(`${root}/spin/acme`, { recursive: true });
     await writeFile(
-      `${root}/spin/acme.json`,
+      `${root}/spin/acme/tokens.json`,
       JSON.stringify({ color: { primary: { $value: "#c8102e" } } }),
     );
     const themes = readProjectThemes(root);
@@ -59,10 +59,11 @@ test("a theme that does not parse is skipped, not thrown on", async () => {
   // the project has.
   const root = await mkdtemp(join(tmpdir(), "spin-"));
   try {
-    await mkdir(`${root}/spin`);
-    await writeFile(`${root}/spin/broken.json`, "{ not json");
+    await mkdir(`${root}/spin/broken`, { recursive: true });
+    await writeFile(`${root}/spin/broken/tokens.json`, "{ not json");
+    await mkdir(`${root}/spin/acme`, { recursive: true });
     await writeFile(
-      `${root}/spin/acme.json`,
+      `${root}/spin/acme/tokens.json`,
       JSON.stringify({ color: { primary: { $value: "#c8102e" } } }),
     );
     deepStrictEqual(Object.keys(readProjectThemes(root)), ["acme"]);

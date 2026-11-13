@@ -46,12 +46,22 @@ export const ICONS_DIR = "icons";
 /**
  * The file a project's own configuration lives in, under its directory.
  *
- * Additive metadata the plugin options cannot express: which theme the
- * studio seats, and what order the theme list shows. Unknown keys are
- * ignored, and a file that does not parse counts as absent — a half
- * written config must not cost the reader the themes the project has.
+ * Project facts the plugin options cannot express: the brand, the
+ * components directory, the lint strictness, the icon collection. Unknown
+ * keys are ignored, and a file that does not parse counts as absent — a
+ * half written config must not cost the reader the themes the project has.
  */
 export const CONFIG_FILENAME = "config.json";
+
+/**
+ * The file a project's own compositions live in, under its themes directory.
+ *
+ * Each shortcut's name and the classes it expands to, as JSON — the one
+ * table the build compiles and the lint judges. A file that does not
+ * parse counts as unreadable: the lint stands down rather than guessing,
+ * and the build refuses rather than compiling half a table.
+ */
+export const SHORTCUTS_FILENAME = "shortcuts.json";
 
 /**
  * The file a project's build configuration is written to.

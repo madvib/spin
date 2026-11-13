@@ -64,7 +64,7 @@ export function createInProcessSpinClient(root?: string): SpinClient {
 /**
  * The client the CLI dials: a daemon URL when one is named, in-process
  * otherwise. `--url` wins, then `SPIN_URL` / `SPIN_DAEMON_URL`, then the
- * local project root — so a bare `spin lint` never needs a server.
+ * local project root — so a bare command never needs a server.
  */
 export function resolveSpinClient(
   options?: { url?: string; root?: string },

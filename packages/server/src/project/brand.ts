@@ -1,19 +1,16 @@
 /**
  * A project's brand: one directory of layered theme documents.
  *
- * A brand is a directory under the project's themes directory holding the
-  * brand's decisions in layers: `tokens.json` (identity: faces, styles,
-  * palette, modes, and the `$extends` design language), `reference.json` (scale
- * overrides), `elements.json` (element voice overrides),
- * `primitives/*.json` (per-component overrides), `themes/*.palette.json`
- * and `themes/*.spacing.json` (runtime facets), and `icons/` (saved SVGs
- * the icon operations own — never read here).
+ * A brand is a directory: `spin/<brand>/` holds the definition
+ * (`brand.json` — name, description, nothing token-shaped), the token
+ * layer (`tokens.json` — identity: faces, styles, palette, modes, and the
+ * `$extends` design language), `themes/*.palette.json` and
+ * `themes/*.spacing.json` (runtime facets), and `icons/` (saved SVGs the
+ * icon operations own — never read here). A global `reference.json` at
+ * the root of the themes directory composes under every brand.
  *
-  * The layers merge in that order over the design language the brand names, so a
-  * brand is a sparse diff and the language stays shipped. Flat
- * `spin/<name>.json` files keep working unchanged beside brand
- * directories: a file is a theme, a directory is a brand, and the two
- * never collide because a directory has no `.json` suffix.
+ * Only brand directories are served: a file the shape does not name is
+ * not a theme.
  */
 
 import { compose } from "@spinjs/theme";
@@ -38,7 +35,7 @@ import { resolveProjectDir } from "./resolve-dir.ts";
  * than forking it.
  */
 export interface ThemeFacets {
-  /** Base themes, by name: flat files and composed brands. */
+  /** Base themes, by name: one composed brand directory each. */
   themes: Record<string, ThemeDocument>;
   /** Palette facets, by name: `<name>.palette.json`, flat or under a brand. */
   palettes: Record<string, ThemeDocument>;
@@ -59,42 +56,23 @@ async function readJson(file: string): Promise<ThemeDocument | undefined> {
 /**
  * One brand directory, composed to the document the build serves.
  *
-  * The brand names its design language in `tokens.json` (falling back to
-  * `reference.json`); the language itself is the parent the layers compose
- * over — what is composed here is the brand's own layers, in order:
- * reference, tokens, elements, then each primitive file in sorted name
- * order. A composition that does not hold is refused naming the brand, the
- * layer, and the issue, the way a facet names its file.
+ * The brand names its design language in `tokens.json`; the language
+ * itself is the parent the layers compose over — what is composed here is
+ * the global reference first when the themes directory holds one, then
+ * the brand's own `tokens.json`. A composition that does not hold is
+ * refused naming the brand, the layer, and the issue, the way a facet
+ * names its file.
  */
-async function composeBrand(dir: string): Promise<ThemeDocument | undefined> {
-  const { readdir } = await import("node:fs/promises");
+async function composeBrand(dir: string, themesRoot: string): Promise<ThemeDocument | undefined> {
   const { join } = await import("node:path");
-  const reference = await readJson(join(dir, "reference.json"));
+  const reference = await readJson(join(themesRoot, "reference.json"));
   const tokens = await readJson(join(dir, "tokens.json"));
-  const elements = await readJson(join(dir, "elements.json"));
   const tagged: { file: string; layer: ThemeDocument }[] = [];
   if (reference !== undefined) {
-    tagged.push({ file: join(dir, "reference.json"), layer: reference });
+    tagged.push({ file: join(themesRoot, "reference.json"), layer: reference });
   }
   if (tokens !== undefined) {
     tagged.push({ file: join(dir, "tokens.json"), layer: tokens });
-  }
-  if (elements !== undefined) {
-    tagged.push({ file: join(dir, "elements.json"), layer: elements });
-  }
-  let primitiveFiles: string[] = [];
-  try {
-    primitiveFiles = (await readdir(join(dir, "primitives"))).filter((name) =>
-      name.endsWith(".json")
-    ).sort();
-  } catch {
-    // No primitives directory: the brand states no component overrides.
-  }
-  for (const file of primitiveFiles) {
-    const layer = await readJson(join(dir, "primitives", file));
-    if (layer !== undefined) {
-      tagged.push({ file: join(dir, "primitives", file), layer });
-    }
   }
   if (tagged.length === 0) return undefined;
   const parentName = tokens?.["$extends"] ?? reference?.["$extends"];
@@ -166,7 +144,7 @@ function fileFacet(
 }
 
 /**
- * The themes a project's directory holds: flat files and brand directories.
+ * The themes a project's directory holds: one composed brand each.
  *
  * A file that doesn't parse is skipped rather than thrown on: a half
  * written theme in an editor would otherwise break the whole stylesheet,
@@ -175,6 +153,11 @@ function fileFacet(
  * serves that file alone. Facets — flat or under a brand — are shape
  * checked on load: a facet that carries the wrong tokens is refused with
  * the file that carries them.
+ *
+ * Only brand directories serve themes. The project files beside them —
+ * `config.json`, `shortcuts.json`, the global `reference.json` — are read
+ * where they belong, never as themes, and anything else the shape does
+ * not name is not served.
  */
 export async function loadProjectBrand(
   root: string,
@@ -202,16 +185,15 @@ export async function loadProjectBrand(
   const brands: string[] = [];
   for (const entry of entries.sort()) {
     if (entry === CONFIG_FILENAME) continue;
+    if (entry === "shortcuts.json") continue;
+    if (entry === "reference.json") continue;
     const full = join(resolved.path, entry);
     if (entry.endsWith(".json")) {
       const stem = entry.slice(0, -".json".length);
+      if (!stem.endsWith(".palette") && !stem.endsWith(".spacing")) continue;
       const document = await readJson(full);
       if (document === undefined) continue;
-      if (stem.endsWith(".palette") || stem.endsWith(".spacing")) {
-        fileFacet(facets, full, stem, document);
-      } else {
-        facets.themes[stem] = document;
-      }
+      fileFacet(facets, full, stem, document);
       continue;
     }
     try {
@@ -219,11 +201,16 @@ export async function loadProjectBrand(
     } catch {
       continue;
     }
+    try {
+      if (!(await stat(join(full, "tokens.json"))).isFile()) continue;
+    } catch {
+      continue;
+    }
     brands.push(entry);
   }
   for (const brand of brands) {
     const dir = join(resolved.path, brand);
-    const composed = await composeBrand(dir);
+    const composed = await composeBrand(dir, resolved.path);
     if (composed !== undefined) facets.themes[brand] = composed;
     let files: string[];
     try {

@@ -15,34 +15,20 @@ const here = import.meta.dirname!;
  */
 
 /**
- * The reference's own compositions.
- *
- * Spin ships none of its own, so the reference declares the compositions
- * its surfaces repeat. The lint reads this file, so a class the reference
- * declares is a class the lint knows.
+ * The reference's own compositions live in `spin/shortcuts.json` beside
+ * its brands: the build compiles them and the lint judges them from the
+ * one table.
  */
-const referenceShortcuts: Record<string, string> = {
-  /** A column of items with a consistent gap. */
-  "stack-sm": "flex flex-col gap-2",
-  "stack-xs": "flex flex-col gap-1",
-  stack: "flex flex-col gap-4",
-  /** A horizontal row of items. */
-  "row-sm": "flex items-center gap-2",
-  row: "flex items-center gap-4",
-  /** A row that gives its ends to their owners. */
-  split: "flex items-center justify-between gap-4",
-};
 
 export default defineConfig({
   plugins: [
     solid(),
     spin.vite({
-      // The reference renders every language, forked by `spin/*.json` at
-      // this root — the same files the studio edits — so a theme change
+      // The reference renders every language, forked by `spin/<brand>/`
+      // at this root — the same files the studio edits — so a theme change
       // in the studio re-themes this app. Languages arrive as values
       // through `extends`, never by silent merge.
       extends: { themes: designLanguages },
-      shortcuts: referenceShortcuts,
       presets: [
         presetIcons({
           extraProperties: { display: "inline-block", "vertical-align": "middle" },

@@ -3,6 +3,10 @@ import { deepStrictEqual } from "node:assert/strict";
 import { type ESLint, Linter } from "eslint";
 import eslintPlugin, { plugin, rules } from "../src/eslint.ts";
 import { RULES } from "../src/rules.ts";
+import htmlParser from "@html-eslint/parser";
+import * as tsParser from "@typescript-eslint/parser";
+import * as vueParser from "vue-eslint-parser";
+import * as svelteParser from "svelte-eslint-parser";
 
 /**
  * The plugin, as ESLint takes it.
@@ -123,4 +127,151 @@ test("the preset bans the override and only advises the wrong element", () => {
   const rules = plugin.configs.recommended[0]?.rules;
   deepStrictEqual(rules?.["spin/prefer-theme-value"], "error");
   deepStrictEqual(rules?.["spin/prefer-element"], "warn");
+});
+
+test("the preset covers templates as well as scripts", () => {
+  // A configuration that spreads the preset lints its templates too: the
+  // rules read class attributes however the parser spells them.
+  const files = plugin.configs.recommended[0]?.files ?? [];
+  for (const pattern of ["**/*.html", "**/*.vue", "**/*.svelte"]) {
+    deepStrictEqual(files.includes(pattern), true);
+  }
+});
+
+/**
+ * The plugin, under every parser a project parses its templates with.
+ *
+ * The rules read structure, not parsers: a class attribute is a class
+ * attribute whether JSX, vue, svelte, or html names it. Each parser below
+ * walks the same two elements — a button fighting its fill, a span wearing
+ * nothing — and each one reports the same two findings.
+ */
+
+/** A configuration that reads templates with the project's own parser. */
+function parserConfig(
+  pattern: string,
+  parser: unknown,
+  rules: Linter.Config["rules"],
+): Linter.Config {
+  return {
+    files: [pattern],
+    languageOptions: { parser: parser as Linter.Parser },
+    plugins: { spin: typed },
+    rules,
+  };
+}
+
+const TEMPLATE_RULES: Linter.Config["rules"] = {
+  "spin/prefer-theme-value": "error",
+  "spin/closed-vocabulary": "error",
+};
+
+test("tsx, html, vue, and svelte report the same two findings", () => {
+  const cases: readonly {
+    readonly filename: string;
+    readonly parser: unknown;
+    readonly code: string;
+  }[] = [
+    {
+      filename: "app.tsx",
+      parser: tsParser,
+      code: `export const App = () => <>
+        <button className="bg-primary">Save</button>
+        <span className="unknown-cls">plain</span>
+      </>;`,
+    },
+    {
+      filename: "app.html",
+      parser: htmlParser,
+      code: `<button class="bg-primary">Save</button><span class="unknown-cls">plain</span>`,
+    },
+    {
+      filename: "app.vue",
+      parser: vueParser,
+      code: `<template><button class="bg-primary">Save</button><span class="unknown-cls">plain</span></template>`,
+    },
+    {
+      filename: "app.svelte",
+      parser: svelteParser,
+      code: `<button class="bg-primary">Save</button><span class="unknown-cls">plain</span>`,
+    },
+  ];
+  for (const { filename, parser, code } of cases) {
+    const messages: Linter.LintMessage[] = linter().verify(
+      code,
+      parserConfig(`**/*.${filename.slice(filename.lastIndexOf(".") + 1)}`, parser, TEMPLATE_RULES),
+      filename,
+    );
+    deepStrictEqual(
+      messages.map((message) => [message.ruleId, message.messageId]),
+      [
+        ["spin/prefer-theme-value", "override"],
+        ["spin/closed-vocabulary", "unknown"],
+      ],
+    );
+  }
+});
+
+test("bound classes report what they name, not the binding", () => {
+  const vue = linter().verify(
+    `<template><span :class="{ 'unknown-cls': isOn }">plain</span></template>`,
+    parserConfig("**/*.vue", vueParser, TEMPLATE_RULES),
+    "app.vue",
+  );
+  deepStrictEqual(
+    vue.map((message) => [message.ruleId, message.messageId]),
+    [["spin/closed-vocabulary", "unknown"]],
+  );
+  deepStrictEqual(vue[0]?.message.includes("`unknown-cls`"), true);
+  const svelte = linter().verify(
+    `<span class:unknown-cls={isOn}>plain</span>`,
+    parserConfig("**/*.svelte", svelteParser, TEMPLATE_RULES),
+    "app.svelte",
+  );
+  deepStrictEqual(
+    svelte.map((message) => [message.ruleId, message.messageId]),
+    [["spin/closed-vocabulary", "unknown"]],
+  );
+  deepStrictEqual(svelte[0]?.message.includes("`unknown-cls`"), true);
+});
+
+test("the fixer's edits land inside foreign class lists", () => {
+  const cases: readonly {
+    readonly filename: string;
+    readonly pattern: string;
+    readonly parser: unknown;
+    readonly code: string;
+    readonly fixed: string;
+  }[] = [
+    {
+      filename: "app.html",
+      pattern: "**/*.html",
+      parser: htmlParser,
+      code: `<span class="flex unknown-cls gap-2">x</span>`,
+      fixed: `<span class="flex gap-2">x</span>`,
+    },
+    {
+      filename: "app.vue",
+      pattern: "**/*.vue",
+      parser: vueParser,
+      code: `<template><span class="flex unknown-cls gap-2">x</span></template>`,
+      fixed: `<template><span class="flex gap-2">x</span></template>`,
+    },
+    {
+      filename: "app.svelte",
+      pattern: "**/*.svelte",
+      parser: svelteParser,
+      code: `<span class="flex unknown-cls gap-2">x</span>`,
+      fixed: `<span class="flex gap-2">x</span>`,
+    },
+  ];
+  for (const { filename, pattern, parser, code, fixed } of cases) {
+    const result: Linter.FixReport = linter().verifyAndFix(
+      code,
+      parserConfig(pattern, parser, TEMPLATE_RULES),
+      filename,
+    );
+    deepStrictEqual(result.output, fixed);
+    deepStrictEqual(result.messages, []);
+  }
 });

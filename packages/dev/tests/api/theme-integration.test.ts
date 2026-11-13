@@ -284,7 +284,7 @@ describe("the theme surface over RPC, against the fixture app", () => {
     const listed = await listThemes();
     deepStrictEqual(
       listed.filter((t) => t.file !== null).map((t) => t.file).sort(),
-      ["spin/acme", "spin/birch"],
+      ["spin/acme/tokens.json", "spin/birch/tokens.json"],
       "no machine's filesystem layout travels with a theme",
     );
     deepStrictEqual(

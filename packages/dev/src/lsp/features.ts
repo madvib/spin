@@ -4,7 +4,7 @@
  *
  * The server delivers diagnostics; it never invents them. The findings
  * come from the lint service over staged text — the staged path exists
- * for exactly this — so what an editor shows and what `spin lint` prints
+ * for exactly this — so what an editor shows and what the linter prints
  * are two readings of one decision. Hover reads the preset's own rules
  * through the surfaces the lint reads, and the unknown-class suggestion
  * rides the build error's edit distance. Completion names the project

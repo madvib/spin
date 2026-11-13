@@ -14,9 +14,10 @@
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { type ShortcutDeclaration, shortcutsIn } from "./configuration.ts";
-import { CONFIG_FILES, CONFIG_FILENAME, PROJECT_DIR } from "./facts.ts";
-import type { SpinConfigFile } from "./schema.ts";
+import * as v from "valibot";
+import type { ShortcutDeclaration } from "./configuration.ts";
+import { CONFIG_FILES, CONFIG_FILENAME, ICONS_DIR, PROJECT_DIR, SHORTCUTS_FILENAME } from "./facts.ts";
+import { SpinShortcutsFileSchema, type SpinConfigFile } from "./schema.ts";
 
 export type { ShortcutDeclaration };
 
@@ -83,29 +84,54 @@ export function findConfigRoot(from: string): string | undefined {
 }
 
 /**
- * The project's own themes, by name: the text of each file in `spin/`.
+ * The project's own themes, by name: the text of each brand's tokens.
  *
-  * The design languages are not here: a project inherits them rather than
- * restating them, and the set they come from is the theme package's. A file
- * that cannot be read is skipped rather than thrown on — a half written
- * theme in an editor must not cost the reader the themes the project has.
+ * One brand directory each: `spin/<brand>/tokens.json` reads as the brand
+ * name, and the global `spin/reference.json` reads beside them when the
+ * project holds one. The design languages are not here: a project inherits
+ * them rather than restating them, and the set they come from is the theme
+ * package's. A file that cannot be read is skipped rather than thrown on —
+ * a half written theme in an editor must not cost the reader the themes
+ * the project has.
+ *
+ * The texts are the sparse layers, not the composed documents: the reader
+ * merges them over the languages itself, so a half written brand degrades
+ * to its readable tokens rather than vanishing behind a composition the
+ * build would refuse.
  */
 export function themeTextsIn(root: string): Record<string, string> {
+  return themeTextsInAt(join(root, PROJECT_DIR));
+}
+
+/**
+ * The themes a themes directory holds, by name: the text of each brand's
+ * tokens, beside the global reference.
+ *
+ * The directory itself, not the project around it: a custom `themesDir`
+ * reads from where the configuration points, and the default reads from
+ * `spin/`. Same skips as the project form — an unreadable file costs
+ * nothing.
+ */
+export function themeTextsInAt(themesPath: string): Record<string, string> {
   const out: Record<string, string> = {};
-  let names: string[];
+  let entries: { name: string; isDirectory(): boolean }[];
   try {
-    names = readdirSync(join(root, PROJECT_DIR)).filter((name) =>
-      name.endsWith(".json") && name !== CONFIG_FILENAME
-    );
+    entries = readdirSync(themesPath, { withFileTypes: true });
   } catch {
     return out;
   }
-  for (const name of names) {
+  for (const entry of entries) {
+    if (!entry.isDirectory()) {
+      if (entry.name !== "reference.json") continue;
+      try {
+        out["reference"] = readFileSync(join(themesPath, entry.name), "utf8");
+      } catch {
+        // Skipped: see above.
+      }
+      continue;
+    }
     try {
-      out[name.slice(0, -".json".length)] = readFileSync(
-        join(root, PROJECT_DIR, name),
-        "utf8",
-      );
+      out[entry.name] = readFileSync(join(themesPath, entry.name, "tokens.json"), "utf8");
     } catch {
       // Skipped: see above.
     }
@@ -114,11 +140,109 @@ export function themeTextsIn(root: string): Record<string, string> {
 }
 
 /**
+ * The icon collections a themes directory declares, by brand.
+ *
+ * Each brand's `brand.json` may name its icon set under `icons.collection`;
+ * the union is the project's declared set. A brand without one, or a
+ * definition that does not parse, contributes nothing — an undeclared set
+ * is not an error, it is an unenforced lint.
+ */
+export function brandIconCollections(themesPath: string): ReadonlySet<string> {
+  const out = new Set<string>();
+  let entries: { name: string; isDirectory(): boolean }[];
+  try {
+    entries = readdirSync(themesPath, { withFileTypes: true });
+  } catch {
+    return out;
+  }
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    try {
+      const definition: unknown = JSON.parse(
+        readFileSync(join(themesPath, entry.name, "brand.json"), "utf8"),
+      );
+      const icons = (definition as { icons?: unknown } | null)?.icons;
+      const collection = (icons as { collection?: unknown } | null)?.collection;
+      if (typeof collection === "string" && collection !== "") out.add(collection);
+    } catch {
+      // Skipped: see above.
+    }
+  }
+  return out;
+}
+
+/**
+ * The saved glyphs a themes directory holds, as the classes that name them.
+ *
+ * Each `icons/*.json` document carries its attribution: a glyph saved from
+ * a collection passes as `i-<collection>-<name>`, whatever the brand
+ * declares — a glyph the project explicitly saved is intentional.
+ */
+export function savedIconGlyphs(themesPath: string): ReadonlySet<string> {
+  const out = new Set<string>();
+  let entries: string[];
+  try {
+    entries = readdirSync(join(themesPath, ICONS_DIR));
+  } catch {
+    return out;
+  }
+  for (const entry of entries.sort()) {
+    if (!entry.endsWith(".json")) continue;
+    try {
+      const document: unknown = JSON.parse(
+        readFileSync(join(themesPath, ICONS_DIR, entry), "utf8"),
+      );
+      const attribution = (document as { attribution?: unknown } | null)?.attribution;
+      const collection = (attribution as { collection?: unknown } | null)?.collection;
+      if (typeof collection !== "string" || collection === "") continue;
+      out.add(`i-${collection}-${entry.slice(0, -".json".length)}`);
+    } catch {
+      // Skipped: a half written glyph is not one the project holds.
+    }
+  }
+  return out;
+}
+
+/**
+ * The code files inside a themes directory, relative to it.
+ *
+ * A themes directory holds DTCG JSON, `config.json`, `shortcuts.json`,
+ * and `icons/` — a `.ts`, `.tsx`, `.js`, or `.mjs` file inside it is a
+ * project file in the wrong place, said aloud so it can move out.
+ */
+export function foreignFiles(themesPath: string): readonly string[] {
+  const out: string[] = [];
+  const stack: string[] = [themesPath];
+  while (stack.length > 0) {
+    const dir = stack.pop() as string;
+    let entries: { name: string; isDirectory(): boolean }[];
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === ".git" || entry.name === "node_modules") continue;
+        stack.push(full);
+        continue;
+      }
+      if (/\.(?:tsx?|mjs|js)$/.test(entry.name)) {
+        out.push(full.slice(themesPath.length + 1));
+      }
+    }
+  }
+  return out.sort();
+}
+
+/**
  * The project's own configuration: the parsed `spin/config.json`.
  *
- * Additive metadata only — the theme the studio seats, the order the list
- * shows. Missing, unreadable, or unparsable all answer the empty config:
- * unknown keys ignored, shape coerced, never an error.
+ * Project facts only — the brand, the components directory, the lint
+ * strictness, the icon collection. Missing, unreadable, or unparsable all
+ * answer the empty config: unknown keys ignored, shape coerced, never an
+ * error.
  */
 export function configIn(root: string): SpinConfigFile {
   let text: string;
@@ -135,49 +259,60 @@ export function configIn(root: string): SpinConfigFile {
   }
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return {};
   const record = parsed as Record<string, unknown>;
-  const out: { activeTheme?: string; themeOrder?: string[]; contractThemes?: string[] } = {};
-  if (typeof record["activeTheme"] === "string") out.activeTheme = record["activeTheme"];
-  if (Array.isArray(record["themeOrder"])) {
-    const seen = new Set<string>();
-    const order: string[] = [];
-    for (const entry of record["themeOrder"]) {
-      if (typeof entry !== "string" || seen.has(entry)) continue;
-      seen.add(entry);
-      order.push(entry);
-    }
-    out.themeOrder = order;
+  const out: { brand?: string; componentsDir?: string; strictness?: "strict" | "balanced" | "lenient"; icons?: { collection?: string } } = {};
+  if (typeof record["brand"] === "string") out.brand = record["brand"];
+  if (typeof record["componentsDir"] === "string") out.componentsDir = record["componentsDir"];
+  if (
+    record["strictness"] === "strict" ||
+    record["strictness"] === "balanced" ||
+    record["strictness"] === "lenient"
+  ) {
+    out.strictness = record["strictness"];
   }
-  if (Array.isArray(record["contractThemes"])) {
-    const seen = new Set<string>();
-    const names: string[] = [];
-    for (const entry of record["contractThemes"]) {
-      if (typeof entry !== "string" || seen.has(entry)) continue;
-      seen.add(entry);
-      names.push(entry);
-    }
-    out.contractThemes = names;
+  const icons = record["icons"];
+  if (typeof icons === "object" && icons !== null && !Array.isArray(icons)) {
+    const collection = (icons as Record<string, unknown>)["collection"];
+    if (typeof collection === "string") out.icons = { collection };
   }
   return out;
 }
 /**
- * The shortcuts a project's configuration declares.
+ * The shortcuts a project's themes directory declares.
  *
- * The configuration is a MODULE: it imports its bundler, its plugins and its
- * icon catalogues — none of which a reader can load, and a reader that tried
- * would run a build to answer a question about a class name. So the
- * declaration is read as text.
- *
- * A declaration this cannot read is reported as unreadable rather than
- * guessed at: a vocabulary it could not read is one it must not enforce.
+ * The table in `shortcuts.json`, validated as JSON: each name splits to
+ * the classes it expands to. A missing file declares nothing; a file that
+ * does not parse — or an entry that is not a string — is reported as
+ * unreadable rather than guessed at, and a vocabulary that could not be
+ * read is one the lint must not enforce.
  */
-export function readShortcuts(root: string): ShortcutDeclaration {
-  const file = CONFIG_FILES.find((name) => existsSync(join(root, name)));
-  if (file === undefined) return { shortcuts: {}, unreadable: false };
+export function readProjectShortcutsFile(themesRoot: string): ShortcutDeclaration {
   let text: string;
   try {
-    text = readFileSync(join(root, file), "utf8");
+    text = readFileSync(join(themesRoot, SHORTCUTS_FILENAME), "utf8");
+  } catch {
+    return { shortcuts: {}, unreadable: false };
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
   } catch {
     return { shortcuts: {}, unreadable: true };
   }
-  return shortcutsIn(text);
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    return { shortcuts: {}, unreadable: true };
+  }
+  const table = parsed as Record<string, unknown>;
+  if (v.safeParse(SpinShortcutsFileSchema, table).success) {
+    const shortcuts: Record<string, string[]> = {};
+    for (const [name, value] of Object.entries(table)) {
+      shortcuts[name] = (value as string).split(/\s+/).filter(Boolean);
+    }
+    return { shortcuts, unreadable: false };
+  }
+  const shortcuts: Record<string, string[]> = {};
+  for (const [name, value] of Object.entries(table)) {
+    if (typeof value !== "string") continue;
+    shortcuts[name] = value.split(/\s+/).filter(Boolean);
+  }
+  return { shortcuts, unreadable: true };
 }

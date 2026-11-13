@@ -23,6 +23,7 @@ export {
   CONFIG_FILES,
   CONFIG_FILENAME,
   ICONS_DIR,
+  SHORTCUTS_FILENAME,
   UNO_FILENAME,
   initFiles,
   isWired,
@@ -51,12 +52,16 @@ export {
 
 export { resolveProjectDir } from "./resolve-dir.ts";
 export {
+  brandIconCollections,
   configIn,
   findConfigRoot,
   findProjectRoot,
   findProjectRootIn,
-  readShortcuts,
+  foreignFiles,
+  readProjectShortcutsFile,
+  savedIconGlyphs,
   themeTextsIn,
+  themeTextsInAt,
 } from "./sync.ts";
 export {
   clearOverlay,
@@ -99,7 +104,6 @@ export {
   contentIn,
   extendsIn,
   mountIn,
-  shortcutsIn,
   themesIn,
 } from "./configuration.ts";
 export type {
@@ -132,6 +136,7 @@ export type {
   OpenState,
   OverlayState,
   SpinConfigFile,
+  SpinShortcutsFile,
   ThemeDocuments,
   WriteResult,
 } from "./schema.ts";
@@ -156,6 +161,7 @@ export {
   OpenStateSchema,
   OverlayStateSchema,
   SpinConfigFileSchema,
+  SpinShortcutsFileSchema,
   ThemeDocumentsSchema,
   ThemeNameSchema,
   WriteResultSchema,

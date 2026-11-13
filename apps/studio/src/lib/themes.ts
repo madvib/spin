@@ -105,42 +105,6 @@ export async function listFacets(): Promise<StudioFacet[]> {
   return await (await spinClient()).project.themes.facets({});
 }
 
-/** What `spin/config.json` holds, and the file that holds it. */
-export interface StudioConfig {
-  /** The parsed config; empty when no file is written. */
-  readonly config: { readonly activeTheme?: string; readonly themeOrder?: readonly string[]; readonly contractThemes?: readonly string[] };
-  /** Project-relative path when the file exists, `null` while values are defaults. */
-  readonly file: string | null;
-}
-
-/** Reads the project's own configuration: the seat and the order. */
-export async function readProjectConfig(): Promise<StudioConfig> {
-  const read = await (await spinClient()).project.config.read({});
-  return {
-    config: {
-      activeTheme: read.config.activeTheme ?? undefined,
-      themeOrder: read.config.themeOrder ?? undefined,
-      contractThemes: read.config.contractThemes ?? undefined,
-    },
-    file: read.file,
-  };
-}
-
-/** Writes the project's own configuration. */
-export async function writeProjectConfig(config: {
-  readonly activeTheme?: string;
-  readonly themeOrder?: readonly string[];
-  readonly contractThemes?: readonly string[];
-}): Promise<{ error: string | null }> {
-  const written = await (await spinClient()).project.config.write({
-    config: {
-      ...(config.activeTheme !== undefined ? { activeTheme: config.activeTheme } : {}),
-      ...(config.themeOrder !== undefined ? { themeOrder: [...config.themeOrder] } : {}),
-      ...(config.contractThemes !== undefined ? { contractThemes: [...config.contractThemes] } : {}),
-    },
-  });
-  return { error: written.error ?? null };
-}
 
 /**
  * Write one theme to disk. The studio's save is explicit: nothing persists

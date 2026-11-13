@@ -12,6 +12,7 @@ import {
   onOverlayChange,
   resolveThemes,
 } from "@spinjs/server/project";
+import { foreignFiles, readProjectShortcutsFile, resolveProjectDir } from "@spinjs/server/project";
 import { spinComponentsStage } from "@spinjs/build";
 
 /**
@@ -453,15 +454,14 @@ export interface SpinPluginOptions {
    * The project's own shortcuts — Uno's `shortcuts` option, unchanged.
    *
    * A shortcut is a named composition: one class that stands for a set of
-   * utilities. The compositions an app repeats are the app's own decision,
-   * so they belong to the app's configuration rather than to the framework —
-   * and spin does not forbid them. What they spend is still the theme's: a
-   * shortcut that says `gap-4` spends the theme's spacing step, so a theme
-   * that prefers roomier sections sets it once.
+   * utilities. Static compositions live in `spin/shortcuts.json` beside
+   * the brands — the build compiles them and the lint judges them from
+   * the one table. This option overlays that table for what JSON cannot
+   * spell (shortcuts as functions), and wins on collision.
    *
-   * The declaration is an object literal, and it is read as one: the lint
-   * reads the same declaration out of the same configuration, so a class the
-   * app declares is a class the lint knows.
+   * What shortcuts spend is still the theme's: a shortcut that says
+   * `gap-4` spends the theme's spacing step, so a theme that prefers
+   * roomier sections sets it once.
    */
   readonly shortcuts?: UserShortcuts;
   /** What to scan. See `ContentOptions`. */
@@ -581,10 +581,10 @@ function catalogUtilities(documents: Record<string, ThemeDocument>): string[] {
  */
 
 /**
- * The themes a project serves: the brand layer, forked by local files of
+ * The themes a project serves: the brand layer, forked by local brands of
  * the same name.
  *
- * Fork-by-name, later wins: a `spin/*.json` file named after a brand
+ * Fork-by-name, later wins: a `spin/<brand>/` directory named after a brand
  * theme replaces it for that project, and local-only names sit beside
  * the brand. The daemon answers from the same merge, so the studio
  * lists what the app renders.
@@ -595,6 +595,61 @@ export function projectThemes(
 ): Record<string, ThemeDocument> {
   return { ...brand, ...local };
 }
+
+/**
+ * The shortcuts a project serves: the file's table, overlaid by the option.
+ *
+ * `shortcuts.json` beside the brands is the home for static compositions —
+ * the build compiles them and the lint judges them from the one table. The
+ * `shortcuts` option overlays it for what JSON cannot spell (shortcuts as
+ * functions), and wins on collision: explicit code beats the file, so a
+ * project that keeps both changes nothing by adding the file.
+ *
+ * A file that does not parse is an author error, said aloud: the build
+ * refuses rather than compiling half a table.
+ */
+async function projectShortcuts(
+  root: string,
+  themesDir: string | undefined,
+  option: UserShortcuts | undefined,
+): Promise<UserShortcuts | undefined> {
+  const resolved = await resolveProjectDir(root, themesDir ?? "spin", "themes").catch(() => null);
+  const declared = resolved === null || resolved.file
+    ? { shortcuts: {}, unreadable: false }
+    : readProjectShortcutsFile(resolved.path);
+  if (declared.unreadable) {
+    throw new Error(
+      `[spin] ${resolved === null ? themesDir ?? "spin" : resolved.path}/shortcuts.json is invalid: expected {"name": "classes"} — fix it or remove it.`,
+    );
+  }
+  const names = Object.keys(declared.shortcuts);
+  if (names.length === 0) return option;
+  const table: Record<string, string> = {};
+  for (const name of names) {
+    table[name] = declared.shortcuts[name]?.join(" ") ?? "";
+  }
+  if (option === undefined) return table;
+  return { ...table, ...option } as UserShortcuts;
+}
+
+/**
+ * Warn about code files inside the themes directory.
+ *
+ * A themes directory holds DTCG JSON, `config.json`, `shortcuts.json`,
+ * and `icons/` — a `.ts`, `.tsx`, `.js`, or `.mjs` file inside it is a
+ * project file in the wrong place. Said aloud on every generate, the way
+ * the strict gate reports, so it moves out.
+ */
+async function warnForeignFiles(root: string, themesDir: string | undefined): Promise<void> {
+  const resolved = await resolveProjectDir(root, themesDir ?? "spin", "themes").catch(() => null);
+  if (resolved === null || resolved.file) return;
+  for (const file of foreignFiles(resolved.path)) {
+    console.warn(
+      `[spin] ${file} is code inside the themes directory: themes hold DTCG JSON, config.json, shortcuts.json, and icons/ — move it out.`,
+    );
+  }
+}
+
 /**
  * The icon data a lazy collection loader hands `@unocss/preset-icons`.
  *
@@ -760,6 +815,8 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
     const disk = options.themes === undefined
       ? await loadProjectBrand(root, options.themesDir)
       : { themes: {}, palettes: {}, spacings: {} };
+    await warnForeignFiles(root, options.themesDir);
+    const shortcuts = await projectShortcuts(root, options.themesDir, options.shortcuts);
     const themes = options.themes ??
       projectThemes(
         options.extends?.themes ?? {},
@@ -823,7 +880,7 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
           themes,
           palettes,
           spacings,
-          shortcuts: options.shortcuts,
+          shortcuts,
           primitives: options.primitives,
           resolveDocuments: resolveThemes,
         }),
@@ -835,7 +892,7 @@ function spinStylesheetStage(options: SpinPluginOptions = {}): StylesheetStage {
       files: cachedFiles,
       matched: scanned.matched,
       themes,
-      shortcuts: options.shortcuts,
+      shortcuts,
       strict: options.strictClasses,
       rawType: options.rawType,
       envMode,

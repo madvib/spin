@@ -209,7 +209,7 @@ function TopNav(props: {
           type="button"
           onClick={props.onOpenSearch}
           aria-label="Search documentation"
-          class="bare inline-flex h-8 items-center gap-3 rounded-md border bg-surface px-3 type-label text-muted transition-colors hover:bg-surface-raised"
+          class="subtle s-xs inline-flex h-8 items-center gap-3 text-muted transition-colors"
         >
           <span class="i-lucide-search icon-sm shrink-0" aria-hidden="true" />
           <span>Search</span>
@@ -370,7 +370,7 @@ function Layout(props: RouteSectionProps): JSX.Element {
                   setMobileNavOpen(false);
                   setSearchOpen(true);
                 }}
-                 class="bare inline-flex flex-1 items-center gap-2 rounded-lg border bg-surface px-3 py-1 type-code text-muted transition-colors hover:bg-surface-raised"
+                 class="subtle s-xs inline-flex flex-1 items-center gap-2 type-code text-muted transition-colors"
               >
                 <span class="i-lucide-search icon-sm" aria-hidden="true" />
                 <span>Search...</span>

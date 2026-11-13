@@ -148,7 +148,7 @@ test("the remedy never offers a variant the element already wears", () => {
   deepStrictEqual(
     renderMessage(RULES["prefer-theme-value"].meta, worn!),
     "the theme owns the space between blocks; `px-3` fights it. " +
-      "Use a variant (`s-lg`) or the theme's value.",
+      "Use a variant (`s-lg`, `s-xs`) or the theme's value.",
   );
 });
 

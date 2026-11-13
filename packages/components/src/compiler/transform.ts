@@ -57,8 +57,23 @@ export function renderComponentsModule(
   return files.map((file) => `import "/${file}";`).join("\n") + "\n";
 }
 
-/** The project's component tags as JSX types. */
-export function renderComponentsDts(tags: readonly string[]): string {
+/** A framework the project's component tags are typed for. */
+export type ComponentFramework = "react" | "solid" | "svelte" | "vue";
+
+/**
+ * The project's component tags as JSX types.
+ *
+ * The DOM map always ships — every framework reads custom elements through
+ * it, and none of them owns it. Each named framework gets its own module
+ * augmentation beside it; a framework the project does not use gets
+ * nothing, so a React project never sees a `solid-js` module it did not
+ * install. Omitted, React and Solid both ship: the fallback for a project
+ * whose manifest names no framework at all.
+ */
+export function renderComponentsDts(
+  tags: readonly string[],
+  frameworks: readonly ComponentFramework[] = ["react", "solid"],
+): string {
   const allTags = [...new Set(tags)].sort();
   const globalEntries = allTags.map((tag) =>
     `    "${tag}": HTMLElement & SpinProjectComponentAttributes;`
@@ -66,7 +81,7 @@ export function renderComponentsDts(tags: readonly string[]): string {
   const jsxEntries = allTags.map((tag) =>
     `      "${tag}": SpinProjectComponentAttributes;`
   ).join("\n");
-  return [
+  const out = [
     "/**",
     " * The project's own components, for TypeScript — every framework, and none.",
     " *",
@@ -95,15 +110,58 @@ export function renderComponentsDts(tags: readonly string[]): string {
     "  }",
     "}",
     "",
-    'declare module "solid-js" {',
-    "  namespace JSX {",
-    "    interface IntrinsicElements {",
-    jsxEntries,
-    "    }",
-    "  }",
-    "}",
-    "",
-  ].join("\n");
+  ];
+  if (frameworks.includes("react")) {
+    out.push(
+      'declare module "react" {',
+      "  namespace JSX {",
+      "    interface IntrinsicElements {",
+      jsxEntries,
+      "    }",
+      "  }",
+      "}",
+      "",
+    );
+  }
+  if (frameworks.includes("solid")) {
+    out.push(
+      'declare module "solid-js" {',
+      "  namespace JSX {",
+      "    interface IntrinsicElements {",
+      jsxEntries,
+      "    }",
+      "  }",
+      "}",
+      "",
+    );
+  }
+  if (frameworks.includes("vue")) {
+    const vueEntries = allTags.map((tag) =>
+      `    "${tag}": SpinProjectComponentAttributes;`
+    ).join("\n");
+    out.push(
+      'declare module "vue" {',
+      "  interface GlobalComponents {",
+      vueEntries,
+      "  }",
+      "}",
+      "",
+    );
+  }
+  if (frameworks.includes("svelte")) {
+    const svelteEntries = allTags.map((tag) =>
+      `    "${tag}": SpinProjectComponentAttributes;`
+    ).join("\n");
+    out.push(
+      'declare module "svelte/elements" {',
+      "  export interface SvelteHTMLElements {",
+      svelteEntries,
+      "  }",
+      "}",
+      "",
+    );
+  }
+  return out.join("\n");
 }
 
 /**

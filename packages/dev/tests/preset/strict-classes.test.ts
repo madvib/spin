@@ -64,7 +64,7 @@ test("text-text fails the production build as a dead class", async () => {
   // `border-strong`, never `text-text`, `text-text-muted`, `border-border`,
   // or `border-border-strong`.
   const root = await fixture({
-    "spin/local.json": JSON.stringify(designLanguages.minimal),
+    "spin/local/tokens.json": JSON.stringify(designLanguages.minimal),
     "src/index.html": '<div class="bg-surface text-text">hi</div>\n',
   });
   try {
@@ -92,7 +92,7 @@ test("an arbitrary type size fails the production build as a dead class", async 
   // error treats it like any dead class — while `text-lg` stays producible
   // and clean.
   const root = await fixture({
-    "spin/local.json": JSON.stringify(designLanguages.minimal),
+    "spin/local/tokens.json": JSON.stringify(designLanguages.minimal),
     "src/index.html": '<p class="text-lg text-[14px]">hi</p>\n',
   });
   try {
@@ -117,7 +117,7 @@ test("an arbitrary type size fails the production build as a dead class", async 
 });
 test("a dead class fails the production build with file, class, and suggestion", async () => {
   const root = await fixture({
-    "spin/local.json": JSON.stringify(designLanguages.minimal),
+    "spin/local/tokens.json": JSON.stringify(designLanguages.minimal),
     "src/index.html": '<div class="p-4 bg-primry">hi</div>\n',
   });
   try {
@@ -144,7 +144,7 @@ test("a dead class fails the production build with file, class, and suggestion",
 
 test("the same project warns in dev and still serves the sheet", async () => {
   const root = await fixture({
-    "spin/local.json": JSON.stringify(designLanguages.minimal),
+    "spin/local/tokens.json": JSON.stringify(designLanguages.minimal),
     "src/index.html": '<div class="p-4 bg-primry">hi</div>\n',
   });
   try {
@@ -178,7 +178,7 @@ test("the same project warns in dev and still serves the sheet", async () => {
 
 test("strictClasses: false restores silence in a production build", async () => {
   const root = await fixture({
-    "spin/local.json": JSON.stringify(designLanguages.minimal),
+    "spin/local/tokens.json": JSON.stringify(designLanguages.minimal),
     "src/index.html": '<div class="p-4 bg-primry">hi</div>\n',
   });
   try {
@@ -199,7 +199,7 @@ test("strictClasses: false restores silence in a production build", async () => 
 
 test("a clean project builds with the flag at its default", async () => {
   const root = await fixture({
-    "spin/local.json": JSON.stringify(designLanguages.minimal),
+    "spin/local/tokens.json": JSON.stringify(designLanguages.minimal),
     "src/index.html": '<div class="p-4 text-primary">hi</div>\n',
   });
   try {

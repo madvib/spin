@@ -58,7 +58,7 @@ async function buildMessage(
 }
 
 const RAW_TYPE = {
-  "spin/local.json": JSON.stringify(designLanguages.minimal),
+  "spin/local/tokens.json": JSON.stringify(designLanguages.minimal),
   "src/index.html": '<p class="text-sm">hi</p>\n',
 };
 
@@ -141,7 +141,7 @@ test("an unrelated dead class still throws on the warn side", async () => {
   // The window covers removed type utilities only: a genuine typo is still
   // a build error while the migration runs.
   const root = await fixture({
-    "spin/local.json": JSON.stringify(designLanguages.minimal),
+    "spin/local/tokens.json": JSON.stringify(designLanguages.minimal),
     "src/index.html": '<div class="bg-primry">hi</div>\n',
   });
   try {

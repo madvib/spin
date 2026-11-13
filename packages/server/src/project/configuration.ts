@@ -24,7 +24,7 @@ import type {
 } from "./types.ts";
 
 /**
- * The shortcuts a configuration's text declares.
+ * The shortcuts a project declares.
  *
  * `unreadable` is the answer "there is a declaration here and I could not
  * read it". It is not the same as "there are no shortcuts": one is a project
@@ -57,7 +57,6 @@ export function configurationIn(
   file: string | null,
 ): ProjectConfiguration {
   const source = withoutComments(text);
-  const shortcuts = shortcutsIn(text);
   const content = contentIn(text);
   const themesDirValue = propertyValue(source, "themesDir");
   const componentsDirValue = propertyValue(source, "componentsDir");
@@ -87,7 +86,6 @@ export function configurationIn(
   const followed = extendsIn(text);
   return {
     file,
-    shortcuts: shortcuts.shortcuts,
     content: content.globs,
     mount: mountIn(text),
     themesDir,
@@ -96,35 +94,8 @@ export function configurationIn(
     extends: followed,
     verbatimThemes: themesIn(text),
     unreadableFields,
-    unreadable: shortcuts.unreadable || content.unreadable,
+    unreadable: content.unreadable,
   };
-}
-
-/**
- * The shortcuts a configuration's text declares.
- *
- * Every `shortcuts` property in the text is read: a project may compose more
- * than one table, and each is part of the vocabulary.
- */
-export function shortcutsIn(text: string): ShortcutDeclaration {
-  const source = withoutComments(text);
-  const property = propertyValue(source, "shortcuts");
-  if (property === undefined) return { shortcuts: {}, unreadable: false };
-  const literal = objectLiteralFor(source, property.text);
-  if (literal === undefined) return { shortcuts: {}, unreadable: true };
-  const shortcuts: Record<string, string[]> = {};
-  let unreadable = false;
-  for (const entry of objectEntries(literal)) {
-    const classes = classesOf(entry.value);
-    if (classes === undefined) {
-      // The name is known; its expansion is not. The vocabulary is partial,
-      // and a consumer that enforces it must know that.
-      unreadable = true;
-      continue;
-    }
-    shortcuts[entry.name] = classes;
-  }
-  return { shortcuts, unreadable };
 }
 
 /**
@@ -603,47 +574,6 @@ function arrayEntries(array: string): string[] {
     i = Math.max(end, i + 1);
   }
   return out;
-}
-
-/** The classes a shortcut's value expands to, when it says so. */
-function classesOf(value: string): string[] | undefined {
-  const trimmed = value.trim();
-  if (trimmed.startsWith('"') || trimmed.startsWith("'")) {
-    const end = stringEnd(trimmed, 0);
-    return trimmed.slice(1, end - 1).split(/\s+/).filter(Boolean);
-  }
-  if (trimmed.startsWith("[")) {
-    const out: string[] = [];
-    for (const entry of arrayEntries(trimmed)) {
-      const item = entry.trim();
-      if (!item.startsWith('"') && !item.startsWith("'")) return undefined;
-      const end = stringEnd(item, 0);
-      out.push(...item.slice(1, end - 1).split(/\s+/).filter(Boolean));
-    }
-    return out;
-  }
-  return undefined;
-}
-
-/**
- * The object literal a value is, when it names one.
- *
- * A value that is a table kept in a constant of the configuration's own is
- * followed to its declaration: `const studioShortcuts = { … }`. A name
- * declared in another module is not followed — reading it would mean
- * resolving imports, and a table this cannot see is one it must not guess at.
- */
-function objectLiteralFor(source: string, value: string): string | undefined {
-  const trimmed = value.trim();
-  if (trimmed.startsWith("{")) return trimmed;
-  if (!/^[A-Za-z_$][\w$]*$/.test(trimmed)) return undefined;
-  const declaration = new RegExp(
-    `\\b(?:const|let|var)\\s+${trimmed}\\s*(?::[^=]*?)?=\\s*\\{`,
-  );
-  const match = declaration.exec(source);
-  if (match === null) return undefined;
-  const start = match.index + match[0].length - 1;
-  return source.slice(start, balancedEnd(source, start, source.length));
 }
 
 /** The argument of a call, when the value is one. */

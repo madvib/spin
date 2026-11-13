@@ -5,7 +5,7 @@
  * merges them, so the seams collapse to one border. The pickers keep their
  * machines and binds; only their triggers live inside the pill. The badge
  * names the seat, and its hover card carries the facts the bar used to
- * narrate: counts, file state, scope, design language, config drift.
+ * narrate: counts, file state, scope, and design language.
  */
 import { createEffect, createSignal, Show } from "solid-js";
 import { createSpinComponent } from "@spinjs/components/solid";
@@ -15,7 +15,6 @@ import {
   activeModes,
   activeName,
   activeTokenCount,
-  config,
   divergedFromDisk,
   hasProjectFile,
   isDirty,
@@ -99,11 +98,6 @@ export default function SeatPill() {
       ? theme()
       : `${brand.name} · ${theme()}`;
   };
-  /** The config's seat, when it names a theme other than the seated one. */
-  const configDrift = (): string | undefined => {
-    const seated = config()?.config.activeTheme;
-    return seated !== undefined && seated !== theme() ? seated : undefined;
-  };
   const language = (): string | undefined => activeBrand()?.designLanguage;
   const counts = () => activeTokenCount();
   return (
@@ -158,9 +152,6 @@ export default function SeatPill() {
           </Show>
           <Show when={language()}>
             {(name) => <p class="text-muted">{name()}</p>}
-          </Show>
-          <Show when={configDrift()}>
-            {(seated) => <p class="text-muted">Config seats {seated()}</p>}
           </Show>
         </div>
       </studio-seat-card>

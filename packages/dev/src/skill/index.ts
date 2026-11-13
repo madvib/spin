@@ -3,7 +3,7 @@
  *
  * The skill is a product: an agent installs `skill/` and follows it. `SKILL.md`
  * carries the method for authoring Spin UI — primitives first, utilities for
- * layout, statechart machines for interaction, `spin lint` to close the loop —
+ * layout, statechart machines for interaction, the linter to close the loop —
  * and `references/primitives.md` carries the exact closed vocabulary, emitted
  * from the manifest so a primitive added to the rules appears in the file
  * without anyone editing prose.

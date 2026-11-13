@@ -42,8 +42,20 @@ export function checkClosedVocabulary(
     const core = coreName(cls, facts.prefixes);
     if (facts.utilities.has(core)) continue;
     if (facts.variants.has(core)) continue;
-    // Icon glyphs come from the icon preset, not the token vocabulary.
-    if (core.startsWith("i-")) continue;
+    // Icon glyphs come from the icon preset, not the token vocabulary —
+    // unless the project declares its icon set, in which case only that
+    // set's glyphs (and the project's saved icons) pass.
+    if (core.startsWith("i-")) {
+      if (iconAllowed(facts, core)) continue;
+      out.push({
+        messageId: "unknown",
+        data: { cls },
+        position: node.position,
+        fix: removalOf(node, index),
+        remedy: `The project's icon set is ${[...facts.iconCollections].sort().map((name) => `\`${name}\``).join(", ")}; drop \`${cls}\` or save its glyph to \`spin/icons/\`.`,
+      });
+      continue;
+    }
     const shortcut = facts.shortcuts.get(cls) ?? facts.shortcuts.get(core);
     if (shortcut !== undefined) {
       for (const part of shortcut) {
@@ -80,17 +92,36 @@ export function checkClosedVocabulary(
 }
 
 /**
+ * Whether an icon glyph is inside the project's icon set.
+ *
+ * Undeclared means unenforced: a project that names no collection spends
+ * whatever the icon preset resolves. A declared set holds `i-<collection>-*`
+ * to its collections — matched by prefix, so a multi-word collection
+ * (`material-symbols`) reads whole — and a glyph the project saved passes
+ * by its exact name, whatever set it came from.
+ */
+function iconAllowed(facts: Facts, core: string): boolean {
+  if (facts.iconCollections.size === 0) return true;
+  if (facts.savedIcons.has(core)) return true;
+  for (const collection of facts.iconCollections) {
+    if (core.startsWith(`i-${collection}-`) || core === `i-${collection}`) return true;
+  }
+  return false;
+}
+
+/**
  * Whether the vocabulary can produce a class.
  *
  * The same question the closed-vocabulary rule asks of a class in markup,
  * asked of the classes a shortcut spends: a variant prefix does not change
- * what a utility is, and an icon glyph comes from the icon preset.
+ * what a utility is, and an icon glyph comes from the icon preset — or
+ * from the project's declared set, when it declares one.
  */
 function producible(facts: Facts, cls: string): boolean {
   if (facts.utilities.has(cls)) return true;
   if (facts.variants.has(cls)) return true;
-  if (cls.startsWith("i-")) return true;
   const core = coreName(cls, facts.prefixes);
+  if (core.startsWith("i-")) return iconAllowed(facts, core);
   if (facts.utilities.has(core)) return true;
   if (facts.variants.has(core)) return true;
   return false;

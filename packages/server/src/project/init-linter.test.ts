@@ -149,7 +149,7 @@ test("skill init writes the project skill naming the brand directory", async () 
     const skill = await readFile(join(dir, ".agents/skills/spin/SKILL.md"), "utf8");
     deepStrictEqual(skill.includes("spin/acme/"), true);
     deepStrictEqual(skill.includes(".mcp.json"), true);
-    deepStrictEqual(skill.includes("spin lint"), true);
+    deepStrictEqual(skill.includes("linter"), true);
     deepStrictEqual(skill.includes("@spinjs/components"), true);
   } finally {
     await rm(dir, { recursive: true, force: true });

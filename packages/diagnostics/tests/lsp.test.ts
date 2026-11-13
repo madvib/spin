@@ -48,9 +48,9 @@ function diagnosticsOf(params: Record<string, unknown>): Array<Record<string, un
 /** A project with one theme, and a file with one unknown class. */
 async function fixture(): Promise<{ directory: string; uri: string }> {
   const directory = await mkdtemp(join(tmpdir(), "spin-lsp-"));
-  await mkdir(join(directory, "spin"), { recursive: true });
+  await mkdir(join(directory, "spin", "acme"), { recursive: true });
   const doc = structuredClone(designLanguages.minimal) as unknown as Record<string, unknown>;
-  await writeFile(join(directory, "spin", "acme.json"), JSON.stringify(doc, null, 2));
+  await writeFile(join(directory, "spin", "acme", "tokens.json"), JSON.stringify(doc, null, 2));
   const file = join(directory, "app.tsx");
   await writeFile(
     file,

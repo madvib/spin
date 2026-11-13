@@ -61,9 +61,7 @@ const BRAND_LAYER_SLOTS: readonly {
   readonly href: RoutePath | "/tokens/colors" | "/tokens/spacing" | "/tokens/type/styles";
 }[] = [
   { file: "tokens.json", label: "Identity & roles", href: "/tokens/colors" },
-  { file: "reference.json", label: "Reference scales", href: "/tokens/spacing" },
-  { file: "elements.json", label: "HTML elements", href: "/tokens/type/styles" },
-  { file: "primitives/*.json", label: "Primitives", href: "/components" },
+  { file: "../reference.json", label: "Reference scales", href: "/tokens/spacing" },
 ];
 
 export default function OverviewPage() {
@@ -309,11 +307,7 @@ export default function OverviewPage() {
             <For each={BRAND_LAYER_SLOTS}>
               {(slot) => {
                 const matching = () =>
-                  layers().filter(([file]) =>
-                    slot.file === "primitives/*.json"
-                      ? file.startsWith("primitives/")
-                      : file === slot.file
-                  );
+                  layers().filter(([file]) => file === slot.file);
                 const authoredCount = () =>
                   matching().reduce(
                     (sum, [, doc]) =>
@@ -754,7 +748,7 @@ function DiagnosticsCard(props: { issueCount: number }) {
           </Badge>
         </div>
         <div class="split type-caption text-muted">
-          <span>Static source rules (<code>spin lint</code>)</span>
+          <span>Static source rules (oxlint / ESLint)</span>
           <A href="/diagnostics">Inspect diagnostics →</A>
         </div>
       </div>

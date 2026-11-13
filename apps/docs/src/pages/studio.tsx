@@ -80,8 +80,7 @@ export default function Studio(): JSX.Element {
           dashboard: the active brand, its token groups, its components, and
           its diagnostics at a glance. <strong>Brand</strong> (<code>/brand</code>)
           manages identity — the parent design language, the authored layers
-          (<code>tokens.json</code>, <code>reference.json</code>,{" "}
-          <code>elements.json</code>, <code>primitives/*.json</code>), and the
+          (<code>tokens.json</code>, the global <code>reference.json</code>), and the
           runtime facets (<code>*.palette.json</code>, <code>*.spacing.json</code>).
           <strong>Tokens</strong> (<code>/tokens/*</code>) holds the six concern
           workbenches below; <strong>Components</strong> (<code>/components</code>)
@@ -126,7 +125,7 @@ export default function Studio(): JSX.Element {
             <strong>Elements</strong> table mapping <code>h1</code>–
             <code>h6</code>, <code>p</code>, <code>code</code>, and{" "}
             <code>blockquote</code> to their default type styles in{" "}
-            <code>elements.json</code>.
+            <code>tokens.json</code>.
           </li>
           <li>
             <strong>Faces (<code>/tokens/type/faces</code>):</strong> Curated
@@ -210,7 +209,7 @@ export default function Studio(): JSX.Element {
           <code>/components/button</code> or <code>/components/card</code> shows
           its live variant specimens alongside its editable token table (surface,
           radius, spacing, and typography tokens in{" "}
-          <code>spin/&lt;brand&gt;/primitives/&lt;name&gt;.json</code>).
+          <code>spin/&lt;brand&gt;/tokens.json</code>).
         </p>
         <p>
           Opening a machine component shows its interactive recipes and a{" "}

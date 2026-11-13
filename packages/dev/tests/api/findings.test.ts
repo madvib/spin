@@ -40,8 +40,8 @@ function serve(root: string) {
 /** A project with a theme and a source file that has something to report. */
 async function project(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), "spin-"));
-  await mkdir(`${root}/spin`);
-  await writeFile(`${root}/spin/spin.json`, JSON.stringify(shippedLanguage));
+  await mkdir(`${root}/spin/spin`, { recursive: true });
+  await writeFile(`${root}/spin/spin/tokens.json`, JSON.stringify(shippedLanguage));
   await mkdir(`${root}/src`);
   await writeFile(
     `${root}/src/app.tsx`,
@@ -146,11 +146,11 @@ test("the corpus crosses the wire with the actions that settle it", async () => 
       classes: repetition.classes,
     });
     deepStrictEqual(declared.error, null);
-    deepStrictEqual(declared.file, "vite.config.ts");
-    const config = await readFile(`${root}/vite.config.ts`, "utf8");
+    deepStrictEqual(declared.file, join("spin", "shortcuts.json"));
+    const table = await readFile(join(root, "spin", "shortcuts.json"), "utf8");
     assert(
-      config.includes('"stack": "flex flex-col gap-4"'),
-      `the shortcut was not declared: ${config}`,
+      table.includes('"stack": "flex flex-col gap-4"'),
+      `the shortcut was not declared: ${table}`,
     );
   } finally {
     await server.stop();

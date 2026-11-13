@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { designLanguages, parseTokens } from "@spinjs/theme";
 import { describeCatalog, SECTIONS, utilitiesFor } from "@spinjs/preset";
-import { configurationIn } from "../../../../packages/server/src/project/index.ts";
+import { readProjectShortcutsFile } from "../../../../packages/server/src/project/index.ts";
 import { animationContract } from "@spinjs/preset";
 
 const DOCS_ROOT = resolve(import.meta.dirname, "../..");
@@ -12,10 +12,7 @@ const DOCS_ROOT = resolve(import.meta.dirname, "../..");
  * than restated here — the reference cannot name a composition the project
  * does not have.
  */
-const docsShortcuts = configurationIn(
-  readFileSync(resolve(DOCS_ROOT, "vite.config.ts"), "utf8"),
-  "vite.config.ts",
-).shortcuts;
+const docsShortcuts = readProjectShortcutsFile(resolve(DOCS_ROOT, "spin")).shortcuts;
 
 export function buildStylingMarkdown(routePath: string): string | undefined {
   if (routePath === "/docs/styling/tailwind") {
@@ -447,7 +444,7 @@ export function buildStylingMarkdown(routePath: string): string | undefined {
     "## Project Shortcuts (Not Shipped)",
     "",
     "Spin ships no shortcuts of its own. Declare compositions in your",
-    "project's `spin.vite({ shortcuts: { ... } })` — the worked example lives",
+    "project's `spin/shortcuts.json` — the worked example lives",
     "on `/docs/getting-started/install#config`. The docs site declares:",
     "",
     ...Object.entries(docsShortcuts)

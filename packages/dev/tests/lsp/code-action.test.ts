@@ -27,8 +27,8 @@ import shippedLanguage from "../../../theme/src/languages/editorial.json" with {
 /** A project with a theme, holding a document with a redundant class. */
 async function project(): Promise<{ root: string; uri: string; text: string }> {
   const root = await mkdtemp(join(tmpdir(), "spin-lsp-"));
-  await mkdir(`${root}/spin`);
-  await writeFile(`${root}/spin/spin.json`, JSON.stringify(shippedLanguage));
+  await mkdir(`${root}/spin/spin`, { recursive: true });
+  await writeFile(`${root}/spin/spin/tokens.json`, JSON.stringify(shippedLanguage));
   await mkdir(`${root}/src`);
   const text = `export const App = () => (
   <p className="type-body">Hello</p>
@@ -106,8 +106,8 @@ test("a redundant class offers its removal under the cursor", async () => {
 test("a removed type utility offers its style as the quick fix", async () => {
   const root = await mkdtemp(join(tmpdir(), "spin-lsp-"));
   try {
-    await mkdir(`${root}/spin`);
-    await writeFile(`${root}/spin/spin.json`, JSON.stringify(shippedLanguage));
+    await mkdir(`${root}/spin/spin`, { recursive: true });
+    await writeFile(`${root}/spin/spin/tokens.json`, JSON.stringify(shippedLanguage));
     await mkdir(`${root}/src`);
     const uri = `file://${root}/src/app.tsx`;
     const text = `export const App = () => (

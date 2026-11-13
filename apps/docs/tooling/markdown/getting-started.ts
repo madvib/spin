@@ -102,7 +102,7 @@ export function buildGettingStartedMarkdown(routePath: string): string | undefin
         "## Project layout",
         "",
         "- `spin/<brand>/`: DTCG theme documents declaring your palette, scales, modes, and element overrides.",
-        "- `spin/config.json`: Optional project seating configuration (`activeTheme` and `themeOrder`) written by the Studio.",
+        "- `spin/config.json`: Optional project facts (`brand`, `componentsDir`, `strictness`, `icons`) — Studio seating lives in the browser, not the repo.",
         "- `src/lib/components/*.html`: Vendored and custom HTML components compiled into `<prefix>-<name>` custom elements.",
         "- `src/spin-components.d.ts`: Auto-generated DOM and JSX type declarations for your project components.",
       ].join("\n");
@@ -114,7 +114,7 @@ export function buildGettingStartedMarkdown(routePath: string): string | undefin
         "- **`spin.vite({ extends: brand })`** (Multi-app brand): Layers a shared brand package's themes and components beneath local `spin/<brand>/` and `src/lib/components/*.html` overrides.",
         "- **`spinPreset({ themes })`** (Stylesheet only): Drops into an existing `uno.config.ts` for token CSS, utilities, and element rules from explicit theme objects.",
         "- **`npx spin studio`** (Standalone daemon): Serves the visual theme editor at `/studio/` and RPC daemon at `/rpc` without running an application bundler.",
-        "- **`spin lint / theme / component / mcp`** (CLI & Agent tools): Source lints, theme validation gates, component scaffolding, and the stdio MCP server.",
+        "- **`spin brand / component / mcp`** (CLI & Agent tools): Theme validation gates, component scaffolding, and the stdio MCP server. Source lints run through oxlint or ESLint.",
         "",
         "## Full bundler plugin",
         "",

@@ -36,10 +36,10 @@
   },
   "scripts": {
     "test": "bun test --path-ignore-patterns=\"**/e2e/**\" --path-ignore-patterns=\"**/e2e.test.ts\" packages/ apps/ internal/",
-    "lint": "bun packages/dev/src/cli/main.ts lint",
+    "lint": "bun run lint:ox",
     "lint:ox": "bunx oxlint@1.85.0 --config .oxlintrc.json packages/ apps/ internal/",
     "fmt": "bunx oxfmt@0.78.0 --write packages/ apps/ internal/ scripts/",
-    "check": "tsc --noEmit && tsc --noEmit -p apps/docs && tsc --noEmit -p apps/studio && tsc --noEmit -p apps/reference && tsc --noEmit -p internal/check && bun run lint",
+    "check": "tsc --noEmit && tsc --noEmit -p apps/docs && tsc --noEmit -p apps/studio && tsc --noEmit -p apps/reference && tsc --noEmit -p internal/check && bun run lint:ox",
     "test:docs:e2e": "bun test --timeout 120000 apps/docs/src/tests/e2e.test.ts",
     "build:dist": "bun run scripts/build-dist.ts",
     "check:dist": "bun run scripts/check-exports.ts",

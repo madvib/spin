@@ -4,6 +4,7 @@
  * from it.
  */
 /// <reference types="@spinjs/preset/elements" />
+/// <reference types="@spinjs/preset/elements/solid" />
 
 declare module "src/lib/components/*.html" {
   const tag: string;

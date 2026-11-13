@@ -77,13 +77,13 @@ export function attachStudioSandbox(
         };
       case "project/config/read":
         return {
-          config: { activeTheme, themeOrder: [...themes.keys()] },
+          config: { brand: activeTheme },
           file: "spin/config.json",
         };
       case "project/config/write": {
-        const cfg = input["config"] as { activeTheme?: string } | undefined;
-        if (typeof cfg?.activeTheme === "string" && themes.has(cfg.activeTheme)) {
-          activeTheme = cfg.activeTheme;
+        const cfg = input["config"] as { brand?: string } | undefined;
+        if (typeof cfg?.brand === "string" && themes.has(cfg.brand)) {
+          activeTheme = cfg.brand;
         }
         return { error: null };
       }

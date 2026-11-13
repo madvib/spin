@@ -3,8 +3,9 @@
  */
 export const THEMES_SNIPPETS = {
   studioConfig: `{
-  "activeTheme": "minimal",
-  "themeOrder": ["minimal", "editorial", "material", "neobrutalist", "neumorphic", "glassmorphic"]
+  "brand": "minimal",
+  "strictness": "balanced",
+  "icons": { "collection": "lucide" }
 }`,
   sparseExtends: `{
   "$extends": "minimal",
@@ -54,16 +55,17 @@ export const THEMES_SNIPPETS = {
   }
 }`,
   brandLayers: `spin/
-  brand.json                     # Active brand name: { "name": "acme" }
+  config.json                  # Project facts: brand, componentsDir, strictness, icons
+  shortcuts.json               # Optional shared class compositions
+  reference.json               # Optional global scale overrides (color ramps, spacing steps)
   acme/
-    tokens.json                  # Brand identity: "$extends", faces, type styles, palette, shape
-    reference.json               # Optional raw scale overrides (color ramps, spacing steps)
-    elements.json                # Optional HTML element typography overrides (element.h1.type)
-    primitives/
-      <component>.json           # Optional per-primitive overrides (button.radius, card.title.type)
+    brand.json                 # Brand definition: { "name": "acme" }
+    tokens.json                # Every token override: "$extends", faces, type styles, palette, shape
     themes/
-      catppuccin.palette.json    # Optional palette facet (data-palette="catppuccin")
-      compact.spacing.json       # Optional spacing facet (data-spacing="compact")`,
+      catppuccin.palette.json  # Optional palette facet (data-palette="catppuccin")
+      compact.spacing.json     # Optional spacing facet (data-spacing="compact")
+  icons/
+    <name>.svg                 # Saved icon glyphs`,
   compositeStyle: `{
   "font": {
     "style": {
@@ -108,7 +110,7 @@ export default defineConfig({
 });`,
   bundlerPlugin: `import { spin } from "@spinjs/dev/vite";
 // spin.vite(), spin.rspack(), spin.webpack(), spin.bun(), and the rest
-// all share one options surface: { extends, themes, activeTheme }.
+// all share one options surface: { extends, themes, themesDir, shortcuts }.
 
 export const plugins = [
   spin.vite({
@@ -192,10 +194,9 @@ export const plugins = [
     "elevation": { "$type": "shadow", "$value": "{shadow.md}" }
   }
 }`,
-  cliAnalyze: `# Lint source files AND spin/<brand>/ themes together
-npx spin lint .
+  cliAnalyze: `# Lint source files with the spin rules, then inspect themes directly
+npx oxlint .
 
-# Or inspect themes directly from the CLI
 npx spin brand list
 npx spin brand analyze
 npx spin brand analyze acme`,

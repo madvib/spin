@@ -2,8 +2,8 @@
  * Code snippets for the Tooling & Agents subgroup (`/docs/tooling/*`).
  */
 export const TOOLING_SNIPPETS = {
-  lint: `npx spin lint src/`,
-  lintFix: `npx spin lint --fix src/`,
+  lint: `npx oxlint src/`,
+  lintFix: `npx oxlint --fix src/`,
   studioServe: `npx spin studio`,
   mcp: `npx spin mcp`,
   mcpConfig: `{

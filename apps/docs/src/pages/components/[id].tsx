@@ -294,7 +294,7 @@ function MachineDetail(props: { name: string; prev?: string; next?: string }): J
             type="button"
             onClick={copyCli}
             aria-label="Copy CLI scaffold command"
-            class="bare inline-flex h-8 items-center gap-2 rounded-md border bg-surface-raised px-3 type-code text-muted transition-colors hover:border-strong hover:bg-surface"
+            class="subtle s-xs inline-flex h-8 items-center gap-2 type-code text-muted transition-colors"
           >
             <span class="text-primary">$</span>
             <span>{cliCommand()}</span>

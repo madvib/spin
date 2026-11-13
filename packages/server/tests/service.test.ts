@@ -34,11 +34,11 @@ async function root(): Promise<string> {
   return await mkdtemp(join(tmpdir(), "spin-project-"));
 }
 
-/** A root holding a themes directory and one theme file. */
+/** A root holding a themes directory and one brand. */
 async function projectWith(name: string, text: string): Promise<string> {
   const dir = await root();
-  await mkdir(join(dir, "spin"));
-  await writeFile(join(dir, "spin", `${name}.json`), text, "utf8");
+  await mkdir(join(dir, "spin", name), { recursive: true });
+  await writeFile(join(dir, "spin", name, "tokens.json"), text, "utf8");
   return dir;
 }
 
@@ -96,7 +96,8 @@ async function projectWithRecord(): Promise<string> {
 test("a root with themes and a wired config is a spin project", async () => {
   const dir = await root();
   await mkdir(join(dir, "spin"));
-  await writeFile(join(dir, "spin", "acme.json"), "{}", "utf8");
+  await mkdir(join(dir, "spin", "acme"));
+  await writeFile(join(dir, "spin", "acme", "tokens.json"), "{}", "utf8");
   await writeFile(
     join(dir, "vite.config.ts"),
     'import { spin } from "@spinjs/dev/vite";\nspin.vite();',
@@ -108,7 +109,7 @@ test("a root with themes and a wired config is a spin project", async () => {
   deepStrictEqual(report.spin, true);
   deepStrictEqual(report.uno, true);
   deepStrictEqual(report.wired, true);
-  deepStrictEqual(report.themes, ["acme.json"]);
+  deepStrictEqual(report.themes, ["acme"]);
 });
 
 test("a directory that holds no project reports itself as none", async () => {
@@ -203,12 +204,13 @@ test("init refuses a root it cannot make a project in", async () => {
 
 test("a project holds its own themes beside the brand it has not forked", async () => {
   const dir = await projectWithBrand();
-  await writeFile(join(dir, "spin", "acme.json"), '{"own":true}', "utf8");
+  await mkdir(join(dir, "spin", "acme"));
+  await writeFile(join(dir, "spin", "acme", "tokens.json"), '{"own":true}', "utf8");
 
   const listed = await listThemes(dir);
   const own = listed.filter((theme) => theme.file !== null);
   deepStrictEqual(own.map((theme) => theme.name), ["acme"]);
-  deepStrictEqual(own[0]?.file, join("spin", "acme.json"));
+  deepStrictEqual(own[0]?.file, join("spin", "acme", "tokens.json"));
   deepStrictEqual(own[0]?.text, '{"own":true}');
 
   const brand = listed.filter((theme) => theme.file === null);
@@ -224,12 +226,13 @@ test("a project without a brand lists only its own files", async () => {
 
 test("a forked brand theme replaces the brand theme it forked", async () => {
   const dir = await projectWithBrand();
-  await writeFile(join(dir, "spin", "halide.json"), '{"forked":true}', "utf8");
+  await mkdir(join(dir, "spin", "halide"));
+  await writeFile(join(dir, "spin", "halide", "tokens.json"), '{"forked":true}', "utf8");
 
   const listed = await listThemes(dir);
   const halide = listed.filter((theme) => theme.name === "halide");
   deepStrictEqual(halide.length, 1);
-  deepStrictEqual(halide[0]?.file, join("spin", "halide.json"));
+  deepStrictEqual(halide[0]?.file, join("spin", "halide", "tokens.json"));
   deepStrictEqual(halide[0]?.text, '{"forked":true}');
 });
 
@@ -340,7 +343,8 @@ test("a remove of a brand-only theme is refused", async () => {
 
 test("a forked brand theme writes like any local file", async () => {
   const dir = await projectWithBrand();
-  await writeFile(join(dir, "spin", "halide.json"), '{"forked":true}', "utf8");
+  await mkdir(join(dir, "spin", "halide"));
+  await writeFile(join(dir, "spin", "halide", "tokens.json"), '{"forked":true}', "utf8");
 
   const written = await writeTheme(dir, "halide", '{"edited":true}');
   deepStrictEqual(written.error, null);
@@ -362,7 +366,8 @@ test("an inline record extends serves the imported record", async () => {
 
 test("a verbatim configuration serves its declared documents", async () => {
   const dir = await projectVerbatim();
-  await writeFile(join(dir, "spin", "acme.json"), '{"own":true}', "utf8");
+  await mkdir(join(dir, "spin", "acme"));
+  await writeFile(join(dir, "spin", "acme", "tokens.json"), '{"own":true}', "utf8");
 
   const listed = await listThemes(dir);
   deepStrictEqual(listed.map((theme) => theme.name), ["halide"]);
@@ -441,7 +446,7 @@ test("a project keeps no state between calls", async () => {
   const first = await detectProject(dir);
   const second = await detectProject(dir);
   deepStrictEqual(second.themes, first.themes);
-  deepStrictEqual(second.themes, ["acme.json"]);
+  deepStrictEqual(second.themes, ["acme"]);
 });
 
 test("a root that is not there holds no themes of its own", async () => {
@@ -522,7 +527,8 @@ test("init and configuration respect custom themesDir, componentsDir, and prefix
 });
 test("a listed theme names where it is served from", async () => {
   const dir = await projectWithBrand();
-  await writeFile(join(dir, "spin", "acme.json"), '{"own":true}', "utf8");
+  await mkdir(join(dir, "spin", "acme"));
+  await writeFile(join(dir, "spin", "acme", "tokens.json"), '{"own":true}', "utf8");
 
   const listed = await listThemes(dir);
   const byName = Object.fromEntries(listed.map((theme) => [theme.name, theme.origin]));
@@ -540,22 +546,26 @@ test("a written config reads back with the file that holds it", async () => {
   const dir = await root();
 
   const written = await writeConfig(dir, {
-    activeTheme: "halide",
-    themeOrder: ["halide", "acme"],
+    brand: "halide",
+    componentsDir: "src/ui",
+    strictness: "balanced",
+    icons: { collection: "lucide" },
   });
   deepStrictEqual(written.error, null);
 
   const read = await readConfig(dir);
   deepStrictEqual(read.config, {
-    activeTheme: "halide",
-    themeOrder: ["halide", "acme"],
+    brand: "halide",
+    componentsDir: "src/ui",
+    strictness: "balanced",
+    icons: { collection: "lucide" },
   });
   deepStrictEqual(read.file, join("spin", "config.json"));
 
   const onDisk = await readFile(join(dir, "spin", "config.json"), "utf8");
   deepStrictEqual(
     onDisk,
-    `${JSON.stringify({ activeTheme: "halide", themeOrder: ["halide", "acme"] }, null, 2)}\n`,
+    `${JSON.stringify({ brand: "halide", componentsDir: "src/ui", strictness: "balanced", icons: { collection: "lucide" } }, null, 2)}\n`,
   );
 });
 
@@ -569,62 +579,64 @@ test("a project that never wrote a config reads the empty default", async () => 
 
 test("a half written config reads as the empty default, over its file", async () => {
   const dir = await projectWith("acme", '{"own":true}');
-  await writeFile(join(dir, "spin", "config.json"), '{"activeTheme":', "utf8");
+  await writeFile(join(dir, "spin", "config.json"), '{"brand":', "utf8");
 
   const read = await readConfig(dir);
   deepStrictEqual(read.config, {});
   deepStrictEqual(read.file, join("spin", "config.json"));
 });
 
-test("a written contract set reads back with the file that holds it", async () => {
+test("a seating key the schema does not name is stripped, never kept", async () => {
   const dir = await root();
-
-  const written = await writeConfig(dir, { contractThemes: ["halide", "acme"] });
-  deepStrictEqual(written.error, null);
+  await mkdir(join(dir, "spin"));
+  await writeFile(
+    join(dir, "spin", "config.json"),
+    JSON.stringify({ brand: "halide", activeTheme: "halide", themeOrder: ["halide"] }),
+    "utf8",
+  );
 
   const read = await readConfig(dir);
-  deepStrictEqual(read.config, { contractThemes: ["halide", "acme"] });
+  deepStrictEqual(read.config, { brand: "halide" });
   deepStrictEqual(read.file, join("spin", "config.json"));
 });
 
 test("a config write creates the spin directory the project did not have", async () => {
   const dir = await root();
 
-  const written = await writeConfig(dir, { activeTheme: "halide" });
+  const written = await writeConfig(dir, { brand: "halide" });
   deepStrictEqual(written.error, null);
 
   const read = await readConfig(dir);
-  deepStrictEqual(read.config, { activeTheme: "halide" });
+  deepStrictEqual(read.config, { brand: "halide" });
 });
 
 test("config.json is not served as a theme", async () => {
   const dir = await projectWith("halide", "{}");
-  await writeConfig(dir, { activeTheme: "halide" });
+  await writeConfig(dir, { brand: "halide" });
 
   const listed = await listThemes(dir);
   deepStrictEqual(listed.map((theme) => theme.name), ["halide"]);
   const report = await detectProject(dir);
-  deepStrictEqual(report.themes, ["halide.json"]);
+  deepStrictEqual(report.themes, ["halide"]);
 });
 
 test("a brand directory composes its layers over its design language", async () => {
   const dir = await root();
   const brand = join(dir, "spin", "acme");
-  await mkdir(join(brand, "primitives"), { recursive: true });
   await mkdir(join(brand, "themes"), { recursive: true });
   await writeFile(
-    join(brand, "tokens.json"),
-    JSON.stringify({ $extends: "minimal", modes: ["light", "dark"] }),
-  );
-  await writeFile(
-    join(brand, "elements.json"),
+    join(dir, "spin", "reference.json"),
     JSON.stringify({
       element: { h1: { type: { $type: "typography", $value: "{font.style.title}" } } },
     }),
   );
   await writeFile(
-    join(brand, "primitives", "button.json"),
-    JSON.stringify({ button: { radius: { $type: "dimension", $value: "0px" } } }),
+    join(brand, "tokens.json"),
+    JSON.stringify({
+      $extends: "minimal",
+      modes: ["light", "dark"],
+      button: { radius: { $type: "dimension", $value: "0px" } },
+    }),
   );
   await writeFile(
     join(brand, "themes", "compact.spacing.json"),
@@ -647,7 +659,8 @@ test("a brand directory composes its layers over its design language", async () 
     walk(parsed.tree);
     return leaves.find((leaf) => leaf.path.join(".") === path)?.value;
   };
-  // The layers land in order: the language's voice, re-pointed per layer.
+  // The layers land in order: the global reference, then the brand's own
+  // tokens, over the language's voice.
   deepStrictEqual(at("element.h1.type.family"), "{font.style.title.family}");
   deepStrictEqual(at("button.radius"), "0px");
   deepStrictEqual(at("button.type.family"), "{font.style.label.family}");
@@ -658,6 +671,23 @@ test("a brand directory composes its layers over its design language", async () 
 
   const report = await detectProject(dir);
   deepStrictEqual(report.themes, ["acme"]);
+});
+
+test("a stray file the shape does not name is not served", async () => {
+  const dir = await root();
+  const brand = join(dir, "spin", "acme");
+  await mkdir(brand, { recursive: true });
+  await writeFile(
+    join(brand, "tokens.json"),
+    JSON.stringify({ $extends: "minimal", modes: ["light", "dark"] }),
+  );
+  await writeFile(join(dir, "spin", "legacy.json"), JSON.stringify({ color: {} }));
+  await writeFile(join(brand, "elements.json"), JSON.stringify({ element: {} }));
+
+  const facets = await loadProjectBrand(dir);
+  deepStrictEqual(Object.keys(facets.themes), ["acme"]);
+  const listed = await listThemes(dir);
+  deepStrictEqual(listed.map((theme) => theme.name), ["acme"]);
 });
 
 test("a brand facet carrying the wrong tokens is refused with its file", async () => {

@@ -1,5 +1,5 @@
 /**
- * Themes Validation: spin lint integration, CLI analysis, the six validation checks, and runtime JS reads.
+ * Themes Validation: linter integration, CLI analysis, the six validation checks, and runtime JS reads.
  */
 import { For } from "solid-js";
 import type { JSX } from "solid-js";
@@ -56,7 +56,7 @@ export default function ThemesValidation(): JSX.Element {
 
       <Section id="cli" title="Lint and CLI analysis">
         <p class="max-w-prose">
-          Run <code>npx spin lint .</code> in CI or locally to validate{" "}
+          Run <code>npx oxlint .</code> in CI or locally to validate{" "}
           <code>spin/&lt;brand&gt;/</code> themes together with your source files: a
           contrast pair below its floor or a missing required role surfaces as
           a lint diagnostic with the exact token path. To inspect themes on
@@ -74,7 +74,7 @@ export default function ThemesValidation(): JSX.Element {
 
       <Section id="checks" title="The six validation checks">
         <p class="max-w-prose">
-          The Studio, <code>npx spin lint</code>, and{" "}
+          The Studio, your linter, and{" "}
           <code>npx spin brand analyze</code> all run the same{" "}
           <code>validateTheme</code> pipeline from{" "}
           <code>@spinjs/dev/theme</code>:

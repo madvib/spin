@@ -87,10 +87,10 @@ const CLI_STEPS: readonly PropEntry[] = [
 
 const SEATING_ITEMS: readonly PropEntry[] = [
   {
-    name: "1. activeTheme in spin/config.json",
+    name: "1. brand in spin/config.json",
     badge: "Project default",
     description:
-      "When spin/config.json names an activeTheme that exists in the resolved theme set, that theme is seated as the root default.",
+      "When spin/config.json names a brand that exists in the resolved theme set, that theme is seated as the root default.",
   },
   {
     name: "2. Remembered Studio selection",
@@ -99,10 +99,10 @@ const SEATING_ITEMS: readonly PropEntry[] = [
       "During local development, the theme last selected in the Studio stays active across reloads.",
   },
   {
-    name: "3. First theme in themeOrder",
+    name: "3. First brand, sorted by name",
     badge: "Fallback",
     description:
-      "If no activeTheme is set, Spin seats the first theme in themeOrder (or the first brand directory in spin/, sorted by name).",
+      "If no brand is set, Spin seats the first brand directory in spin/, sorted by name.",
   },
 ];
 
@@ -159,7 +159,7 @@ export default function ThemesOverview(): JSX.Element {
         <p class="max-w-prose">
           Prefer the terminal? <code>npx spin init</code> scaffolds the same
           project, and every check the Studio runs live is also available from{" "}
-          <code>npx spin lint</code> and <code>npx spin brand analyze</code>:
+          <code>npx oxlint</code> and <code>npx spin brand analyze</code>:
         </p>
         <PropList items={CLI_STEPS} />
         <p class="max-w-prose">

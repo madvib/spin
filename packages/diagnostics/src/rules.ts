@@ -63,7 +63,21 @@ export interface GateContext {
   answers?: EngineAnswers;
   /** The rule's options, as the configuration gave them. */
   options?: unknown[];
-  /** Report a finding, at the node that caused it. */
+  /**
+   * The file's source, when the linter hands it over.
+   *
+   * ESLint does; the engine's own walk does not need to. The one service
+   * the rules read is the vue parser's template traversal: without it a
+   * template visitor never fires, because ESLint core does not know the
+   * template's keys.
+   */
+  sourceCode?: {
+    parserServices?: {
+      defineTemplateBodyVisitor?: (
+        template: Record<string, (node: GateNode) => void>,
+      ) => Record<string, (node: GateNode) => void>;
+    };
+  };
   report(descriptor: {
     node: GateNode;
     messageId: string;
@@ -147,8 +161,29 @@ const classTokens = (raw: string) => raw.split(/\s+/).filter(Boolean);
 
 /** The tag name of the element an attribute belongs to. */
 function tagOf(node: GateNode): string | undefined {
-  const name = node.parent?.name?.name;
-  return typeof name === "string" ? name : undefined;
+  return elementName(elementOf(node));
+}
+
+/** The element an attribute belongs to, across parsers. */
+function elementOf(node: GateNode): GateNode | undefined {
+  const parent = node.parent;
+  if (parent === undefined || parent === null) return undefined;
+  if (parent.type === "VStartTag" || parent.type === "SvelteStartTag") {
+    const element = parent.parent;
+    return element === null ? undefined : element;
+  }
+  return parent;
+}
+
+/** The tag name an element node carries, in any parser's shape. */
+function elementName(element: GateNode | undefined): string | undefined {
+  if (element === undefined) return undefined;
+  const name = element.name as unknown;
+  if (typeof name === "string") return name;
+  if (typeof name === "object" && name !== null && "name" in name) {
+    return typeof name.name === "string" ? name.name : undefined;
+  }
+  return undefined;
 }
 
 function isClassAttribute(node: GateNode): boolean {
@@ -162,27 +197,67 @@ function isClassAttribute(node: GateNode): boolean {
   );
 }
 
-/** The attribute name a JSX attribute node carries, in either AST shape. */
+/** The attribute name an attribute node carries, in any parser's shape. */
 function attrName(sibling: unknown): string | undefined {
   if (typeof sibling !== "object" || sibling === null) return undefined;
-  if (!("name" in sibling)) return undefined;
-  const name: unknown = sibling.name;
-  if (typeof name === "string") return name;
-  if (typeof name === "object" && name !== null && "name" in name) {
-    return typeof name.name === "string" ? name.name : undefined;
+  const node = sibling as {
+    readonly type?: unknown;
+    readonly name?: unknown;
+    readonly kind?: unknown;
+    readonly key?: unknown;
+  };
+  if (node.type === "SvelteDirective") {
+    if (node.kind === "Class") return "class";
+    if (node.kind === "StyleDirective") return "style";
+    return undefined;
+  }
+  if (node.name !== undefined) {
+    if (typeof node.name === "string") return node.name;
+    if (typeof node.name === "object" && node.name !== null && "name" in node.name) {
+      const name = (node.name as { name?: unknown }).name;
+      if (typeof name === "string") return name;
+    }
+  }
+  return keyName(node.key);
+}
+
+/** The attribute name a foreign key node carries. */
+function keyName(key: unknown): string | undefined {
+  if (typeof key !== "object" || key === null) return undefined;
+  const node = key as {
+    readonly name?: unknown;
+    readonly value?: unknown;
+    readonly argument?: unknown;
+  };
+  if (typeof node.value === "string") return node.value;
+  if (typeof node.name === "string") return node.name;
+  if (typeof node.name === "object" && node.name !== null && "name" in node.name) {
+    const name = (node.name as { name?: unknown }).name;
+    if (name !== "bind") return undefined;
+    const argument = node.argument as { name?: unknown } | null | undefined;
+    if (typeof argument?.name === "string") return argument.name;
+    return undefined;
   }
   return undefined;
 }
 
 /**
- * The string a JSX attribute carries.
+ * The string an attribute carries.
  *
  * An attribute holds a node, and the string it carries is that node's own
  * value — `<div className="flex">` holds a literal, and the literal holds
- * the classes.
+ * the classes. A svelte attribute holds a list of parts; a single literal
+ * part is the same string, and anything mixed with an expression is not a
+ * string at all.
  */
 function attributeValue(node: GateNode): string | undefined {
   const holder = node.value;
+  if (Array.isArray(holder)) {
+    if (holder.length !== 1) return undefined;
+    const part = holder[0] as { type?: unknown; value?: unknown } | undefined;
+    if (part?.type !== "SvelteLiteral") return undefined;
+    return typeof part.value === "string" ? part.value : undefined;
+  }
   if (typeof holder !== "object" || holder === null) return undefined;
   const value = (holder as { value?: unknown }).value;
   return typeof value === "string" ? value : undefined;
@@ -262,16 +337,9 @@ function expressionBranches(
     const resting = classTokens(direct);
     return { resting, conditional: [], all: [...resting] };
   }
-  const holder = node.value as ExpressionNode | undefined;
-  if (holder === undefined || holder === null) {
-    return { resting: [], conditional: [], all: [] };
-  }
-  if (holder.type !== "JSXExpressionContainer") {
-    return { resting: [], conditional: [], all: [] };
-  }
   const resting: string[] = [];
   const conditional: string[][] = [];
-  collectExpressionBranches(holder.expression, resting, conditional, true);
+  branchClasses(node, resting, conditional);
   const seen = new Set<string>();
   const all: string[] = [];
   for (const cls of [...resting, ...conditional.flat()]) {
@@ -280,6 +348,65 @@ function expressionBranches(
     all.push(cls);
   }
   return { resting, conditional, all };
+}
+
+/**
+ * The classes a non-string attribute value names.
+ *
+ * A svelte `class:foo` directive names its class conditionally — the class
+ * is worn exactly when the condition holds. A svelte value list mixes
+ * literal parts (resting) with mustache expressions (read as branches).
+ * A vue `:class` holds the same ESTree expression a JSX container holds,
+ * under its own container name.
+ */
+function branchClasses(
+  node: GateNode,
+  resting: string[],
+  conditional: string[][],
+): void {
+  if (node.type === "SvelteDirective") {
+    const name = directiveClass(node);
+    if (name !== undefined) conditional.push([name]);
+    return;
+  }
+  const holder = node.value;
+  if (Array.isArray(holder)) {
+    for (const part of holder) {
+      if (typeof part !== "object" || part === null) continue;
+      const node = part as ExpressionNode & { value?: unknown };
+      if (node.type === "SvelteLiteral" && typeof node.value === "string") {
+        resting.push(...classTokens(node.value));
+        continue;
+      }
+      if (node.type === "SvelteMustacheTag") {
+        collectExpressionBranches(node.expression, resting, conditional, false);
+      }
+    }
+    return;
+  }
+  if (typeof holder !== "object" || holder === null) return;
+  const container = holder as ExpressionNode;
+  if (
+    container.type !== "JSXExpressionContainer" &&
+    container.type !== "VExpressionContainer"
+  ) {
+    return;
+  }
+  collectExpressionBranches(container.expression, resting, conditional, true);
+}
+
+/** The class a svelte `class:foo` directive toggles. */
+function directiveClass(node: GateNode): string | undefined {
+  const key = (node as GateNode & { key?: unknown }).key as
+    | { name?: unknown }
+    | undefined;
+  const name = key?.name;
+  if (typeof name === "string") return name;
+  if (typeof name === "object" && name !== null && "name" in name) {
+    const inner = (name as { name?: unknown }).name;
+    return typeof inner === "string" ? inner : undefined;
+  }
+  return undefined;
 }
 
 /** Structural identity of a pure guard expression so co-guarded branches merge. */
@@ -516,13 +643,16 @@ function collectExpressionInto(node: unknown, out: string[]): void {
  * The string a literal carries, and where its content starts.
  *
  * A fix has to say WHICH text to remove, and the offsets are the only thing
- * that says so. The content of a literal starts one character after the
- * literal does: the quote is not part of the class list.
+ * that says so. A JSX or vue literal's range covers its quotes, so the
+ * content starts one character after the literal does; an html or svelte
+ * literal's range covers the content itself.
  */
 function literalOf(
   node: GateNode,
 ): { text: string; start: number } | undefined {
-  const holder = node.value as
+  const raw = node.value;
+  if (Array.isArray(raw)) return svelteLiteralOf(raw);
+  const holder = raw as
     | {
       type?: string;
       value?: unknown;
@@ -532,7 +662,10 @@ function literalOf(
     | undefined;
   if (holder === undefined || holder === null) return undefined;
   let literal = holder;
-  if (holder.type === "JSXExpressionContainer") {
+  if (
+    holder.type === "JSXExpressionContainer" ||
+    holder.type === "VExpressionContainer"
+  ) {
     const expression = holder.expression as
       | { type?: string; value?: unknown; range?: readonly [number, number] }
       | undefined;
@@ -541,11 +674,33 @@ function literalOf(
     }
     literal = expression;
   }
-  if (literal.type !== "Literal") return undefined;
+  if (
+    literal.type !== "Literal" &&
+    literal.type !== "VLiteral" &&
+    literal.type !== "AttributeValue"
+  ) {
+    return undefined;
+  }
   if (typeof literal.value !== "string") return undefined;
   const range = literal.range;
   if (range === undefined) return undefined;
-  return { text: literal.value, start: range[0] + 1 };
+  const start = literal.type === "AttributeValue" ? range[0] : range[0] + 1;
+  return { text: literal.value, start };
+}
+
+/** The string a lone svelte literal part carries, and where its content starts. */
+function svelteLiteralOf(
+  parts: readonly unknown[],
+): { text: string; start: number } | undefined {
+  if (parts.length !== 1) return undefined;
+  const part = parts[0] as
+    | { type?: string; value?: unknown; range?: readonly [number, number] }
+    | undefined;
+  if (part?.type !== "SvelteLiteral") return undefined;
+  if (typeof part.value !== "string") return undefined;
+  const range = part.range;
+  if (range === undefined) return undefined;
+  return { text: part.value, start: range[0] };
 }
 
 /**
@@ -627,9 +782,17 @@ function siblingContextClasses(node: GateNode, facts?: Facts): string[] {
 function dynamicPrefixInterpolations(node: GateNode): string[] {
   const out: string[] = [];
   const visit = (cur: unknown): void => {
+    if (Array.isArray(cur)) {
+      for (const part of cur) visit(part);
+      return;
+    }
     if (typeof cur !== "object" || cur === null) return;
     const expr = cur as ExpressionNode;
-    if (expr.type === "JSXExpressionContainer") {
+    if (
+      expr.type === "JSXExpressionContainer" ||
+      expr.type === "VExpressionContainer" ||
+      expr.type === "SvelteMustacheTag"
+    ) {
       visit(expr.expression);
       return;
     }
@@ -774,8 +937,8 @@ const MARKUP_ATTRIBUTES: ReadonlySet<string> = new Set([
  * document as markup.
  */
 function carriesMarkup(node: GateNode): boolean {
-  const name = node.name?.name;
-  return typeof name === "string" && MARKUP_ATTRIBUTES.has(name);
+  const name = attrName(node);
+  return name !== undefined && MARKUP_ATTRIBUTES.has(name);
 }
 
 /**
@@ -833,10 +996,17 @@ function templateText(node: MarkupNode): string {
  * so a token named in an argument is not markup the rule has read.
  */
 function markupStrings(node: unknown, out: MarkupText[]): void {
+  if (Array.isArray(node)) {
+    for (const part of node) markupStrings(part, out);
+    return;
+  }
   if (typeof node !== "object" || node === null) return;
   const value = node as MarkupNode;
   switch (value.type) {
-    case "Literal": {
+    case "Literal":
+    case "VLiteral":
+    case "SvelteLiteral":
+    case "AttributeValue": {
       const text = literalValue(value);
       if (text !== undefined) out.push({ node: value, text });
       return;
@@ -849,6 +1019,8 @@ function markupStrings(node: unknown, out: MarkupText[]): void {
       return;
     }
     case "JSXExpressionContainer":
+    case "VExpressionContainer":
+    case "SvelteMustacheTag":
       markupStrings(value.expression, out);
       return;
     case "ObjectExpression":
@@ -968,6 +1140,51 @@ const SEMANTIC_SCHEMA: GateSchema[] = [
 /* -------------------------------------------------------------- the rules -- */
 
 /**
+ * The attribute visitor, under every parser's node type.
+ *
+ * One handler reads class attributes however they are spelled: JSX, vue
+ * (`VAttribute`, bound or plain), svelte (`SvelteAttribute` and the
+ * `class:` directive), and html-eslint (`Attribute`). A parser only walks
+ * the types it emits, so each rule answers under its own parser and stays
+ * silent under the rest.
+ */
+function classAttributeVisitors(
+  visit: (node: GateNode) => void,
+): Record<string, (node: GateNode) => void> {
+  const out: Record<string, (node: GateNode) => void> = {};
+  for (
+    const type of [
+      "JSXAttribute",
+      "VAttribute",
+      "SvelteAttribute",
+      "SvelteDirective",
+      "Attribute",
+    ]
+  ) {
+    out[type] = visit;
+  }
+  return out;
+}
+
+/**
+ * The visitors, routed through the template traversal when one owns the file.
+ *
+ * The vue parser keeps its template off the keys ESLint core walks, so a
+ * template visitor registered plainly never fires. Its parser service
+ * hands back a visitor that walks the template instead; every other host
+ * — oxlint, the engine's own walk, any other parser — reads the visitors
+ * as they are.
+ */
+function routedVisitors(
+  context: GateContext,
+  visitors: Record<string, (node: GateNode) => void>,
+): Record<string, (node: GateNode) => void> {
+  const define = context.sourceCode?.parserServices?.defineTemplateBodyVisitor;
+  if (typeof define !== "function") return visitors;
+  return define(visitors);
+}
+
+/**
  * Disallow a class that says what the element already says.
  *
  * Dead weight: the class sets a property the element sets too, and it sets
@@ -990,18 +1207,17 @@ const noRedundantClass: GateRule = {
   },
   create(context) {
     const options = semanticOptions(context);
-    return {
-      JSXAttribute(node) {
-        if (!carriesClasses(node)) return;
-        const facts = factsForFile(context.filename ?? "", context.answers);
-        const base = classFacts(node, facts);
-        report(
-          context,
-          node,
-          filterOwnFindings(base, checkNoRedundantClass(facts, restingFacts(base), options)),
-        );
-      },
+    const visit = (node: GateNode) => {
+      if (!carriesClasses(node)) return;
+      const facts = factsForFile(context.filename ?? "", context.answers);
+      const base = classFacts(node, facts);
+      report(
+        context,
+        node,
+        filterOwnFindings(base, checkNoRedundantClass(facts, restingFacts(base), options)),
+      );
     };
+    return routedVisitors(context, classAttributeVisitors(visit));
   },
 };
 
@@ -1034,28 +1250,27 @@ const preferThemeValue: GateRule = {
   },
   create(context) {
     const options = semanticOptions(context);
-    return {
-      JSXAttribute(node) {
-        if (!carriesClasses(node)) return;
-        const facts = factsForFile(context.filename ?? "", context.answers);
-        const base = classFacts(node, facts);
-        const restingFindings = filterOwnFindings(
-          base,
-          checkPreferThemeValue(facts, restingFacts(base), options),
-        );
-        const clashFindings = checkAcrossBranches(base, (probe) =>
-          checkTypeStyleClashes(facts, probe, base.resting),
-        );
-        const seen = new Set(
-          restingFindings.map((f) => `${f.messageId}:${JSON.stringify(f.data)}`),
-        );
-        for (const clash of clashFindings) {
-          const key = `${clash.messageId}:${JSON.stringify(clash.data)}`;
-          if (!seen.has(key)) restingFindings.push(clash);
-        }
-        report(context, node, restingFindings);
-      },
+    const visit = (node: GateNode) => {
+      if (!carriesClasses(node)) return;
+      const facts = factsForFile(context.filename ?? "", context.answers);
+      const base = classFacts(node, facts);
+      const restingFindings = filterOwnFindings(
+        base,
+        checkPreferThemeValue(facts, restingFacts(base), options),
+      );
+      const clashFindings = checkAcrossBranches(base, (probe) =>
+        checkTypeStyleClashes(facts, probe, base.resting),
+      );
+      const seen = new Set(
+        restingFindings.map((f) => `${f.messageId}:${JSON.stringify(f.data)}`),
+      );
+      for (const clash of clashFindings) {
+        const key = `${clash.messageId}:${JSON.stringify(clash.data)}`;
+        if (!seen.has(key)) restingFindings.push(clash);
+      }
+      report(context, node, restingFindings);
     };
+    return routedVisitors(context, classAttributeVisitors(visit));
   },
 };
 
@@ -1089,18 +1304,17 @@ const preferElement: GateRule = {
   },
   create(context) {
     const options = semanticOptions(context);
-    return {
-      JSXAttribute(node) {
-        if (!carriesClasses(node)) return;
-        const facts = factsForFile(context.filename ?? "", context.answers);
-        const base = classFacts(node, facts);
-        report(
-          context,
-          node,
-          filterOwnFindings(base, checkPreferElement(facts, restingFacts(base), options)),
-        );
-      },
+    const visit = (node: GateNode) => {
+      if (!carriesClasses(node)) return;
+      const facts = factsForFile(context.filename ?? "", context.answers);
+      const base = classFacts(node, facts);
+      report(
+        context,
+        node,
+        filterOwnFindings(base, checkPreferElement(facts, restingFacts(base), options)),
+      );
     };
+    return routedVisitors(context, classAttributeVisitors(visit));
   },
 };
 
@@ -1129,24 +1343,23 @@ const closedVocabulary: GateRule = {
     },
   },
   create(context) {
-    return {
-      JSXAttribute(node) {
-        if (!carriesClasses(node)) return;
-        const facts = factsForFile(context.filename ?? "", context.answers);
-        const base = classFacts(node, facts);
-        const findings = checkClosedVocabulary(facts, base);
-        for (const interpolated of dynamicPrefixInterpolations(node)) {
-          findings.push({
-            messageId: "unknown",
-            data: { cls: interpolated },
-            position: base.position,
-            remedy:
-              "Spell full class names in static branches (`cond ? \"bg-primary\" : \"bg-surface\"`) so UnoCSS can extract them.",
-          });
-        }
-        report(context, node, findings);
-      },
+    const visit = (node: GateNode) => {
+      if (!carriesClasses(node)) return;
+      const facts = factsForFile(context.filename ?? "", context.answers);
+      const base = classFacts(node, facts);
+      const findings = checkClosedVocabulary(facts, base);
+      for (const interpolated of dynamicPrefixInterpolations(node)) {
+        findings.push({
+          messageId: "unknown",
+          data: { cls: interpolated },
+          position: base.position,
+          remedy:
+            "Spell full class names in static branches (`cond ? \"bg-primary\" : \"bg-surface\"`) so UnoCSS can extract them.",
+        });
+      }
+      report(context, node, findings);
     };
+    return routedVisitors(context, classAttributeVisitors(visit));
   },
 };
 
@@ -1190,80 +1403,91 @@ const noHandwrittenTokens: GateRule = {
     // reads as `background-color`.
     const hasThemeProp = (propName: string): boolean =>
       THEME_STYLE_PROPERTIES.has(propName.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`));
-    return {
-      JSXOpeningElement(node) {
-        if (node.name?.name !== "style") return;
-        const siblings: unknown = (node as GateNode & { attributes?: unknown }).attributes;
-        if (
-          Array.isArray(siblings) &&
-          siblings.some((s) => attrName(s) === "id")
-        ) {
-          return;
-        }
-        report(context, node, [
-          {
-            messageId: "styleTag",
-            data: {},
-            position: positionOf(node),
-            remedy: "Move styles into theme tokens or utility classes.",
-          },
-        ]);
-      },
-      JSXAttribute(node) {
-        if (!carriesMarkup(node)) return;
-        if (attrName(node) === "style") {
-          const holder = node.value as ExpressionNode | undefined;
-          const expr =
-            holder?.type === "JSXExpressionContainer"
-              ? (holder.expression as ExpressionNode | undefined)
-              : undefined;
-          if (expr?.type === "ObjectExpression") {
-            for (const prop of expr.properties ?? []) {
-              if (typeof prop !== "object" || prop === null) continue;
-              const p = prop as ExpressionNode;
-              if (p.type !== "Property") continue;
-              const keyNode = p.key as { name?: unknown; value?: unknown } | undefined;
-              const propName =
-                typeof keyNode?.name === "string"
-                  ? keyNode.name
-                  : typeof keyNode?.value === "string"
-                    ? keyNode.value
-                    : undefined;
-              const valNode = p.value as ExpressionNode | undefined;
-              if (
-                propName !== undefined &&
-                hasThemeProp(propName) &&
-                valNode?.type === "Literal" &&
-                (typeof valNode.value === "string" || typeof valNode.value === "number")
-              ) {
-                report(context, node, [
-                  {
-                    messageId: "inlineStyle",
-                    data: { property: propName },
-                    position: positionOf(node),
-                    remedy: "Replace inline theme values with Spin utility classes.",
-                  },
-                ]);
-              }
+    const onElement = (node: GateNode) => {
+      if (elementName(node) !== "style") return;
+      const holder = node as GateNode & { attributes?: unknown; startTag?: unknown };
+      const start = holder.startTag as GateNode & { attributes?: unknown } | undefined;
+      const siblings: unknown = holder.attributes ?? start?.attributes;
+      if (
+        Array.isArray(siblings) &&
+        siblings.some((s) => attrName(s) === "id")
+      ) {
+        return;
+      }
+      report(context, node, [
+        {
+          messageId: "styleTag",
+          data: {},
+          position: positionOf(node),
+          remedy: "Move styles into theme tokens or utility classes.",
+        },
+      ]);
+    };
+    const onAttribute = (node: GateNode) => {
+      if (!carriesMarkup(node)) return;
+      if (attrName(node) === "style") {
+        const holder = node.value as ExpressionNode | undefined;
+        const expr =
+          holder?.type === "JSXExpressionContainer" ||
+            holder?.type === "VExpressionContainer"
+            ? (holder.expression as ExpressionNode | undefined)
+            : undefined;
+        if (expr?.type === "ObjectExpression") {
+          for (const prop of expr.properties ?? []) {
+            if (typeof prop !== "object" || prop === null) continue;
+            const p = prop as ExpressionNode;
+            if (p.type !== "Property") continue;
+            const keyNode = p.key as { name?: unknown; value?: unknown } | undefined;
+            const propName =
+              typeof keyNode?.name === "string"
+                ? keyNode.name
+                : typeof keyNode?.value === "string"
+                  ? keyNode.value
+                  : undefined;
+            const valNode = p.value as ExpressionNode | undefined;
+            if (
+              propName !== undefined &&
+              hasThemeProp(propName) &&
+              valNode?.type === "Literal" &&
+              (typeof valNode.value === "string" || typeof valNode.value === "number")
+            ) {
+              report(context, node, [
+                {
+                  messageId: "inlineStyle",
+                  data: { property: propName },
+                  position: positionOf(node),
+                  remedy: "Replace inline theme values with Spin utility classes.",
+                },
+              ]);
             }
           }
         }
-        const found: MarkupText[] = [];
-        markupStrings(node.value, found);
-        if (found.length === 0) return;
-        const facts = factsForFile(context.filename ?? "", context.answers);
-        for (const { node: at, text } of found) {
-          report(
-            context,
-            at,
-            checkNoHandwrittenTokens(facts, {
-              text,
-              position: positionOf(at),
-            }),
-          );
-        }
-      },
+      }
+      const found: MarkupText[] = [];
+      markupStrings(node.value, found);
+      if (node.type === "SvelteDirective") {
+        markupStrings((node as GateNode & { expression?: unknown }).expression, found);
+      }
+      if (found.length === 0) return;
+      const facts = factsForFile(context.filename ?? "", context.answers);
+      for (const { node: at, text } of found) {
+        report(
+          context,
+          at,
+          checkNoHandwrittenTokens(facts, {
+            text,
+            position: positionOf(at),
+          }),
+        );
+      }
     };
+    return routedVisitors(context, {
+      ...classAttributeVisitors(onAttribute),
+      JSXOpeningElement: onElement,
+      VElement: onElement,
+      SvelteElement: onElement,
+      Tag: onElement,
+    });
   },
 };
 
@@ -1292,18 +1516,17 @@ const noUnpairedInk: GateRule = {
     },
   },
   create(context) {
-    return {
-      JSXAttribute(node) {
-        if (!carriesClasses(node)) return;
-        const facts = factsForFile(context.filename ?? "", context.answers);
-        const base = classFacts(node, facts);
-        report(
-          context,
-          node,
-          checkAcrossBranches(base, (probe) => checkNoUnpairedInk(facts, probe)),
-        );
-      },
+    const visit = (node: GateNode) => {
+      if (!carriesClasses(node)) return;
+      const facts = factsForFile(context.filename ?? "", context.answers);
+      const base = classFacts(node, facts);
+      report(
+        context,
+        node,
+        checkAcrossBranches(base, (probe) => checkNoUnpairedInk(facts, probe)),
+      );
     };
+    return routedVisitors(context, classAttributeVisitors(visit));
   },
 };
 

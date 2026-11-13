@@ -5,8 +5,7 @@ do not adopt a new toolchain:
 
 - **Bundler (`spin.vite()`)**: blocks unknown and dead class names at build
   time, before broken markup ships.
-- **Linter (`npx spin init --linter oxlint` or `eslint`, or `npx spin lint`
-  in CI)**: checks all six rules, including redundant classes, element
+- **Linter (`npx spin init --linter oxlint` or `eslint`)**: checks all six rules, including redundant classes, element
   paint collisions, and unpaired text contrast.
 - **Editor (`spin lsp`)**: shows hover CSS previews, class autocomplete,
   and one-keystroke quick fixes as you type.
@@ -49,12 +48,12 @@ export default [
 ];
 ```
 
-And run the same rules standalone in CI, applying fixes where the finding
+And run the same rules from your linter in CI, applying fixes where the finding
 carries an edit:
 
 ```bash
-npx spin lint src/        # print findings as text (or --format json)
-npx spin lint --fix src/  # apply the edits the findings carry
+npx oxlint src/        # print findings as text (or --format json)
+npx oxlint --fix src/  # apply the edits the findings carry
 ```
 
 The `spin` binary ships with `@spinjs/dev`. The oxlint plugin
@@ -117,7 +116,7 @@ elements like `<card>` and `<badge>`), `"all"` (both), `"none"` (neither —
 
 Write a class your theme cannot make and your editor tells you before you
 save: `spin lsp` serves the same six rules over stdio, so the finding under
-your cursor and the `spin lint` finding in CI are one finding. Hover a class
+your cursor and the linter finding in CI are one finding. Hover a class
 to see the CSS your theme puts behind it, with the nearest name it can make
 when you misspell one; complete from the vocabulary your theme produces, so
 the name you pick is a name that builds; accept the quick fix and the

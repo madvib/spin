@@ -23,16 +23,19 @@ import type { AncestorFacts } from "./core.ts";
  */
 export interface ChainNode {
   readonly type: string;
-  readonly name?: { name?: string } | null;
+  readonly name?: { name?: string } | string | null;
+  readonly key?: { name?: string | { name?: string }; value?: string } | null;
   readonly parent?: ChainNode | null;
   readonly openingElement?: ChainNode;
+  readonly startTag?: ChainNode;
   readonly attributes?: readonly ChainAttribute[];
 }
 
 /** One attribute of an element. */
 export interface ChainAttribute {
   readonly type: string;
-  readonly name?: { name?: string } | null;
+  readonly name?: { name?: string } | string | null;
+  readonly key?: { name?: string | { name?: string }; value?: string } | null;
   readonly value?: unknown;
 }
 
@@ -51,23 +54,48 @@ export function ancestorsOf(node: ChainNode): AncestorFacts[] {
   let current = node.parent;
   let own = true;
   while (current !== undefined && current !== null) {
-    if (current.type === "JSXElement") {
+    const element = elementAt(current);
+    if (element !== undefined) {
       if (own) {
         // The element the node belongs to. The chain starts above it.
         own = false;
       } else {
-        const opening = current.openingElement;
-        if (opening !== undefined) {
-          out.push({
-            tag: opening.name?.name,
-            classes: classesOf(opening),
-          });
-        }
+        out.push({ tag: tagName(element), classes: classesOf(element) });
       }
     }
     current = current.parent;
   }
   return out;
+}
+
+/** The element a chain link is, when it is one. */
+function elementAt(node: ChainNode): ChainNode | undefined {
+  switch (node.type) {
+    case "JSXElement":
+      return node.openingElement;
+    case "VElement":
+    case "SvelteElement":
+      return node.startTag;
+    case "Tag":
+      return node;
+    default:
+      return undefined;
+  }
+}
+
+/** The tag name an element link carries. */
+function tagName(element: ChainNode): string | undefined {
+  if (element.type === "VElement" || element.type === "Tag") {
+    return typeof element.name === "string" ? element.name : undefined;
+  }
+  const name = element.name;
+  if (typeof name === "string") return name;
+  if (typeof name === "object" && name !== null) return name.name;
+  if (element.type === "VStartTag" || element.type === "SvelteStartTag") {
+    const parent = element.parent;
+    if (parent !== undefined && parent !== null) return tagName(parent);
+  }
+  return undefined;
 }
 
 /**
@@ -78,13 +106,36 @@ export function ancestorsOf(node: ChainNode): AncestorFacts[] {
  */
 function classesOf(element: ChainNode): string[] {
   for (const attribute of element.attributes ?? []) {
-    const name = attribute.name?.name;
-    if (name !== "class" && name !== "className") continue;
-    const value = attribute.value;
-    if (typeof value !== "object" || value === null) continue;
-    const text = (value as { value?: unknown }).value;
-    if (typeof text !== "string") continue;
+    if (!isClassName(attribute)) continue;
+    const text = staticText(attribute.value);
+    if (text === undefined) continue;
     return text.split(/\s+/).filter(Boolean);
   }
   return [];
+}
+
+/** Whether an attribute names the element's class list. */
+function isClassName(attribute: ChainAttribute): boolean {
+  const name = attribute.name;
+  if (typeof name === "string") return name === "class" || name === "className";
+  if (typeof name === "object" && name !== null && (name.name === "class" || name.name === "className")) {
+    return true;
+  }
+  const key = attribute.key;
+  if (typeof key?.value === "string") return key.value === "class";
+  if (typeof key?.name === "string") return key.name === "class";
+  return false;
+}
+
+/** The string a class value carries, when it carries one literally. */
+function staticText(value: unknown): string | undefined {
+  if (Array.isArray(value)) {
+    if (value.length !== 1) return undefined;
+    const part = value[0] as { type?: unknown; value?: unknown } | undefined;
+    if (part?.type !== "SvelteLiteral") return undefined;
+    return typeof part.value === "string" ? part.value : undefined;
+  }
+  if (typeof value !== "object" || value === null) return undefined;
+  const text = (value as { value?: unknown }).value;
+  return typeof text === "string" ? text : undefined;
 }

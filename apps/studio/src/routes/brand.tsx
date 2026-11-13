@@ -1,7 +1,6 @@
 /**
  * Brand management: identity, parent design language ($extends), authored layers
- * (tokens.json, reference.json, elements.json, primitives/*.json), and runtime
- * facets (*.palette.json, *.spacing.json).
+ * (tokens.json, the global reference.json), and runtime facets.
  */
 import {
   createEffect,
@@ -22,7 +21,6 @@ import {
   noteDiscarded,
   project,
   refetchBrand,
-  refetchConfig,
   refetchProject,
   refetchThemes,
   reloadFromDisk,
@@ -112,33 +110,17 @@ const LAYER_GUIDE: readonly {
     file: "tokens.json",
     role: "Brand identity",
     description:
-      "Parent design language ($extends), font faces, 13 named font.style.* tuples, semantic color roles with light/dark modes, and shape.",
+      "Every token override the brand states: parent design language ($extends), font faces, 13 named font.style.* tuples, semantic color roles with light/dark modes, element type assignments, per-primitive slots, and shape.",
     href: "/tokens/colors",
     linkLabel: "Edit in Tokens →",
   },
   {
-    file: "reference.json",
+    file: "../reference.json",
     role: "Reference scales",
     description:
-      "Optional raw color ramps (color.neutral.50–900) and spatial or typographic scale steps that semantic tokens alias.",
+      "Optional global raw color ramps (color.neutral.50–900) and spatial or typographic scale steps that semantic tokens alias. Composes under every brand.",
     href: "/tokens/spacing",
     linkLabel: "Edit scales →",
-  },
-  {
-    file: "elements.json",
-    role: "HTML element type",
-    description:
-      "Optional layer mapping intrinsic HTML elements (element.h1.type, element.p.type, element.code.type) to named type styles.",
-    href: "/tokens/type/styles",
-    linkLabel: "Edit in Type →",
-  },
-  {
-    file: "primitives/*.json",
-    role: "Component slots",
-    description:
-      "Optional per-primitive overrides (primitives/button.json, primitives/card.json) for geometry, paint, and slot typography.",
-    href: "/components?kind=primitive",
-    linkLabel: "Edit in Primitives →",
   },
 ];
 
@@ -256,7 +238,6 @@ export default function BrandPage() {
       setNextBrand("");
       refetchProject();
       refetchThemes();
-      refetchConfig();
       refetchBrand();
       setActiveName(target);
       note(`Brand renamed to ${target}.`);
@@ -440,17 +421,13 @@ export default function BrandPage() {
         <Section
           title="Brand Layers"
           fact={`${layers().length} ${layers().length === 1 ? "file" : "files"} on disk`}
-          note="How spin/<brand>/ splits identity, reference scales, element typography, and per-primitive overrides."
+          note="How spin/<brand>/ splits identity and reference scales."
         >
           <div class="grid gap-3 sm:grid-cols-2">
             <For each={LAYER_GUIDE}>
               {(item) => {
                 const matching = () =>
-                  layers().filter(([file]) =>
-                    item.file === "primitives/*.json"
-                      ? file.startsWith("primitives/")
-                      : file === item.file
-                  );
+                  layers().filter(([file]) => file === item.file);
                 const authoredCount = () =>
                   matching().reduce(
                     (sum, [, doc]) => sum + authoredLeafCount(JSON.stringify(doc)),

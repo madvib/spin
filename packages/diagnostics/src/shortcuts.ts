@@ -1,25 +1,20 @@
 /**
  * The shortcuts a project declares, asked of the project.
  *
- * A project's build configuration is a MODULE: it imports its bundler, its
- * plugins and its icon catalogues — none of which a linter can load, and a
- * linter that tried would run a build to answer a question about a class
- * name. So the declaration is read as TEXT, by the project — which owns the
- * file the declaration is written in, and reads it there.
+ * A project's compositions live in `shortcuts.json` beside its brands: one
+ * table of names to class lists, read as JSON. The build compiles the same
+ * table, so a class the project declared is a class the project produces —
+ * and the closed vocabulary knows it from the same file.
  *
- * The shape read is Uno's own: a `shortcuts` property whose value is an
- * object literal of `name: "utility utility"`.
- *
- * A configuration that spells it another way — a table imported from
- * elsewhere, say — declares shortcuts the lint cannot read, and the lint
- * says so rather than guessing. A vocabulary it could not read is one it
- * must not enforce: the alternative is flagging every class the project
- * declared as unknown, which is the one thing the closed-vocabulary rule
- * must never do. Only that rule stands down — the rest of the vocabulary
- * is still worth enforcing.
+ * A table the reader cannot parse declares shortcuts the lint cannot read,
+ * and the lint says so rather than guessing. A vocabulary it could not
+ * read is one it must not enforce: the alternative is flagging every class
+ * the project declared as unknown, which is the one thing the
+ * closed-vocabulary rule must never do. Only that rule stands down — the
+ * rest of the vocabulary is still worth enforcing.
  */
 
-import { findConfigRoot, readShortcuts } from "@spinjs/server/project";
+import { findConfigRoot, readProjectShortcutsFile } from "@spinjs/server/project";
 import type { ShortcutDeclaration } from "@spinjs/server/project";
 
 export type { ShortcutDeclaration };
@@ -31,14 +26,15 @@ export function noShortcuts(): ShortcutDeclaration {
 }
 
 /**
- * The shortcuts a project's configuration declares.
+ * The shortcuts a project's themes directory declares.
  *
- * A configuration that cannot be read declares nothing the lint can hold it
- * to: the declaration is reported as unreadable rather than guessed at.
+ * A table that cannot be read declares nothing the lint can hold the
+ * project to: the declaration is reported as unreadable rather than
+ * guessed at.
  */
 export function readProjectShortcuts(
-  root: string | undefined,
+  themesRoot: string | undefined,
 ): ShortcutDeclaration {
-  if (root === undefined) return noShortcuts();
-  return readShortcuts(root);
+  if (themesRoot === undefined) return noShortcuts();
+  return readProjectShortcutsFile(themesRoot);
 }

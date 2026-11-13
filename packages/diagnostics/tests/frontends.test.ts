@@ -19,8 +19,7 @@ import {
   type LiteralFacts,
   type SemanticOptions,
 } from "../src/core.ts";
-import { applyFixes, type Diagnostic } from "../src/engine.ts";
-import { run } from "@spinjs/dev/cli";
+import { applyFixes } from "../src/engine.ts";
 import eslintPlugin from "../src/eslint.ts";
 import { engineAnswers } from "@spinjs/preset";
 import { designLanguages } from "@spinjs/theme";
@@ -510,30 +509,6 @@ async function oxlintFixed(file: string): Promise<string> {
   return await readFile(file, "utf8");
 }
 
-/* ------------------------------------------------------------------- cli -- */
-
-/** The findings the CLI reports. */
-async function cliFindings(
-  file: string,
-  semantic: SemanticOptions,
-): Promise<Canonical[]> {
-  // The CLI is driven the way a project drives it: the command line, and
-  // the answer it prints. The JSON format is the machine's answer.
-  const lines: string[] = [];
-  await run(
-    ["lint", "--format", "json", "--strictness", semantic.strictness, file],
-    (line) => lines.push(line),
-  );
-  const report = JSON.parse(lines.join("\n")) as { findings: Diagnostic[] };
-  return ordered(report.findings.map((finding) => ({
-    rule: finding.ruleId.replace("spin/", ""),
-    messageId: finding.messageId,
-    message: finding.message,
-    line: finding.line,
-    column: finding.column,
-  })));
-}
-
 /* --------------------------------------------------------------- service -- */
 
 /** The findings the service reports. */
@@ -564,18 +539,17 @@ async function fixture(): Promise<string> {
   return file;
 }
 
-test("oxlint, ESLint, the CLI and the service report what the core decided", async () => {
+test("oxlint, ESLint, and the service report what the core decided", async () => {
   const file = await fixture();
   try {
     const core = coreFindings(file, STRICT);
     const oxlint = await oxlintFindings(file, STRICT);
     const eslint = eslintFindings(file, STRICT);
-    const cli = await cliFindings(file, STRICT);
     const service = await serviceFindings(file, STRICT);
 
-    // oxlint reports the rule and the sentence; the other four report the
+    // oxlint reports the rule and the sentence; the other two report the
     // message id as well. The sentences carry the ids, so the sentences are
-    // what the five are held to.
+    // what the three are held to.
     const sentences = (findings: Canonical[]) =>
       findings.map((finding) => ({
         rule: finding.rule,
@@ -586,7 +560,6 @@ test("oxlint, ESLint, the CLI and the service report what the core decided", asy
 
     deepStrictEqual(sentences(oxlint), sentences(core));
     deepStrictEqual(sentences(eslint), sentences(core));
-    deepStrictEqual(sentences(cli), sentences(core));
     deepStrictEqual(sentences(service), sentences(core));
   } finally {
     await rm(file, { recursive: true });
@@ -598,7 +571,6 @@ test("the front ends report the same message ids", async () => {
   try {
     const core = coreFindings(file, STRICT);
     const eslint = eslintFindings(file, STRICT);
-    const cli = await cliFindings(file, STRICT);
     const service = await serviceFindings(file, STRICT);
     const ids = (findings: Canonical[]) =>
       findings.map((finding) => ({
@@ -608,7 +580,6 @@ test("the front ends report the same message ids", async () => {
         column: finding.column,
       }));
     deepStrictEqual(ids(eslint), ids(core));
-    deepStrictEqual(ids(cli), ids(core));
     deepStrictEqual(ids(service), ids(core));
   } finally {
     await rm(file, { recursive: true });
@@ -667,7 +638,6 @@ test("the dials reach every front end", async () => {
     const core = coreFindings(file, BALANCED);
     const oxlint = await oxlintFindings(file, BALANCED);
     const eslint = eslintFindings(file, BALANCED);
-    const cli = await cliFindings(file, BALANCED);
     const service = await serviceFindings(file, BALANCED);
     const sentences = (findings: Canonical[]) =>
       findings.map((finding) => ({
@@ -678,7 +648,6 @@ test("the dials reach every front end", async () => {
       }));
     deepStrictEqual(sentences(oxlint), sentences(core));
     deepStrictEqual(sentences(eslint), sentences(core));
-    deepStrictEqual(sentences(cli), sentences(core));
     deepStrictEqual(sentences(service), sentences(core));
   } finally {
     await rm(file, { recursive: true });

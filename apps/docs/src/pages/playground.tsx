@@ -46,7 +46,7 @@ export default function PlaygroundPage(): JSX.Element {
               aria-haspopup="listbox"
               aria-expanded={examplesOpen()}
               onClick={() => setExamplesOpen((open) => !open)}
-              class="bare inline-flex h-8 items-center gap-2 rounded-md border bg-surface px-3 type-label transition-colors hover:bg-surface-raised"
+              class="subtle s-xs inline-flex h-8 items-center gap-2 transition-colors"
             >
               <span class="i-lucide-sparkles icon-sm text-primary" aria-hidden="true" />
               <span>{current().title}</span>

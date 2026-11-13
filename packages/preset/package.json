@@ -17,6 +17,18 @@
     "./elements": {
       "types": "./src/elements.d.ts"
     },
+    "./elements/react": {
+      "types": "./src/elements-react.d.ts"
+    },
+    "./elements/solid": {
+      "types": "./src/elements-solid.d.ts"
+    },
+    "./elements/svelte": {
+      "types": "./src/elements-svelte.d.ts"
+    },
+    "./elements/vue": {
+      "types": "./src/elements-vue.d.ts"
+    },
     "./css": {
       "types": "./src/utils/css.ts",
       "default": "./src/utils/css.ts"

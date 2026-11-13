@@ -1,0 +1,12 @@
+{
+  "stack-lg": "flex flex-col gap-8",
+  "stack-sm": "flex flex-col gap-2",
+  "stack-xs": "flex flex-col gap-1",
+  "stack": "flex flex-col gap-4",
+  "row-sm": "flex items-center gap-2",
+  "row": "flex items-center gap-4",
+  "split": "flex items-center justify-between gap-4",
+  "drawer-scroll": "min-h-0 min-w-0 flex-1",
+  "drawer-flow": "min-w-0 overflow-y-visible flex-none",
+  "spin-preview": ""
+}

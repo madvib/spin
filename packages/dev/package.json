@@ -33,6 +33,18 @@
     "./elements": {
       "types": "./src/elements.d.ts"
     },
+    "./elements/react": {
+      "types": "./src/elements-react.d.ts"
+    },
+    "./elements/solid": {
+      "types": "./src/elements-solid.d.ts"
+    },
+    "./elements/svelte": {
+      "types": "./src/elements-svelte.d.ts"
+    },
+    "./elements/vue": {
+      "types": "./src/elements-vue.d.ts"
+    },
     "./theme": {
       "types": "./src/theme.ts",
       "default": "./src/theme.ts"
@@ -132,8 +144,7 @@
     "zod": "^4.2.0"
   },
   "peerDependencies": {
-    "@spinjs/components": "workspace:*",
-    "solid-js": "^1.9.3"
+    "@spinjs/components": "workspace:*"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.0",
@@ -179,6 +190,18 @@
       },
       "./elements": {
         "types": "./dist/elements.d.ts"
+      },
+      "./elements/react": {
+        "types": "./dist/elements-react.d.ts"
+      },
+      "./elements/solid": {
+        "types": "./dist/elements-solid.d.ts"
+      },
+      "./elements/svelte": {
+        "types": "./dist/elements-svelte.d.ts"
+      },
+      "./elements/vue": {
+        "types": "./dist/elements-vue.d.ts"
       },
       "./theme": {
         "types": "./dist/theme.d.ts",

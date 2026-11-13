@@ -173,18 +173,15 @@ test("the contract reads as text: the definition first, then the gaps", () => {
   deepStrictEqual(clean.length, 2);
 });
 
-/** A project root with the given themes, and optionally a config file. */
+/** A project root with the given brand directories. */
 async function project(
   themes: Record<string, unknown>,
-  config?: Record<string, unknown>,
 ): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), "spin-cli-contract-"));
   await mkdir(join(dir, "spin"), { recursive: true });
   for (const [name, doc] of Object.entries(themes)) {
-    await writeFile(join(dir, "spin", `${name}.json`), JSON.stringify(doc));
-  }
-  if (config !== undefined) {
-    await writeFile(join(dir, "spin", "config.json"), JSON.stringify(config));
+    await mkdir(join(dir, "spin", name), { recursive: true });
+    await writeFile(join(dir, "spin", name, "tokens.json"), JSON.stringify(doc));
   }
   return dir;
 }
@@ -252,8 +249,8 @@ test("the CLI passes convergent themes and fails divergent ones", async () => {
 });
 
 test("the contract is opt-in: no names and no flag means no contract", async () => {
-  // Without the flag the shipped set is never assumed: divergent themes
-  // without a config fail to read (exit 2), not to parity (exit 1).
+  // Without names the shipped set is never assumed: divergent themes
+  // fail to read (exit 2), not to parity (exit 1).
   const themes = convergent() as Record<string, Record<string, unknown>>;
   (themes["narrow"] as Record<string, unknown>)["spacing"] = {
     "0": leaf("0"),
@@ -268,33 +265,7 @@ test("the contract is opt-in: no names and no flag means no contract", async () 
     );
     deepStrictEqual(code, 2);
     deepStrictEqual(
-      warnings.some((line) => line.includes("contractThemes")),
-      true,
-    );
-  } finally {
-    await rm(dir, { recursive: true, force: true });
-  }
-});
-
-test("the contract reads its shipped set from the project config", async () => {
-  const themes = convergent() as Record<string, Record<string, unknown>>;
-  (themes["narrow"] as Record<string, unknown>)["spacing"] = {
-    "0": leaf("0"),
-    "2": leaf("0.5rem"),
-  };
-  const dir = await project(themes, { contractThemes: ["full", "narrow"] });
-  try {
-    const lines: string[] = [];
-    const code = await run(
-      ["brand", "analyze", "--contract", "--root", dir],
-      (line) => lines.push(line),
-      () => {},
-    );
-    deepStrictEqual(code, 1);
-    deepStrictEqual(
-      lines.some((line) =>
-        line.includes("spacing.4") && line.includes("narrow"),
-      ),
+      warnings.some((line) => line.includes("--contract=a,b")),
       true,
     );
   } finally {

@@ -32,7 +32,6 @@ terminal with `npx spin init --language editorial`.
 ```
 spin init        make a project: a brand, and a build config that wires spin
 spin studio      open the standalone theme editor
-spin lint        the rules, over a path
 spin brand       read the brands: list, analyze, or rename
 spin component   read the components: list, contract, or copy an example
 spin mcp         run the agent server over stdio
@@ -43,8 +42,8 @@ spin lsp         run the language server over stdio
 
 - `@spinjs/dev/vite` — the unplugin, in all seven bundler shapes.
 - `@spinjs/dev/preset` — the UnoCSS preset, `spinPreset`.
+- `@spinjs/dev/elements`, `/elements/react`, `/elements/solid`, `/elements/svelte`, `/elements/vue` — generated custom-element declarations: the DOM map, plus one module augmentation per framework.
 - `@spinjs/dev/theme` — the theme engine: parsing, validation, design languages, facets.
-- `@spinjs/dev/diagnostics` — the lint rules over project facts.
 - `@spinjs/dev/eslint` — the ESLint flat-config plugin.
 - `@spinjs/dev/cli` — the `spin` command.
 - `@spinjs/dev/api` — the daemon API, including `mountSpinApp`.

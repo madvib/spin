@@ -40,25 +40,25 @@ const BRAND_LAYER_ITEMS: readonly PropEntry[] = [
     name: "spin/<brand>/tokens.json",
     badge: "Brand core",
     description:
-      "Declares \"$extends\" (the starting design language), font faces ($extensions.spin.fonts), the 13 named font.style.* tuples, semantic color roles with $modes.dark, and brand shape/motion.",
+      "Every token override the brand states: \"$extends\" (the starting design language), font faces ($extensions.spin.fonts), the 13 named font.style.* tuples, semantic color roles with $modes.dark, element type assignments (element.h1.type), per-primitive slots (button.radius, card.title.type), and brand shape/motion.",
   },
   {
-    name: "spin/<brand>/reference.json",
+    name: "spin/reference.json",
     badge: "Reference scales",
     description:
-      "Optional layer for raw color ramps (color.neutral.50–900) and spatial or typographic scale steps that semantic tokens alias via {path}.",
+      "Optional global layer for raw color ramps (color.neutral.50–900) and spatial or typographic scale steps that semantic tokens alias via {path}. Composes under every brand.",
   },
   {
-    name: "spin/<brand>/elements.json",
-    badge: "HTML elements",
+    name: "spin/<brand>/themes/*.palette.json",
+    badge: "Palette facets",
     description:
-      "Optional layer assigning named text styles to HTML headings, paragraphs, labels, and code tags.",
+      "Optional runtime palette swaps served under data-palette, shape-checked on load.",
   },
   {
-    name: "spin/<brand>/primitives/<component>.json",
-    badge: "Per-primitive slots",
+    name: "spin/<brand>/themes/*.spacing.json",
+    badge: "Spacing facets",
     description:
-      "Optional per-component token overrides (primitives/button.json, primitives/card.json) for geometry, paint, and slot typography (button.radius, card.title.type).",
+      "Optional runtime spacing swaps served under data-spacing, shape-checked on load.",
   },
 ];
 
@@ -181,7 +181,7 @@ export default function ThemesCustomization(): JSX.Element {
           <Code
             code={THEMES_SNIPPETS.typeAlias}
             lang="json"
-            title="Type aliases in spin/<brand>/elements.json and primitives/card.json"
+            title="Type aliases in spin/<brand>/tokens.json"
           />
         </div>
         <p class="max-w-prose text-muted">

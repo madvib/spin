@@ -34,14 +34,6 @@ const commandItems = (): readonly PropEntry[] => [
     detail: "Flags: --root, --port (default 7463), --host (default 127.0.0.1)",
   },
   {
-    name: "spin lint",
-    badge: "verification",
-    description:
-      "Runs the six theme-aware lint rules over a path: closed vocabulary, theme values, semantic HTML, and paired inks.",
-    detail:
-      "Flags: --format text|json, --strictness strict|balanced|lenient, --semantic-tags all|native|spin|none, --rule (repeatable), --fix",
-  },
-  {
     name: "spin brand",
     badge: "inspection",
     description: (
@@ -82,7 +74,7 @@ const commandItems = (): readonly PropEntry[] => [
     description: (
       <>
         Starts the language server over stdio: the same lint findings as{" "}
-        <code>spin lint</code>, plus hover, completion, and quick-fix code
+        your linter, plus hover, completion, and quick-fix code
         actions from your theme. Point any LSP client at it — no config file
         required.
       </>

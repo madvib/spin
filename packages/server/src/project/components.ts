@@ -9,8 +9,11 @@
 import {
   renderComponentsDts as renderTagsDts,
   tagForProjectFile,
+  type ComponentFramework,
 } from "@spinjs/components/compiler";
 import { resolveProjectDir } from "./resolve-dir.ts";
+
+export type { ComponentFramework };
 
 /** The options that locate a project's components. */
 export interface ProjectComponentsOptions {
@@ -123,8 +126,48 @@ const PRIMITIVE_CUSTOM_TAGS = [
 ] as const;
 
 /** The project's component tags and Spin primitive tags as JSX types. */
-export function renderComponentsDts(tags: readonly string[]): string {
-  return renderTagsDts([...PRIMITIVE_CUSTOM_TAGS, ...tags]);
+export function renderComponentsDts(
+  tags: readonly string[],
+  frameworks?: readonly ComponentFramework[],
+): string {
+  return frameworks === undefined
+    ? renderTagsDts([...PRIMITIVE_CUSTOM_TAGS, ...tags])
+    : renderTagsDts([...PRIMITIVE_CUSTOM_TAGS, ...tags], frameworks);
+}
+
+/**
+ * The frameworks a project's manifest spends.
+ *
+ * A dependency in any of the three tables counts: the project reads the
+ * framework there, so its components are typed there. A manifest that
+ * cannot be read — or names no framework — falls back to React and
+ * Solid, the two JSX dialects the tags read the same in.
+ */
+async function projectFrameworks(projectRoot: string): Promise<readonly ComponentFramework[]> {
+  try {
+    const fs = await import("node:fs/promises");
+    const path = await import("node:path");
+    const manifest = JSON.parse(
+      await fs.readFile(path.join(projectRoot, "package.json"), "utf8"),
+    ) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+      peerDependencies?: Record<string, string>;
+    };
+    const deps = {
+      ...manifest.dependencies,
+      ...manifest.devDependencies,
+      ...manifest.peerDependencies,
+    };
+    const found: ComponentFramework[] = [];
+    if ("react" in deps) found.push("react");
+    if ("solid-js" in deps) found.push("solid");
+    if ("svelte" in deps) found.push("svelte");
+    if ("vue" in deps) found.push("vue");
+    return found.length > 0 ? found : ["react", "solid"];
+  } catch {
+    return ["react", "solid"];
+  }
 }
 
 /** Write or refresh `src/spin-components.d.ts` (or `src/lib/components/components.d.ts` during build). */
@@ -152,7 +195,7 @@ export async function writeProjectComponentsDts(
   const tags = files.map((file) =>
     tagForProjectFile(`${projectRoot}/${file}`, resolved, prefix)
   );
-  const body = renderComponentsDts(tags);
+  const body = renderComponentsDts(tags, await projectFrameworks(projectRoot));
   const same = async (file: string): Promise<boolean> => {
     try {
       return (await fs.readFile(file, "utf8")) === body;

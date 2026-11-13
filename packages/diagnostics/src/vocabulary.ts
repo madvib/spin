@@ -4,9 +4,8 @@
  * Three derivations of this set used to coexist — the lint's `factsFor`,
  * the build's `deadClasses`, and the generator probe — and each new family
  * had to land in all three or a surface silently disagreed. Every consumer
- * (oxlint/ESLint visitors, `spin lint`, `spin lsp`, the bundler build)
+ * (oxlint/ESLint visitors, `spin lsp`, the bundler build)
  * reads this module instead: a family added once is known everywhere, and a
- * derivation that moves is a compile error, not a silent fork.
  */
 
 import {

@@ -151,7 +151,7 @@ Author UI in this project with Spin: checked primitives, small utilities, and po
 ## Verify
 
 - Run \`spin mcp\` (via \`.mcp.json\`) when an agent session needs the project's RPC surface: themes, brands, components, and findings.
-- Run \`npx spin lint\` before finishing: findings are the report, and a finding the check cannot explain is a finding to fix, not to suppress.
+- Run the linter before finishing: findings are the report, and a finding the check cannot explain is a finding to fix, not to suppress.
 `;
 }
 
@@ -417,16 +417,14 @@ async function exists(path: string): Promise<boolean> {
 }
 
 /**
- * The file a theme name reads and writes: the flat file when the project
- * carries one, else the brand directory's identity file. A flat file wins
- * over a brand of the same name — the fork is explicit, and the build
- * serves the same winner.
+ * The file a theme name reads and writes: the brand directory's tokens.
+ *
+ * Only brand directories serve themes: a name is served when
+ * `spin/<name>/tokens.json` is there, and nothing else is.
  */
 async function themeFile(dir: string, name: string): Promise<string | null> {
   const { join } = await import("node:path");
   const { stat } = await import("node:fs/promises");
-  const flat = join(dir, `${name}.json`);
-  if (await exists(flat)) return flat;
   const brand = join(dir, name, "tokens.json");
   try {
     if ((await stat(join(dir, name))).isDirectory() && await exists(brand)) {
@@ -465,12 +463,9 @@ export async function detectProject(root: string): Promise<ProjectReport> {
         const listed: string[] = [];
         for (const entry of entries) {
           if (entry === CONFIG_FILENAME) continue;
-          if (entry.endsWith(".json")) {
-            listed.push(entry);
-            continue;
-          }
           // A brand directory reads as its name: the build serves the
           // composed layers under it, so the report names the brand.
+          // Anything else the shape does not name is unlisted.
           try {
             const full = join(here, entry);
             if (
@@ -768,7 +763,6 @@ export async function readConfiguration(
   if (file === undefined) {
     return {
       file: null,
-      shortcuts: {},
       content: [],
       mount: null,
       themesDir: PROJECT_DIR,
@@ -786,7 +780,6 @@ export async function readConfiguration(
   } catch {
     return {
       file,
-      shortcuts: {},
       content: [],
       mount: null,
       themesDir: PROJECT_DIR,
@@ -810,9 +803,9 @@ export async function readConfiguration(
  *
  * A configuration that declares its themes verbatim replaces the whole
  * stack exactly as the plugin does: the list is the loaded documents
- * and nothing else. Otherwise the project's own files sit beside the
- * brand themes they have not forked, and a fork replaces its entry
- * rather than joining it.
+ * and nothing else. Otherwise one brand directory each: a brand the
+ * project has not forked still reads from the brand layer, and a fork
+ * replaces its entry rather than joining it.
  */
 export async function listThemes(root: string): Promise<ProjectTheme[]> {
   const { readdir, readFile } = await import("node:fs/promises");
@@ -838,8 +831,8 @@ export async function listThemes(root: string): Promise<ProjectTheme[]> {
   const themes: ProjectTheme[] = [];
   for (const entry of entries.sort()) {
     if (entry === CONFIG_FILENAME) continue;
-    // A flat theme file reads as its stem; a brand directory reads as its
-    // identity file. Facet files are not themes and are skipped here.
+    // Only brand directories serve themes. Facet files and the project
+    // files beside the brands are not themes and are skipped here.
     const stem = entry.endsWith(".json") ? entry.slice(0, -".json".length) : entry;
     if (stem.endsWith(".palette") || stem.endsWith(".spacing")) continue;
     const resolved = file ? join(dir, entry) : await themeFile(dir, stem);
@@ -856,7 +849,7 @@ export async function listThemes(root: string): Promise<ProjectTheme[]> {
       // Project-relative, so a path a developer sees never carries the
       // machine's filesystem layout: a screenshot, a log line, an issue
       // report. The daemon knows the root; the contract does not leak it.
-      file: file ? `${display}/${entry}` : join(display, entry),
+      file: file ? `${display}/${entry}` : join(display, entry, "tokens.json"),
       origin: "local",
     });
   }
@@ -961,7 +954,8 @@ export async function writeTheme(
   }
   try {
     await mkdir(dir, { recursive: true });
-    const resolved = (await themeFile(dir, name)) ?? join(dir, `${name}.json`);
+    const resolved = (await themeFile(dir, name)) ?? join(dir, name, "tokens.json");
+    await mkdir(join(dir, name), { recursive: true });
     await writeFile(resolved, text, "utf8");
     return { error: null };
   } catch (err) {
@@ -1055,11 +1049,8 @@ export async function removeTheme(
     }
   }
   try {
-    // A brand directory goes whole: its layers are one theme, and a
-    // tokens-less directory is a brand the build cannot serve.
-    const target = resolved !== null && resolved.endsWith(`${name}/tokens.json`)
-      ? join(dir, name)
-      : join(dir, `${name}.json`);
+    // A brand directory goes whole: its layers are one theme.
+    const target = join(dir, name);
     await rm(target, { recursive: true });
     return { error: null };
   } catch (err) {
@@ -1095,7 +1086,7 @@ export async function copyTheme(
     // Read first so a missing source is an error, not an empty file.
     // A brand source copies its identity file: the fork starts where the
     // brand's own tokens start, and the layers stay the brand's.
-    const source = (await themeFile(dir, from)) ?? join(dir, `${from}.json`);
+    const source = (await themeFile(dir, from)) ?? join(dir, from, "tokens.json");
     let text: string;
     try {
       text = await readFile(source, "utf8");
@@ -1112,11 +1103,12 @@ export async function copyTheme(
     // exists holds work someone saved. Writing over it would destroy that
     // work with no warning and no undo, so a taken name is an error the
     // studio can show. A brand-only target is the explicit fork a write
-    // refuses to be: the copy lands as a local file beside the brand.
+    // refuses to be: the copy lands as a brand directory of its own.
     if ((await themeFile(dir, to)) !== null) {
       return { error: `a theme named ${to} already exists` };
     }
-    const target = join(dir, `${to}.json`);
+    const target = join(dir, to, "tokens.json");
+    await mkdir(join(dir, to), { recursive: true });
     await writeFile(target, text, "utf8");
     return { error: null };
   } catch (err) {
@@ -1133,7 +1125,7 @@ export async function copyTheme(
  */
 export async function readConfig(
   root: string,
-): Promise<{ readonly config: { readonly activeTheme?: string; readonly themeOrder?: string[]; readonly contractThemes?: string[] }; readonly file: string | null }> {
+): Promise<{ readonly config: { readonly brand?: string; readonly componentsDir?: string; readonly strictness?: "strict" | "balanced" | "lenient"; readonly icons?: { readonly collection?: string } }; readonly file: string | null }> {
   const { readFile } = await import("node:fs/promises");
   const { join } = await import("node:path");
   const path = join(root, PROJECT_DIR, CONFIG_FILENAME);
@@ -1153,27 +1145,20 @@ export async function readConfig(
     return { config: {}, file: join(PROJECT_DIR, CONFIG_FILENAME) };
   }
   const record = parsed as Record<string, unknown>;
-  const config: { activeTheme?: string; themeOrder?: string[]; contractThemes?: string[] } = {};
-  if (typeof record["activeTheme"] === "string") config.activeTheme = record["activeTheme"];
-  if (Array.isArray(record["themeOrder"])) {
-    const seen = new Set<string>();
-    const order: string[] = [];
-    for (const entry of record["themeOrder"]) {
-      if (typeof entry !== "string" || seen.has(entry)) continue;
-      seen.add(entry);
-      order.push(entry);
-    }
-    config.themeOrder = order;
+  const config: { brand?: string; componentsDir?: string; strictness?: "strict" | "balanced" | "lenient"; icons?: { collection?: string } } = {};
+  if (typeof record["brand"] === "string") config.brand = record["brand"];
+  if (typeof record["componentsDir"] === "string") config.componentsDir = record["componentsDir"];
+  if (
+    record["strictness"] === "strict" ||
+    record["strictness"] === "balanced" ||
+    record["strictness"] === "lenient"
+  ) {
+    config.strictness = record["strictness"];
   }
-  if (Array.isArray(record["contractThemes"])) {
-    const seen = new Set<string>();
-    const names: string[] = [];
-    for (const entry of record["contractThemes"]) {
-      if (typeof entry !== "string" || seen.has(entry)) continue;
-      seen.add(entry);
-      names.push(entry);
-    }
-    config.contractThemes = names;
+  const icons = record["icons"];
+  if (typeof icons === "object" && icons !== null && !Array.isArray(icons)) {
+    const collection = (icons as Record<string, unknown>)["collection"];
+    if (typeof collection === "string") config.icons = { collection };
   }
   return { config, file: join(PROJECT_DIR, CONFIG_FILENAME) };
 }
@@ -1182,8 +1167,8 @@ export async function readConfig(
  * Writes the project's own configuration.
  *
  * The `spin/` directory is created rather than demanded, the same as a
- * first theme write. Shape only is validated — an `activeTheme` that names
- * no served theme still writes, and the studio's fallback chain absorbs it.
+ * first theme write. Shape only is validated against the config schema —
+ * a `brand` that names no served brand still writes.
  */
 export async function writeConfig(
   root: string,

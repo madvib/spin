@@ -36,10 +36,10 @@ worth linting, not a reason to stop.
 
 Report any hang as a correctness bug with the file attached.
 
-## One engine, four doors
+## One engine, three doors
 
-`spin lint`, the oxlint and ESLint adapters, `spin lsp`, and the
-vocabulary-only build gate are one engine behind four doors. The adapters
+The oxlint and ESLint plugins, `spin lsp`, and the
+vocabulary-only build gate are one engine behind three doors. The plugins
 are compatibility layers for setups you already run — prefer the LSP for
 editor integration. The build gate reads vocabulary only: style choices
 never fail a build the author did not ask it to judge.

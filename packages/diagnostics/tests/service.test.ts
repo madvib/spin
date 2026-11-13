@@ -135,20 +135,21 @@ test("the check answers with what the harness found", async () => {
   deepStrictEqual(quiet.code, 0);
 });
 
-test("a broken spin theme is reported gate by gate", async () => {
-  // The lint reads the themes beside the sources: a `spin/*.json` document
-  // that fails the battery lands as `spin/theme-*` findings.
-  const { mkdir, writeFile } = await import("node:fs/promises");
+test("a broken composed theme is reported gate by gate", async () => {
+  // A composed document handed to the lint owes the full contract: a
+  // document that fails the battery lands as `spin/theme-*` findings.
+  // Brand layers are fragments and owe nothing; a composed document owes
+  // everything.
+  const { writeFile } = await import("node:fs/promises");
   const { designLanguages } = await import("@spinjs/theme");
   const directory = await mkdtemp(join(tmpdir(), "spin-"));
   try {
-    await mkdir(join(directory, "spin"), { recursive: true });
     const doc = structuredClone(designLanguages.minimal) as unknown as Record<string, unknown>;
     const spacing = doc["spacing"] as Record<string, unknown>;
     spacing["4"] = { $type: "dimension", $value: "0.125rem" };
-    await writeFile(join(directory, "spin", "acme.json"), JSON.stringify(doc, null, 2));
-    await writeFile(join(directory, "app.tsx"), CLEAN);
-    const report = await lint(directory);
+    const file = join(directory, "acme.json");
+    await writeFile(file, JSON.stringify(doc, null, 2));
+    const report = await lint(file);
     const themed = report.findings.filter((finding) => finding.ruleId.startsWith("spin/theme-"));
     assert(themed.length > 0, "expected a spin/theme-* finding");
     const scales = themed.find((finding) => finding.ruleId === "spin/theme-scales");

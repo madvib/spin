@@ -88,8 +88,8 @@ describe("daemon project.themes over HTTP", () => {
     deepStrictEqual(
       listed.map((t) => [t.name, t.file]),
       [
-        ["acme", "spin/acme"],
-        ["birch", "spin/birch"],
+        ["acme", "spin/acme/tokens.json"],
+        ["birch", "spin/birch/tokens.json"],
       ],
       "a brand carries its identity path; a fixture with no brand lists nothing else",
     );
@@ -156,8 +156,8 @@ describe("daemon project.themes over HTTP", () => {
         (await client.project.themes.list({ root: branded })).find(
           (t) => t.name === "brand",
         )?.file,
-        "spin/brand.json",
-        "the fork is the project's own file",
+        "spin/brand/tokens.json",
+        "the fork is the project's own brand directory",
       );
       const removed = await client.project.themes.remove({
         name: "brand",
@@ -219,10 +219,10 @@ describe("daemon project.themes over HTTP", () => {
     // what a shared module root would do — and this test failed until the
     // root became a per-call answer.
     const other = mkdtempSync(join(tmpdir(), "spin-other-"));
-    mkdirSync(join(other, "spin"));
+    mkdirSync(join(other, "spin", "solo"), { recursive: true });
     copyFileSync(
       join(fixture.pathname, "acme", "tokens.json"),
-      join(other, "spin", "solo.json"),
+      join(other, "spin", "solo", "tokens.json"),
     );
     const theirs = await client.project.themes.list({ root: other });
     deepStrictEqual(
@@ -299,7 +299,7 @@ describe("daemon project.themes over HTTP", () => {
       root: fresh,
     });
     deepStrictEqual(written.error, null);
-    deepStrictEqual(readdirSync(join(fresh, "spin")), ["first.json"]);
+    deepStrictEqual(readdirSync(join(fresh, "spin")), ["first"]);
     const detected = await client.project.detect({ root: fresh });
     deepStrictEqual(detected.spin, true, "the write made the project");
     rmSync(fresh, { recursive: true, force: true });
@@ -370,17 +370,17 @@ describe("daemon project.themes over HTTP", () => {
   });
 
   it("writes a config and reads it back, over HTTP", async () => {
-    // The studio's seat and order persist through the daemon, not around it:
-    // the write lands in spin/config.json and the read names the file, so a
+    // The project's facts persist through the daemon, not around it: the
+    // write lands in spin/config.json and the read names the file, so a
     // client can tell an author their values are written rather than default.
     const wrote = await client.project.config.write({
-      config: { activeTheme: "acme", themeOrder: ["acme", "birch"] },
+      config: { brand: "acme", strictness: "balanced" },
     });
     deepStrictEqual(wrote.error, null);
     const read = await client.project.config.read({});
     deepStrictEqual(read.config, {
-      activeTheme: "acme",
-      themeOrder: ["acme", "birch"],
+      brand: "acme",
+      strictness: "balanced",
     });
     deepStrictEqual(read.file, "spin/config.json");
   });

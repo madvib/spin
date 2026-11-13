@@ -29,20 +29,9 @@ export default defineConfig({
         palettes: demoPalettes,
         spacings: demoSpacings,
       },
-      /*
-       * The docs' own compositions, declared inline because the project
-       * reader takes them from this file's text: the lint and the reference
-       * both spend this table, so an indirection through a constant would
-       * silently empty the project's vocabulary.
-       */
-      shortcuts: {
-        "stack-sm": "flex flex-col gap-2",
-        "stack-xs": "flex flex-col gap-1",
-        stack: "flex flex-col gap-4",
-        "row-sm": "flex items-center gap-2",
-        row: "flex items-center gap-4",
-        split: "flex items-center justify-between gap-4",
-      },
+      // The docs' own compositions live in `spin/shortcuts.json` beside
+      // the brands: the build compiles them and the lint judges them from
+      // the one table.
       presets: [
         presetIcons({
           extraProperties: { display: "inline-block", "vertical-align": "middle" },

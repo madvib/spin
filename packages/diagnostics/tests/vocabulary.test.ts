@@ -8,7 +8,6 @@ import {
   resolveAliases,
   designLanguages,
 } from "@spinjs/theme";
-import { shortcutsIn } from "@spinjs/server/project";
 import {
   checkClosedVocabulary,
   type ClassFacts,
@@ -111,7 +110,7 @@ test("a composition the project does not declare is unknown", () => {
     { acme: projectTheme() },
     engineAnswers([...Object.values(designLanguages), projectTheme()]),
     new Set(),
-    shortcutsIn(`spin.vite({ shortcuts: { stack: "flex flex-col gap-4" } })`),
+    { shortcuts: { stack: ["flex", "flex-col", "gap-4"] }, unreadable: false },
   );
   deepStrictEqual(reported(declared, "stack"), []);
   const bare = projectFacts({ acme: projectTheme() }, engineAnswers([...Object.values(designLanguages), projectTheme()]), new Set());

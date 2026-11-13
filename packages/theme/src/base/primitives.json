@@ -21,6 +21,13 @@
       "$description": "The style every button reads. The label style, unless the theme names another.",
       "$value": "{font.style.label}"
     },
+    "s-xs": {
+      "type": {
+        "$type": "typography",
+        "$description": "The style an extra-small button reads. The code style it already wears, unless the theme names another.",
+        "$value": "{font.style.code}"
+      }
+    },
     "s-sm": {
       "type": {
         "$type": "typography",
@@ -67,6 +74,13 @@
       "type": {
         "$type": "typography",
         "$description": "The style a ghost button reads when it reads one. Undeclared, it inherits the button's style.",
+        "$value": "{font.style.label}"
+      }
+    },
+    "subtle": {
+      "type": {
+        "$type": "typography",
+        "$description": "The style a subtle button reads when it reads one. Undeclared, it inherits the button's style.",
         "$value": "{font.style.label}"
       }
     },

@@ -176,7 +176,7 @@ export function buildThemeMarkdown(routePath: string): string | undefined {
         (f) => `- \`${f.fg}\` on \`${f.bg}\`: **≥ ${f.min}:1**`,
       ).join("\n");
       return [
-        "## Lint and CLI Theme Commands (`npx spin lint`)",
+        "## Lint and CLI Theme Commands (`npx oxlint`)",
         "",
         "```bash",
         THEMES_SNIPPETS.cliAnalyze,

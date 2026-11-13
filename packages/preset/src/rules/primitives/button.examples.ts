@@ -64,6 +64,16 @@ export const BUTTON_CLASSES: readonly ClassDoc[] = [
     description: "Transparent chrome with no border or shadow until hovered",
   },
   {
+    name: ".subtle",
+    kind: "Style",
+    description: "Raised surface with the default edge and page ink, no shadow; settles to the page surface on hover",
+  },
+  {
+    name: ".s-xs",
+    kind: "Size",
+    description: "Extra-small toolbar height with the code style and compact padding",
+  },
+  {
     name: ".s-sm",
     kind: "Size",
     description: "Small button height and compact text size",
@@ -113,13 +123,15 @@ export const BUTTON_EXAMPLES: readonly ButtonExample[] = [
     html: row(
       `  <button class="outline">Outline</button>
   <button class="ghost">Ghost</button>
+  <button class="subtle">Subtle</button>
   <button class="bare">Bare reset</button>`,
     ),
   },
   {
     name: "Button sizes",
     html: row(
-      `  <button class="s-sm">Small</button>
+      `  <button class="s-xs">Extra small</button>
+  <button class="s-sm">Small</button>
   <button>Default</button>
   <button class="s-lg">Large</button>`,
     ),

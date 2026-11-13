@@ -75,18 +75,18 @@ test("an id the app does not import is left to someone else", async () => {
   deepStrictEqual(await plugin.resolveId!("/src/app.tsx"), null);
 });
 
-test("a project without themes in config reads spin/*.json from disk", async () => {
-  // The out-of-the-box path: a theme dropped in `spin/` is live with no
+test("a project without themes in config reads brand directories from disk", async () => {
+  // The out-of-the-box path: a brand dropped in `spin/` is live with no
   // config, which is the shape a real app has.
   const root = await mkdtemp(join(tmpdir(), "spin-"));
-  await mkdir(`${root}/spin`);
+  await mkdir(`${root}/spin/brand`, { recursive: true });
   const doc = structuredClone(designLanguages.minimal) as Record<
     string,
     Record<string, Record<string, string>>
   >;
   doc.color.primary.$value = "#b91c1c";
   await writeFile(
-    `${root}/spin/brand.json`,
+    `${root}/spin/brand/tokens.json`,
     JSON.stringify(doc),
   );
   const stages = spin.vite({ content: { filesystem: [] } }) as unknown as ViteOptions[];

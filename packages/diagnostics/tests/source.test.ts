@@ -35,10 +35,10 @@ async function project(
   config = `export default { plugins: [] };`,
 ): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), "spin-"));
-  await mkdir(`${root}/spin`);
+  await mkdir(`${root}/spin/spin`, { recursive: true });
   await mkdir(`${root}/src`);
   await writeFile(`${root}/src/app.tsx`, source);
-  await writeFile(`${root}/spin/spin.json`, JSON.stringify(shippedLanguage));
+  await writeFile(`${root}/spin/spin/tokens.json`, JSON.stringify(shippedLanguage));
   await writeFile(`${root}/vite.config.ts`, config);
   return root;
 }
@@ -248,21 +248,9 @@ test("the class lists are written in the order the sheet writes them", async () 
   }
 });
 
-test("a shortcut is declared in the project's own configuration", async () => {
+test("a shortcut is declared in the project's own shortcuts file", async () => {
   const root = await project(
     `export const App = () => <span className="flex flex-col gap-4" />;
-`,
-    `import { spin } from "@spinjs/preset";
-
-export default {
-  plugins: [
-    spin.vite({
-      shortcuts: {
-        "row": "flex items-center gap-4",
-      },
-    }),
-  ],
-};
 `,
   );
   try {
@@ -272,8 +260,8 @@ export default {
       "gap-4",
     ]);
     deepStrictEqual(declared.error, null);
-    deepStrictEqual(declared.file, "vite.config.ts");
-    const text = await readFile(`${root}/vite.config.ts`, "utf8");
+    deepStrictEqual(declared.file, join("spin", "shortcuts.json"));
+    const text = await readFile(join(root, "spin", "shortcuts.json"), "utf8");
     assert(
       text.includes('"stack": "flex flex-col gap-4"'),
       `the shortcut was not declared: ${text}`,
@@ -292,13 +280,37 @@ export default {
   }
 });
 
-test("a project with no configuration is told where a shortcut would go", async () => {
+test("a declaration keeps the table it joins", async () => {
+  const root = await project(
+    `export const App = () => <span className="flex" />;
+`,
+  );
+  try {
+    await writeFile(
+      join(root, "spin", "shortcuts.json"),
+      JSON.stringify({ row: "flex items-center gap-4" }),
+    );
+    const declared = await declareShortcut(root, "stack", ["flex"]);
+    deepStrictEqual(declared.error, null);
+    deepStrictEqual(JSON.parse(await readFile(join(root, "spin", "shortcuts.json"), "utf8")), {
+      row: "flex items-center gap-4",
+      stack: "flex",
+    });
+  } finally {
+    await rm(root, { recursive: true });
+  }
+});
+
+test("a project with no shortcuts file gets one", async () => {
   const root = await mkdtemp(join(tmpdir(), "spin-"));
   try {
-    await mkdir(`${root}/spin`);
+    await mkdir(join(root, "spin"));
     const declared = await declareShortcut(root, "stack", ["flex"]);
-    assert(declared.error !== null, "there is nowhere to declare it");
-    deepStrictEqual(declared.file, null);
+    deepStrictEqual(declared.error, null);
+    deepStrictEqual(declared.file, join("spin", "shortcuts.json"));
+    deepStrictEqual(JSON.parse(await readFile(join(root, "spin", "shortcuts.json"), "utf8")), {
+      stack: "flex",
+    });
   } finally {
     await rm(root, { recursive: true });
   }
@@ -497,9 +509,9 @@ test("classList, variant attribute, dynamic interpolation, inline style, and Vue
 test("markup files report style blocks and inline theme styles, not document shells", async () => {
   const root = await mkdtemp(join(tmpdir(), "spin-"));
   try {
-    await mkdir(`${root}/spin`);
+    await mkdir(`${root}/spin/spin`, { recursive: true });
     await mkdir(`${root}/src`);
-    await writeFile(`${root}/spin/spin.json`, JSON.stringify(shippedLanguage));
+    await writeFile(`${root}/spin/spin/tokens.json`, JSON.stringify(shippedLanguage));
     await writeFile(`${root}/vite.config.ts`, `export default {};`);
     await writeFile(
       `${root}/src/card.html`,
