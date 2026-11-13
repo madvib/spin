@@ -1,6 +1,6 @@
 {
   "name": "@spinjs/dev",
-  "version": "0.2.0-alpha.1",
+  "version": "0.2.0-alpha.2",
   "description": "The Spin toolchain: bundler plugins, UnoCSS preset, theme engine, Studio, CLI, LSP, lints, and MCP server.",
   "type": "module",
   "license": "MIT",

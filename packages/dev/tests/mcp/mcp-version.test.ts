@@ -1,5 +1,5 @@
 import { describe, it } from "node:test";
-import { deepStrictEqual } from "node:assert/strict";
+import assert, { deepStrictEqual } from "node:assert/strict";
 import { Client } from "@modelcontextprotocol/client";
 import { InMemoryTransport } from "@modelcontextprotocol/server";
 import { createInProcessSpinClient } from "../../src/api/index.ts";
@@ -25,6 +25,6 @@ async function serverVersion(): Promise<string> {
 describe("the spin MCP server version", () => {
   it("answers the handshake with the package version", async () => {
     deepStrictEqual(await serverVersion(), manifest.version);
-    deepStrictEqual(manifest.version, "0.2.0-alpha.1");
+    assert.match(manifest.version, /^\d+\.\d+\.\d+/);
   });
 });

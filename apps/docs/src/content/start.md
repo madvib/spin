@@ -8,4 +8,4 @@ Spin brings your design tokens, HTML element styles, layout utilities, and inter
 - **Portable interactive components.** Copy accessible statechart templates for selects, comboboxes, menus, tabs, date pickers, and floating panels into your project and use them in React, Solid, Vue, Svelte, or plain HTML.
 - **Static guardrails & MCP server.** Built-in lint rules catch unreadable contrast pairs and conflicting styles in your editor and CI, while the included MCP server gives coding agents live access to your theme and component library.
 
-> **Public Alpha (`0.2.0-alpha.1`)** — Spin's theme engine, Studio, HTML primitives, layout utilities, and 40 statechart components are working today under the MIT license. Expect occasional refinements to token names and compiler options on the road to 1.0.
+> **Public Alpha (`0.2.0-alpha.2`)** — Spin's theme engine, Studio, HTML primitives, layout utilities, and 40 statechart components are working today under the MIT license. Expect occasional refinements to token names and compiler options on the road to 1.0.
